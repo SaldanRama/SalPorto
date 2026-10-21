@@ -1,20 +1,26 @@
 import React from 'react';
 import { ArrowUpRight, Compass, Code, Sparkles, BookOpen } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
+import { BiographyBento } from '@/components/biography/BiographyBento';
 
 export function AboutPage() {
   return (
     <div className="section">
-      <div className="container" style={{ maxWidth: '1000px' }}>
+      <div className="container" style={{ maxWidth: '1200px' }}>
         {/* Title */}
         <div style={{ marginBottom: '3.5rem' }}>
-          <span className="section-label">Biography & Ethos</span>
+          <span className="section-label">Biography & Credentials</span>
           <h1 className="font-serif" style={{ fontSize: 'var(--text-h1)', marginBottom: '1.5rem' }}>
             Bridging design rationale with <span className="font-serif-italic">technical execution</span>.
           </h1>
           <p style={{ fontSize: '1.2rem', color: 'var(--muted)', lineHeight: 1.7, maxWidth: '800px' }}>
-            I’m Saldan Rama, an Information Systems student and creative technologist based in Makassar, Indonesia. My work centers on designing intuitive interfaces, engineering clean web experiences, and shaping coherent visual identities.
+            I’m Saldan Rama, an Information Systems graduate and creative technologist based in Makassar, Indonesia. My work centers on designing intuitive interfaces, engineering clean web experiences, and shaping coherent visual identities.
           </p>
+        </div>
+
+        {/* Executive Bento Biography with Interactive 3D Keyboard */}
+        <div style={{ marginBottom: '4.5rem' }}>
+          <BiographyBento />
         </div>
 
         {/* Philosophy Grid */}

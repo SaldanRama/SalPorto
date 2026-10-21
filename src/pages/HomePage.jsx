@@ -1,8 +1,9 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowUpRight, ArrowRight, ArrowDown, Sparkles, Layers, Code, Palette, GraduationCap, MapPin, Briefcase } from 'lucide-react';
+import { ArrowUpRight, ArrowRight, ArrowDown, Sparkles, Layers, Code, Palette } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { HeroVisual3D } from '@/components/hero/HeroVisual3D';
+import { BiographyBento } from '@/components/biography/BiographyBento';
 import { mockProjects } from '@/data/mockData';
 import './HomePage.css';
 
@@ -32,70 +33,24 @@ export function HomePage() {
         </div>
       </section>
 
-      {/* SECTION 2: ABOUT / MANIFESTO & CAPABILITIES (Distinct Background & 2-Col Layout) */}
-      <section id="about-manifesto" className="section-manifesto" aria-label="About & Manifesto">
+      {/* SECTION 2: BIOGRAPHY BENTO & CORE PILLARS (Layout as requested by user) */}
+      <section id="about-manifesto" className="section-manifesto" aria-label="About & Biography">
         <div className="container">
-          <div className="manifesto-grid">
-            {/* Left Column: Vision Headline & Primary Actions */}
-            <div data-reveal="fade-up">
-              <span className="section-label">01 / Ethos & Vision</span>
-              <h1 className="manifesto-headline">
-                Designing digital products with <em>substance</em>, clarity, and intent.
-              </h1>
-              <div className="manifesto-actions">
-                <Button to="/work" variant="primary" size="lg">
-                  <span>Explore Selected Work</span>
-                  <ArrowRight size={16} />
-                </Button>
-                <Button to="/about" variant="secondary" size="lg">
-                  <span>Full Biography</span>
-                  <ArrowUpRight size={16} />
-                </Button>
-              </div>
-            </div>
-
-            {/* Right Column: Bio Narrative & Verified Fast Facts */}
-            <div className="manifesto-right-content" data-reveal="fade-up" data-reveal-delay="150">
-              <p className="manifesto-bio-p">
-                I’m <strong>Saldan Rama</strong>, an Information Systems graduate from <strong>Hasanuddin University</strong> and creative technologist based in Makassar. I combine user-centered design, modern front-end engineering, and graphic craft to build digital experiences that feel human and dependable.
-              </p>
-
-              {/* Fast Facts Card */}
-              <div className="fast-facts-panel">
-                <div>
-                  <div className="fact-item-label" style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
-                    <GraduationCap size={13} color="var(--accent-strong)" />
-                    <span>Education</span>
-                  </div>
-                  <div className="fact-item-value">Bachelor of Information System</div>
-                  <div style={{ fontSize: '0.8rem', color: 'var(--muted)', marginTop: '2px' }}>Hasanuddin University</div>
-                </div>
-
-                <div>
-                  <div className="fact-item-label" style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
-                    <MapPin size={13} color="var(--accent-strong)" />
-                    <span>Location & Status</span>
-                  </div>
-                  <div className="fact-item-value">Makassar, Indonesia</div>
-                  <div style={{ fontSize: '0.8rem', color: 'var(--muted)', marginTop: '2px' }}>Open for Freelance & Roles</div>
-                </div>
-
-                <div style={{ gridColumn: '1 / -1' }}>
-                  <div className="fact-item-label" style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
-                    <Briefcase size={13} color="var(--accent-strong)" />
-                    <span>Core Discipline</span>
-                  </div>
-                  <div className="fact-item-value">UI/UX Systems • Modern Web Dev • Visual Identity</div>
-                </div>
-              </div>
-            </div>
+          <div style={{ maxWidth: '850px', marginBottom: '2.5rem' }} data-reveal="fade-up">
+            <span className="section-label">01 / Profile & Track Record</span>
+            <h2 className="manifesto-headline" style={{ marginBottom: '1.25rem' }}>
+              Designing digital products with <em>substance</em>, clarity, and intent.
+            </h2>
           </div>
+
+          {/* Executive Biography Bento Card with Interactive 3D Keyboard */}
+          <BiographyBento />
 
           {/* Capabilities Grid */}
           <div className="capabilities-wrap">
             <div className="capabilities-header-row" data-reveal="fade-up">
               <span className="section-label">Core Pillars</span>
-              <h2 className="section-title">What I Bring to the Table</h2>
+              <h3 className="section-title">What I Bring to the Table</h3>
             </div>
 
             <div className="capabilities-grid">
@@ -103,7 +58,7 @@ export function HomePage() {
                 <span className="capability-num">01 / Focus</span>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
                   <Layers size={18} color="var(--accent-strong)" />
-                  <h3 className="capability-title">UI/UX Design</h3>
+                  <h4 className="capability-title">UI/UX Design</h4>
                 </div>
                 <p className="capability-desc">
                   Double Diamond methodology, user interviews, wireframing, component design systems, and rapid prototyping in Figma.
@@ -114,7 +69,7 @@ export function HomePage() {
                 <span className="capability-num">02 / Focus</span>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
                   <Code size={18} color="var(--accent-strong)" />
-                  <h3 className="capability-title">Front-End Dev</h3>
+                  <h4 className="capability-title">Front-End Dev</h4>
                 </div>
                 <p className="capability-desc">
                   Building accessible, performant, and responsive web applications with React, Vite, semantic standards, and fluid CSS.
@@ -125,7 +80,7 @@ export function HomePage() {
                 <span className="capability-num">03 / Focus</span>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
                   <Palette size={18} color="var(--accent-strong)" />
-                  <h3 className="capability-title">Graphic Design</h3>
+                  <h4 className="capability-title">Graphic Design</h4>
                 </div>
                 <p className="capability-desc">
                   Visual brand identities, promotional collateral, packaging systems, and editorial typography that communicate clearly.
