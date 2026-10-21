@@ -1,0 +1,35 @@
+.site-layout {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  background-color: var(--bg);
+}
+
+.site-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  outline: none;
+  position: relative;
+  z-index: 1;
+}
+
+/* Accessibility: Skip to Content Link */
+.skip-to-content {
+  position: absolute;
+  top: -100px;
+  left: 1.5rem;
+  background: var(--inverse);
+  color: var(--inverse-text);
+  padding: 0.75rem 1.25rem;
+  border-radius: var(--radius-pill);
+  font-weight: 500;
+  z-index: 9999;
+  transition: top 200ms ease;
+  text-decoration: none;
+}
+
+.skip-to-content:focus {
+  top: 1.5rem;
+}

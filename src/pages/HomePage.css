@@ -1,0 +1,389 @@
+/* ==========================================================================
+   HOMEPAGE STYLING - DISTINCT SECTIONAL ARCHITECTURE
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   SECTION 1: TOP 3D STAGE SECTION (First screen upon arrival)
+   -------------------------------------------------------------------------- */
+.section-hero-stage {
+  padding-top: clamp(1.5rem, 3vw, 2.5rem);
+  padding-bottom: clamp(2rem, 4vw, 3.5rem);
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  overflow: hidden;
+}
+
+.stage-top-bar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 0.5rem;
+  z-index: 5;
+}
+
+/* Scroll indicator below the 3D stage */
+.stage-scroll-cue {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.4rem;
+  margin-top: 1rem;
+  color: var(--muted);
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-weight: 500;
+  text-decoration: none;
+  transition: color var(--transition-fast), transform var(--transition-fast);
+  z-index: 5;
+}
+
+.stage-scroll-cue:hover {
+  color: var(--text);
+  transform: translateY(2px);
+}
+
+.scroll-cue-icon {
+  animation: bounceSlow 2.2s infinite ease-in-out;
+}
+
+@keyframes bounceSlow {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(5px); }
+}
+
+/* --------------------------------------------------------------------------
+   SECTION 2: ABOUT & MANIFESTO SECTION (Different Background & 2-Col Layout)
+   -------------------------------------------------------------------------- */
+.section-manifesto {
+  background-color: var(--surface);
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+  padding-top: clamp(4.5rem, 8vw, 7.5rem);
+  padding-bottom: clamp(4.5rem, 8vw, 7.5rem);
+  position: relative;
+}
+
+.manifesto-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 3.5rem;
+  align-items: start;
+}
+
+@media (min-width: 960px) {
+  .manifesto-grid {
+    grid-template-columns: 1.25fr 1fr;
+    gap: 5rem;
+  }
+}
+
+.manifesto-headline {
+  font-family: var(--font-serif);
+  font-size: var(--text-h1);
+  line-height: 1.02;
+  letter-spacing: -0.02em;
+  color: var(--text);
+  margin-top: 0.5rem;
+  margin-bottom: 2.25rem;
+}
+
+.manifesto-headline em {
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-weight: 400;
+}
+
+.manifesto-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  align-items: center;
+  margin-top: 2rem;
+}
+
+/* Right Column Details & Fast Facts */
+.manifesto-right-content {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.manifesto-bio-p {
+  font-size: clamp(1.05rem, 1.4vw, 1.2rem);
+  line-height: 1.7;
+  color: var(--muted);
+}
+
+.manifesto-bio-p strong {
+  color: var(--text);
+  font-weight: 600;
+}
+
+/* Fast Facts Strip */
+.fast-facts-panel {
+  background: var(--bg);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  padding: 1.5rem;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.25rem;
+}
+
+@media (min-width: 600px) {
+  .fast-facts-panel {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.fact-item-label {
+  font-size: 0.725rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-weight: 600;
+  color: var(--muted);
+  margin-bottom: 0.25rem;
+}
+
+.fact-item-value {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--text);
+  line-height: 1.35;
+}
+
+/* Capabilities Grid inside Manifesto */
+.capabilities-wrap {
+  margin-top: clamp(3.5rem, 6vw, 5rem);
+  padding-top: clamp(2.5rem, 5vw, 4rem);
+  border-top: 1px solid var(--line);
+}
+
+.capabilities-header-row {
+  margin-bottom: 2rem;
+}
+
+.capabilities-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.5rem;
+}
+
+@media (min-width: 768px) {
+  .capabilities-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.capability-card {
+  background: var(--bg);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  padding: 2rem 1.75rem;
+  box-shadow: var(--shadow-subtle);
+  transition: transform var(--transition-normal), border-color var(--transition-normal), box-shadow var(--transition-normal);
+  position: relative;
+  overflow: hidden;
+}
+
+.capability-card:hover {
+  transform: translateY(-5px);
+  border-color: var(--accent-strong);
+  box-shadow: var(--shadow-card);
+}
+
+.capability-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 70px;
+  height: 70px;
+  background: radial-gradient(circle at top right, var(--accent) 0%, transparent 70%);
+  opacity: 0.7;
+}
+
+.capability-num {
+  font-family: var(--font-serif);
+  font-size: 1.15rem;
+  color: var(--muted);
+  margin-bottom: 1.25rem;
+  display: block;
+}
+
+.capability-title {
+  font-family: var(--font-sans);
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 0.65rem;
+}
+
+.capability-desc {
+  font-size: 0.9rem;
+  color: var(--muted);
+  line-height: 1.6;
+}
+
+/* --------------------------------------------------------------------------
+   SECTION 3: SELECTED WORK (High-contrast card grid)
+   -------------------------------------------------------------------------- */
+.section-work-showcase {
+  padding-top: clamp(4.5rem, 8vw, 7.5rem);
+  padding-bottom: clamp(4.5rem, 8vw, 7.5rem);
+  background-color: var(--bg);
+}
+
+.section-header-row {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-bottom: 3.5rem;
+}
+
+@media (min-width: 768px) {
+  .section-header-row {
+    flex-direction: row;
+    align-items: flex-end;
+    justify-content: space-between;
+  }
+}
+
+.section-label {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  display: block;
+}
+
+.section-title {
+  font-family: var(--font-serif);
+  font-size: var(--text-h2);
+  line-height: 1.1;
+  color: var(--text);
+}
+
+/* Projects Grid */
+.projects-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 2rem;
+}
+
+@media (min-width: 768px) {
+  .projects-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 1100px) {
+  .projects-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.project-card {
+  background-color: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  box-shadow: var(--shadow-subtle);
+  transition: transform var(--transition-normal), border-color var(--transition-normal), box-shadow var(--transition-normal);
+  text-decoration: none;
+}
+
+.project-card:hover {
+  transform: translateY(-6px);
+  border-color: var(--accent-strong);
+  box-shadow: var(--shadow-card);
+}
+
+.project-card-image-box {
+  width: 100%;
+  aspect-ratio: 16 / 10;
+  background: linear-gradient(135deg, var(--surface) 0%, var(--bg) 100%);
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-bottom: 1px solid var(--line);
+  overflow: hidden;
+}
+
+.project-card-placeholder-graphic {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  text-align: center;
+  background: radial-gradient(circle at 50% 50%, var(--accent) 0%, transparent 75%);
+  opacity: 0.45;
+  transition: opacity var(--transition-normal), transform var(--transition-normal);
+}
+
+.project-card:hover .project-card-placeholder-graphic {
+  opacity: 0.7;
+  transform: scale(1.03);
+}
+
+.project-card-body {
+  padding: 1.75rem;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.project-card-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.85rem;
+  font-size: 0.8125rem;
+  color: var(--muted);
+}
+
+.project-card-title {
+  font-family: var(--font-serif);
+  font-size: 1.65rem;
+  line-height: 1.2;
+  color: var(--text);
+  margin-bottom: 0.75rem;
+}
+
+.project-card-summary {
+  font-size: 0.9375rem;
+  color: var(--muted);
+  line-height: 1.55;
+  margin-bottom: 1.5rem;
+  flex: 1;
+}
+
+.project-card-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 1rem;
+  border-top: 1px solid var(--line);
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--text);
+}
+
+.project-card-footer svg {
+  transition: transform var(--transition-fast);
+}
+
+.project-card:hover .project-card-footer svg {
+  transform: translate(3px, -3px);
+}

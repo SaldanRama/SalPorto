@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Saldan Rama — Creative Technologist & UI/UX Designer</title>
+    <meta
+      name="description"
+      content="Personal portfolio of Saldan Rama: Information Systems student and creative technologist specializing in UI/UX design, front-end development, and graphic design."
+    />
+    
+    <!-- Google Fonts: Editorial Serif Suite for Dynamic Typography & Bold Weights -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@0,700;0,800;1,6..96,400;1,6..96,600&family=Cormorant+Garamond:ital,wght@1,400;1,600&family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&family=Instrument+Serif:ital@0;1&family=Newsreader:ital,opsz,wght@1,6..72,400;1,6..72,600&family=Playfair+Display:ital,wght@0,700;0,800;0,900;1,400;1,600&display=swap"
+      rel="stylesheet"
+    />
+
+    <!-- Prevent theme flash on page load -->
+    <script>
+      (function () {
+        try {
+          var saved = localStorage.getItem('salporto_theme');
+          var prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+          var theme = saved || (prefersDark ? 'dark' : 'light');
+          document.documentElement.setAttribute('data-theme', theme);
+          document.documentElement.style.colorScheme = theme;
+        } catch (e) {}
+      })();
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.jsx"></script>
+  </body>
+</html>

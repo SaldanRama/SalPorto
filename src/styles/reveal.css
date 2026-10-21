@@ -1,0 +1,60 @@
+/* Scroll-Triggered Reveal Animations */
+
+[data-reveal] {
+  opacity: 0;
+  will-change: opacity, transform;
+  transition-property: opacity, transform;
+  transition-duration: 700ms;
+  transition-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* Variant: Fade Up (Default) */
+[data-reveal],
+[data-reveal='fade-up'] {
+  transform: translateY(36px);
+}
+
+[data-reveal].is-revealed,
+[data-reveal='fade-up'].is-revealed {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Variant: Fade In */
+[data-reveal='fade-in'] {
+  transform: none;
+}
+
+[data-reveal='fade-in'].is-revealed {
+  opacity: 1;
+  transform: none;
+}
+
+/* Variant: Scale Up */
+[data-reveal='scale-up'] {
+  transform: scale(0.94);
+}
+
+[data-reveal='scale-up'].is-revealed {
+  opacity: 1;
+  transform: scale(1);
+}
+
+/* Stagger Delays */
+[data-reveal-delay='50'] { transition-delay: 50ms; }
+[data-reveal-delay='100'] { transition-delay: 100ms; }
+[data-reveal-delay='150'] { transition-delay: 150ms; }
+[data-reveal-delay='200'] { transition-delay: 200ms; }
+[data-reveal-delay='250'] { transition-delay: 250ms; }
+[data-reveal-delay='300'] { transition-delay: 300ms; }
+[data-reveal-delay='400'] { transition-delay: 400ms; }
+[data-reveal-delay='500'] { transition-delay: 500ms; }
+
+/* Accessibility: No animation if reduced motion is preferred */
+@media (prefers-reduced-motion: reduce) {
+  [data-reveal] {
+    opacity: 1 !important;
+    transform: none !important;
+    transition: none !important;
+  }
+}
