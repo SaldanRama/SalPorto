@@ -116,6 +116,51 @@ export function HeroVisual3D() {
 
   const currentFolioFont = folioFonts[folioFontIndex];
 
+  const portraitStageRef = useRef(null);
+  const spiderPortraitRef = useRef(null);
+  const [isSpiderHover, setIsSpiderHover] = useState(false);
+
+  const updateSpiderSpot = (clientX, clientY) => {
+    if (!portraitStageRef.current || !spiderPortraitRef.current) return;
+    const rect = portraitStageRef.current.getBoundingClientRect();
+    const x = Math.round(clientX - rect.left);
+    const y = Math.round(clientY - rect.top);
+    // Radius spotlight untuk hero portrait (circle 80px)
+    const mask = `radial-gradient(circle 80px at ${x}px ${y}px, black 0%, black 45%, transparent 100%)`;
+    spiderPortraitRef.current.style.maskImage = mask;
+    spiderPortraitRef.current.style.webkitMaskImage = mask;
+  };
+
+  const handlePortraitMouseMove = (e) => {
+    updateSpiderSpot(e.clientX, e.clientY);
+  };
+
+  const handlePortraitMouseEnter = (e) => {
+    setIsSpiderHover(true);
+    updateSpiderSpot(e.clientX, e.clientY);
+  };
+
+  const handlePortraitMouseLeave = () => {
+    setIsSpiderHover(false);
+  };
+
+  const handlePortraitTouchMove = (e) => {
+    if (e.touches && e.touches[0]) {
+      updateSpiderSpot(e.touches[0].clientX, e.touches[0].clientY);
+    }
+  };
+
+  const handlePortraitTouchStart = (e) => {
+    setIsSpiderHover(true);
+    if (e.touches && e.touches[0]) {
+      updateSpiderSpot(e.touches[0].clientX, e.touches[0].clientY);
+    }
+  };
+
+  const handlePortraitTouchEnd = () => {
+    setIsSpiderHover(false);
+  };
+
   return (
     <div
       className="hero-composition-wrap"
@@ -167,16 +212,38 @@ export function HeroVisual3D() {
         <div className="floating-card-caption">Prototyping, visual identity, and clean web engineering.</div>
       </div>
 
-      {/* Central Portrait Stage (Significantly enlarged) */}
+      {/* Central Portrait Stage (with interactive Spider-Man costume hover spotlight) */}
       <div className="hero-stage-center">
-        {/* Saldan Rama Cutout Portrait (Sitting at z-index: 5) */}
         {!imageError ? (
-          <img
-            src="/images/portrait.png"
-            alt="Saldan Rama"
-            className="hero-portrait-img"
-            onError={() => setImageError(true)}
-          />
+          <div
+            ref={portraitStageRef}
+            className={`hero-portrait-stage ${isSpiderHover ? 'is-revealing' : ''}`}
+            onMouseEnter={handlePortraitMouseEnter}
+            onMouseMove={handlePortraitMouseMove}
+            onMouseLeave={handlePortraitMouseLeave}
+            onTouchStart={handlePortraitTouchStart}
+            onTouchMove={handlePortraitTouchMove}
+            onTouchEnd={handlePortraitTouchEnd}
+            title="Hover cursor to reveal Spider-Man costume"
+          >
+            {/* Base Graduation Suit Portrait */}
+            <img
+              src="/images/portrait.png"
+              alt="Saldan Rama"
+              className="hero-portrait-img hero-portrait-base"
+              onError={() => setImageError(true)}
+              draggable="false"
+            />
+
+            {/* Spider-Man Reveal Costume */}
+            <img
+              ref={spiderPortraitRef}
+              src="/images/portraitSpider.png"
+              alt="Saldan Rama Spider-Man"
+              className="hero-portrait-img hero-portrait-spider"
+              draggable="false"
+            />
+          </div>
         ) : (
           <div className="hero-portrait-placeholder">
             <User size={64} strokeWidth={1.5} style={{ marginBottom: '0.75rem', color: 'var(--muted)' }} />
