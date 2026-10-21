@@ -15,13 +15,13 @@ export function BiographyBento() {
     const rect = photoRef.current.getBoundingClientRect();
     const x = Math.round(clientX - rect.left);
     const y = Math.round(clientY - rect.top);
-    // Radius diperbesar 10% (71px)
-    const r = 71;
+    // Radius diperkecil (~52px)
+    const r = 52;
 
-    // Gambar 2 (Spider-Man) muncul di dalam radius kursor
-    const spiderMask = `radial-gradient(circle ${r}px at ${x}px ${y}px, black 0%, black 50%, transparent 100%)`;
-    spiderRef.current.style.maskImage = spiderMask;
-    spiderRef.current.style.webkitMaskImage = spiderMask;
+    // Gambar 2 (Ultraman) muncul di dalam radius kursor
+    const costumeMask = `radial-gradient(circle ${r}px at ${x}px ${y}px, black 0%, black 50%, transparent 100%)`;
+    spiderRef.current.style.maskImage = costumeMask;
+    spiderRef.current.style.webkitMaskImage = costumeMask;
 
     // Gambar 1 (Foto awal) menghilang di dalam radius kursor digantikan gambar 2
     const baseMask = `radial-gradient(circle ${r}px at ${x}px ${y}px, transparent 0%, transparent 50%, black 100%)`;
@@ -89,7 +89,7 @@ export function BiographyBento() {
             onTouchStart={handleTouchStart}
             onTouchMove={handleTouchMove}
             onTouchEnd={handleTouchEnd}
-            title="Hover cursor to reveal Spider-Man costume"
+            title="Hover cursor to reveal Ultraman costume"
           >
             {/* Normal / Base Photo */}
             <img
@@ -103,12 +103,15 @@ export function BiographyBento() {
               draggable="false"
             />
 
-            {/* Spider-Man reveal layer */}
+            {/* Ultraman reveal layer */}
             <img
               ref={spiderRef}
-              src="/images/spiderman.png"
-              alt="Saldan Rama Spider-Man"
+              src="/images/salUltraman.png"
+              alt="Saldan Rama Ultraman"
               className="sal-photo-layer sal-photo-spiderman"
+              onError={(e) => {
+                e.currentTarget.src = '/images/salUltaman.png';
+              }}
               draggable="false"
             />
           </div>
