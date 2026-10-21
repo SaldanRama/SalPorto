@@ -1,6 +1,5 @@
 /* ==========================================================================
    EDITORIAL RESUME CARD — BIOGRAPHY BENTO
-   Full TKL Mechanical Keyboard + 4-column resume layout
    ========================================================================== */
 
 .editorial-resume-stage {
@@ -117,7 +116,6 @@
   justify-content: center;
 }
 
-/* Name block with two-tone styling */
 .resume-name-block {
   font-family: var(--font-serif);
   font-size: clamp(1.9rem, 3.2vw, 2.75rem);
@@ -144,7 +142,6 @@
   max-width: 42ch;
 }
 
-/* Horizontal buttons side-by-side */
 .resume-actions-horizontal {
   display: flex;
   flex-direction: row;
@@ -194,7 +191,7 @@
   align-items: center;
   justify-content: center;
   padding: 5px;
-  background-color: #FFFFFF;
+  background-color: #ffffff;
   border: 1px solid rgba(228, 226, 220, 0.9);
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
   overflow: hidden;
@@ -233,31 +230,12 @@
 }
 
 /* ==========================================================================
-   BOTTOM ROW: CONTACT + FULL TKL MECHANICAL KEYBOARD
+   BOTTOM ROW: CONTACT
    ========================================================================== */
 .resume-bottom-row {
   margin-top: 3rem;
   border-top: 1px solid var(--line);
   padding-top: 2.25rem;
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 2.5rem;
-  position: relative;
-}
-
-@media (min-width: 900px) {
-  .resume-bottom-row {
-    grid-template-columns: 1fr 1.6fr;
-    align-items: center;
-    gap: 3rem;
-  }
-}
-
-/* Contact Strip */
-.resume-contact-block {
-  display: flex;
-  flex-direction: column;
-  gap: 0.85rem;
 }
 
 .contact-items-grid {
@@ -293,296 +271,4 @@
 
 .contact-item-val:hover {
   color: var(--accent-strong);
-}
-
-/* ==========================================================================
-   FULL TKL MECHANICAL KEYBOARD — ANGLED 3D PERSPECTIVE VIEW
-   ========================================================================== */
-.corner-keyboard-container {
-  position: relative;
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  perspective: 900px;
-}
-
-/* Label running above keyboard */
-.keyboard-label-banner {
-  font-size: 0.6rem;
-  text-transform: uppercase;
-  letter-spacing: 0.25em;
-  font-weight: 700;
-  color: var(--muted);
-  margin-bottom: 0.75rem;
-  opacity: 0.7;
-}
-
-/* ===========================
-   KEYBOARD SHELL (The casing)
-   =========================== */
-.mechanical-keyboard-shell {
-  background: #1a1c22;
-  border-radius: 14px;
-  padding: 14px 14px 10px;
-  box-shadow:
-    0 2px 0 #111217,
-    0 12px 35px rgba(0, 0, 0, 0.65),
-    0 4px 12px rgba(0, 0, 0, 0.4),
-    inset 0 1px 1px rgba(255, 255, 255, 0.12),
-    inset 0 -1px 1px rgba(0, 0, 0, 0.5);
-  border: 1.5px solid rgba(255, 255, 255, 0.1);
-  transform: rotateX(18deg) rotateY(-4deg);
-  transform-style: preserve-3d;
-  transition: transform 350ms ease;
-  width: 100%;
-  max-width: 640px;
-  user-select: none;
-  cursor: default;
-}
-
-.mechanical-keyboard-shell:hover {
-  transform: rotateX(14deg) rotateY(-2deg) translateY(-4px);
-}
-
-/* Top bezel: brand + status LEDs */
-.keyboard-bezel-top {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 10px;
-  padding: 0 2px;
-}
-
-.keyboard-brand-mark {
-  font-size: 0.5rem;
-  font-weight: 800;
-  letter-spacing: 0.18em;
-  color: rgba(255, 255, 255, 0.25);
-  text-transform: uppercase;
-}
-
-.keyboard-status-leds {
-  display: flex;
-  gap: 4px;
-}
-
-.led {
-  width: 5px;
-  height: 5px;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.1);
-}
-
-.led.led-on {
-  background: #00e676;
-  box-shadow: 0 0 4px #00e676;
-}
-
-/* ===========================
-   KEY AREA
-   =========================== */
-.keyboard-keys-area {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-/* Each key row */
-.kb-row {
-  display: flex;
-  gap: 4px;
-  align-items: flex-end;
-}
-
-/* Row 0 (fn row) gets extra bottom gap */
-.kb-row-0 {
-  margin-bottom: 4px;
-}
-
-/* ===========================
-   INDIVIDUAL KEYCAP
-   =========================== */
-.keycap {
-  /* Base unit = 32px */
-  --ku: 32px;
-  --key-width: 1;
-
-  width: calc(var(--key-width) * var(--ku) + (var(--key-width) - 1) * 4px);
-  height: var(--ku);
-  flex-shrink: 0;
-
-  border: none;
-  background: transparent;
-  padding: 0;
-  cursor: pointer;
-  outline: none;
-  position: relative;
-}
-
-/* Fn row keys are slightly shorter */
-.kb-row-0 .keycap {
-  height: calc(var(--ku) * 0.8);
-}
-
-/* Spacebar row */
-.kb-row-5 .keycap {
-  height: calc(var(--ku) * 0.85);
-}
-
-/* The visible top face of the keycap */
-.keycap-top {
-  width: 100%;
-  height: 100%;
-  border-radius: 5px;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  justify-content: flex-end;
-  padding: 4px 5px;
-
-  background: linear-gradient(170deg, #2e3040 0%, #22242d 55%, #1c1e26 100%);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-bottom: 1px solid rgba(0, 0, 0, 0.6);
-
-  box-shadow:
-    0 4px 0 #0e0f12,
-    0 5px 8px rgba(0, 0, 0, 0.5),
-    inset 0 1px 1px rgba(255, 255, 255, 0.18),
-    inset 0 -1px 2px rgba(0, 0, 0, 0.3);
-
-  transition: all 70ms cubic-bezier(0.2, 0, 0.38, 1);
-  position: relative;
-  color: rgba(255, 255, 255, 0.85);
-}
-
-/* Hover lift effect */
-.keycap:hover .keycap-top {
-  background: linear-gradient(170deg, #353849 0%, #282b36 55%, #1e2028 100%);
-  box-shadow:
-    0 5px 0 #0e0f12,
-    0 7px 12px rgba(0, 0, 0, 0.5),
-    inset 0 1px 1px rgba(255, 255, 255, 0.22),
-    inset 0 -1px 2px rgba(0, 0, 0, 0.3);
-  transform: translateY(-1px);
-}
-
-/* Keypress — travel down */
-.keycap.is-pressed .keycap-top,
-.keycap:active .keycap-top {
-  transform: translateY(4px) !important;
-  box-shadow:
-    0 0px 0 #0e0f12,
-    0 1px 3px rgba(0, 0, 0, 0.4),
-    inset 0 1px 1px rgba(255, 255, 255, 0.08),
-    inset 0 2px 4px rgba(0, 0, 0, 0.4);
-}
-
-/* Keycap text labels */
-.keycap-label {
-  font-size: 0.52rem;
-  font-weight: 600;
-  line-height: 1;
-  color: rgba(255, 255, 255, 0.82);
-  pointer-events: none;
-  font-family: var(--font-sans);
-  letter-spacing: 0.01em;
-}
-
-.keycap-sub {
-  font-size: 0.42rem;
-  font-weight: 500;
-  color: rgba(255, 255, 255, 0.4);
-  pointer-events: none;
-  line-height: 1;
-  margin-bottom: 1px;
-  font-family: var(--font-sans);
-}
-
-/* Center label for wider/modifier keys */
-.keycap.key-wide .keycap-top,
-.keycap.key-space .keycap-top {
-  align-items: center;
-  justify-content: center;
-}
-
-/* Space bar extra styling */
-.keycap.key-space .keycap-top {
-  background: linear-gradient(170deg, #26283280 0%, #1a1c2480 100%);
-}
-
-/* ===========================
-   TOOL LOGO KEYCAPS
-   =========================== */
-.keycap-tool-icon {
-  width: 16px;
-  height: 16px;
-  object-fit: contain;
-  pointer-events: none;
-  display: block;
-  margin: auto;
-}
-
-/* Tool keycap centered */
-.keycap[class*='tool'] .keycap-top {
-  align-items: center;
-  justify-content: center;
-}
-
-/* Dark tool cap (default dark body) */
-.keycap.tool-dark .keycap-top {
-  background: linear-gradient(170deg, #1e2028 0%, #14151a 100%);
-  box-shadow:
-    0 4px 0 #090a0d,
-    0 5px 8px rgba(0, 0, 0, 0.55),
-    inset 0 1px 1px rgba(255, 255, 255, 0.12);
-}
-
-/* White / Figma keycap */
-.keycap.tool-white .keycap-top {
-  background: linear-gradient(170deg, #ffffff 0%, #e8eaee 100%);
-  border-color: rgba(255, 255, 255, 0.9);
-  box-shadow:
-    0 4px 0 #a0a4af,
-    0 5px 8px rgba(0, 0, 0, 0.3),
-    inset 0 1px 1px rgba(255, 255, 255, 0.85);
-  color: #111;
-}
-
-.keycap.tool-white:hover .keycap-top {
-  background: linear-gradient(170deg, #f5f7ff 0%, #dde0e8 100%);
-}
-
-/* Red accent (Caps Lock) */
-.keycap.key-red .keycap-top {
-  background: linear-gradient(170deg, #e63946 0%, #b91c28 100%);
-  box-shadow:
-    0 4px 0 #7a0f17,
-    0 5px 8px rgba(230, 57, 70, 0.4),
-    inset 0 1px 1px rgba(255, 255, 255, 0.3);
-}
-
-.keycap.key-red:hover .keycap-top {
-  background: linear-gradient(170deg, #f04050 0%, #c82330 100%);
-}
-
-/* Enter key accent */
-.keycap.key-enter .keycap-top {
-  background: linear-gradient(170deg, #2e3040 0%, #22242d 100%);
-}
-
-/* Bottom bezel */
-.keyboard-bezel-bottom {
-  display: flex;
-  justify-content: space-between;
-  padding: 6px 8px 0;
-}
-
-.keyboard-foot-left,
-.keyboard-foot-right {
-  width: 18px;
-  height: 3px;
-  background: rgba(255, 255, 255, 0.06);
-  border-radius: 2px;
 }
