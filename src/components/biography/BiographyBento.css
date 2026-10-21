@@ -84,8 +84,8 @@
   z-index: 2;
   opacity: 0;
   transition: opacity 0.22s ease-out;
-  mask-image: radial-gradient(circle 64px at -999px -999px, black 0%, black 45%, transparent 100%);
-  -webkit-mask-image: radial-gradient(circle 64px at -999px -999px, black 0%, black 45%, transparent 100%);
+  mask-image: radial-gradient(circle 71px at -999px -999px, black 0%, black 50%, transparent 100%);
+  -webkit-mask-image: radial-gradient(circle 71px at -999px -999px, black 0%, black 50%, transparent 100%);
   mask-repeat: no-repeat;
   -webkit-mask-repeat: no-repeat;
 }

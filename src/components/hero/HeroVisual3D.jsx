@@ -117,18 +117,27 @@ export function HeroVisual3D() {
   const currentFolioFont = folioFonts[folioFontIndex];
 
   const portraitStageRef = useRef(null);
+  const basePortraitRef = useRef(null);
   const spiderPortraitRef = useRef(null);
   const [isSpiderHover, setIsSpiderHover] = useState(false);
 
   const updateSpiderSpot = (clientX, clientY) => {
-    if (!portraitStageRef.current || !spiderPortraitRef.current) return;
+    if (!portraitStageRef.current || !spiderPortraitRef.current || !basePortraitRef.current) return;
     const rect = portraitStageRef.current.getBoundingClientRect();
     const x = Math.round(clientX - rect.left);
     const y = Math.round(clientY - rect.top);
-    // Radius spotlight untuk hero portrait (circle 80px)
-    const mask = `radial-gradient(circle 80px at ${x}px ${y}px, black 0%, black 45%, transparent 100%)`;
-    spiderPortraitRef.current.style.maskImage = mask;
-    spiderPortraitRef.current.style.webkitMaskImage = mask;
+    // Radius spotlight untuk hero portrait diperbesar 10% (88px)
+    const r = 88;
+
+    // Gambar 2 (Spider-Man) muncul di dalam radius kursor
+    const spiderMask = `radial-gradient(circle ${r}px at ${x}px ${y}px, black 0%, black 50%, transparent 100%)`;
+    spiderPortraitRef.current.style.maskImage = spiderMask;
+    spiderPortraitRef.current.style.webkitMaskImage = spiderMask;
+
+    // Gambar 1 (Foto wisuda) menghilang di dalam radius kursor digantikan gambar 2
+    const baseMask = `radial-gradient(circle ${r}px at ${x}px ${y}px, transparent 0%, transparent 50%, black 100%)`;
+    basePortraitRef.current.style.maskImage = baseMask;
+    basePortraitRef.current.style.webkitMaskImage = baseMask;
   };
 
   const handlePortraitMouseMove = (e) => {
@@ -142,6 +151,10 @@ export function HeroVisual3D() {
 
   const handlePortraitMouseLeave = () => {
     setIsSpiderHover(false);
+    if (basePortraitRef.current) {
+      basePortraitRef.current.style.maskImage = '';
+      basePortraitRef.current.style.webkitMaskImage = '';
+    }
   };
 
   const handlePortraitTouchMove = (e) => {
@@ -228,6 +241,7 @@ export function HeroVisual3D() {
           >
             {/* Base Graduation Suit Portrait */}
             <img
+              ref={basePortraitRef}
               src="/images/portrait.png"
               alt="Saldan Rama"
               className="hero-portrait-img hero-portrait-base"

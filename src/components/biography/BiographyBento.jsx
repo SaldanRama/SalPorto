@@ -7,17 +7,26 @@ export function BiographyBento() {
   const [downloaded, setDownloaded] = useState(false);
   const [isRevealing, setIsRevealing] = useState(false);
   const photoRef = React.useRef(null);
+  const baseRef = React.useRef(null);
   const spiderRef = React.useRef(null);
 
   const updateRevealSpot = (clientX, clientY) => {
-    if (!photoRef.current || !spiderRef.current) return;
+    if (!photoRef.current || !spiderRef.current || !baseRef.current) return;
     const rect = photoRef.current.getBoundingClientRect();
     const x = Math.round(clientX - rect.left);
     const y = Math.round(clientY - rect.top);
-    // Radius kecil (64px circle, disesuaikan proporsional dengan ukuran foto +30%)
-    const mask = `radial-gradient(circle 64px at ${x}px ${y}px, black 0%, black 45%, transparent 100%)`;
-    spiderRef.current.style.maskImage = mask;
-    spiderRef.current.style.webkitMaskImage = mask;
+    // Radius diperbesar 10% (71px)
+    const r = 71;
+
+    // Gambar 2 (Spider-Man) muncul di dalam radius kursor
+    const spiderMask = `radial-gradient(circle ${r}px at ${x}px ${y}px, black 0%, black 50%, transparent 100%)`;
+    spiderRef.current.style.maskImage = spiderMask;
+    spiderRef.current.style.webkitMaskImage = spiderMask;
+
+    // Gambar 1 (Foto awal) menghilang di dalam radius kursor digantikan gambar 2
+    const baseMask = `radial-gradient(circle ${r}px at ${x}px ${y}px, transparent 0%, transparent 50%, black 100%)`;
+    baseRef.current.style.maskImage = baseMask;
+    baseRef.current.style.webkitMaskImage = baseMask;
   };
 
   const handleMouseMove = (e) => {
@@ -31,6 +40,10 @@ export function BiographyBento() {
 
   const handleMouseLeave = () => {
     setIsRevealing(false);
+    if (baseRef.current) {
+      baseRef.current.style.maskImage = '';
+      baseRef.current.style.webkitMaskImage = '';
+    }
   };
 
   const handleTouchMove = (e) => {
@@ -80,6 +93,7 @@ export function BiographyBento() {
           >
             {/* Normal / Base Photo */}
             <img
+              ref={baseRef}
               src="/images/sal.png"
               alt="Saldan Rama"
               className="sal-photo-layer sal-photo-base"
