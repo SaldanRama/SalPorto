@@ -298,36 +298,30 @@ export function BiographyBento() {
         </div>
       </div>
 
-      {/* TOOLS & SOFTWARE ROW (CUSTOM 3D KEYCAPS WITH MECHANICAL CLICK EFFECT) */}
+      {/* TOOLS & SOFTWARE ROW (3D KEYCAPS ONLY, BORDERLESS & CLICKABLE) */}
       <div className="resume-tools-row">
-        <div className="resume-section-eyebrow" style={{ marginBottom: '1.25rem' }}>
+        <div className="resume-section-eyebrow" style={{ marginBottom: '1.5rem' }}>
           <span>T O O L S  &  S O F T W A R E</span>
         </div>
 
-        <div className="resume-keycaps-grid">
+        <div className="resume-keycaps-row">
           {userTools.map((tool) => {
             const isPressed = activeKey === tool.name;
             return (
               <button
                 type="button"
                 key={tool.name}
-                className={`resume-keycap-item ${isPressed ? 'is-pressed' : ''}`}
+                className={`resume-keycap-btn ${isPressed ? 'is-pressed' : ''}`}
                 onClick={() => handleKeyClick(tool.name)}
-                title={`Click to press ${tool.name} key`}
+                title={`${tool.name} keycap • Click to press`}
                 aria-label={`${tool.name} keycap`}
               >
-                <div className="resume-keycap-visual">
-                  <img
-                    src={tool.iconSrc}
-                    alt={`${tool.name} Keycap`}
-                    className="resume-keycap-img"
-                    draggable="false"
-                  />
-                </div>
-                <div className="resume-tool-info">
-                  <span className="resume-tool-name">{tool.name}</span>
-                  <span className="resume-tool-role">{tool.role}</span>
-                </div>
+                <img
+                  src={tool.iconSrc}
+                  alt={`${tool.name} Keycap`}
+                  className="resume-keycap-img"
+                  draggable="false"
+                />
               </button>
             );
           })}
