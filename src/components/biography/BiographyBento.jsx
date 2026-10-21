@@ -14,8 +14,8 @@ export function BiographyBento() {
     const rect = photoRef.current.getBoundingClientRect();
     const x = Math.round(clientX - rect.left);
     const y = Math.round(clientY - rect.top);
-    // Radius kecil (50px circle) following cursor
-    const mask = `radial-gradient(circle 50px at ${x}px ${y}px, black 0%, black 45%, transparent 100%)`;
+    // Radius kecil (64px circle, disesuaikan proporsional dengan ukuran foto +30%)
+    const mask = `radial-gradient(circle 64px at ${x}px ${y}px, black 0%, black 45%, transparent 100%)`;
     spiderRef.current.style.maskImage = mask;
     spiderRef.current.style.webkitMaskImage = mask;
   };

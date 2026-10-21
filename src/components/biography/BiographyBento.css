@@ -3,14 +3,13 @@
    ========================================================================== */
 
 .editorial-resume-stage {
-  background: var(--surface);
-  border: 1px solid var(--line);
-  border-radius: var(--radius-lg);
-  padding: clamp(1.75rem, 3vw, 3.25rem);
-  box-shadow: var(--shadow-card);
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  padding: 0;
+  box-shadow: none;
   position: relative;
-  overflow: hidden;
-  transition: var(--transition-theme);
+  width: 100%;
 }
 
 /* ==========================================================================
@@ -19,20 +18,21 @@
 .resume-top-grid {
   display: grid;
   grid-template-columns: 1fr;
-  gap: 2.25rem;
+  gap: 2.5rem;
 }
 
 @media (min-width: 768px) {
   .resume-top-grid {
-    grid-template-columns: 190px 1.3fr;
-    gap: 2.5rem;
+    grid-template-columns: 260px 1.25fr;
+    gap: 2.75rem;
   }
 }
 
 @media (min-width: 1100px) {
   .resume-top-grid {
-    grid-template-columns: 205px 1.45fr 1.15fr 1fr;
-    gap: 2.5rem;
+    grid-template-columns: 280px 1.45fr 1.15fr 1fr;
+    gap: 3rem;
+    align-items: start;
   }
 }
 
@@ -48,7 +48,7 @@
 .sal-photo-stage {
   position: relative;
   width: 100%;
-  max-width: 215px;
+  max-width: 280px;
   aspect-ratio: 1 / 1;
   background: transparent;
   border: none;
@@ -73,19 +73,19 @@
 
 .sal-photo-base {
   z-index: 1;
-  filter: drop-shadow(0 10px 24px rgba(0, 0, 0, 0.08));
+  filter: drop-shadow(0 12px 28px rgba(0, 0, 0, 0.08));
 }
 
 [data-theme='dark'] .sal-photo-base {
-  filter: drop-shadow(0 10px 24px rgba(0, 0, 0, 0.4));
+  filter: drop-shadow(0 12px 28px rgba(0, 0, 0, 0.45));
 }
 
 .sal-photo-spiderman {
   z-index: 2;
   opacity: 0;
   transition: opacity 0.22s ease-out;
-  mask-image: radial-gradient(circle 50px at -999px -999px, black 0%, black 45%, transparent 100%);
-  -webkit-mask-image: radial-gradient(circle 50px at -999px -999px, black 0%, black 45%, transparent 100%);
+  mask-image: radial-gradient(circle 64px at -999px -999px, black 0%, black 45%, transparent 100%);
+  -webkit-mask-image: radial-gradient(circle 64px at -999px -999px, black 0%, black 45%, transparent 100%);
   mask-repeat: no-repeat;
   -webkit-mask-repeat: no-repeat;
 }
@@ -123,11 +123,11 @@
 }
 
 .resume-bio-paragraph {
-  font-size: 0.925rem;
-  line-height: 1.72;
+  font-size: 0.95rem;
+  line-height: 1.75;
   color: var(--text);
   font-weight: 400;
-  max-width: 42ch;
+  max-width: 52ch;
 }
 
 .resume-actions-horizontal {
