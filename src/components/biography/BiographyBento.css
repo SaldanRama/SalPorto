@@ -24,86 +24,74 @@
 
 @media (min-width: 768px) {
   .resume-top-grid {
-    grid-template-columns: 180px 1.3fr;
+    grid-template-columns: 190px 1.3fr;
     gap: 2.5rem;
   }
 }
 
 @media (min-width: 1100px) {
   .resume-top-grid {
-    grid-template-columns: 185px 1.5fr 1.15fr 1fr;
+    grid-template-columns: 205px 1.45fr 1.15fr 1fr;
     gap: 2.5rem;
   }
 }
 
 /* --------------------------------------------------------------------------
-   COLUMN 1: PHOTO & BRAND MARK
+   COLUMN 1: PHOTO & SPIDER-MAN REVEAL EFFECT (NO BOX, DIRECT SILHOUETTE)
    -------------------------------------------------------------------------- */
 .resume-col-photo {
   display: flex;
-  flex-direction: column;
-  gap: 0.85rem;
-}
-
-.resume-photo-card {
-  width: 100%;
-  aspect-ratio: 1 / 1.2;
-  border-radius: 10px;
-  overflow: hidden;
-  border: 1px solid var(--line);
-  background: var(--bg);
-  box-shadow: var(--shadow-subtle);
-}
-
-.resume-photo-img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  object-position: center 15%;
-  transition: transform var(--transition-normal);
-}
-
-.resume-photo-card:hover .resume-photo-img {
-  transform: scale(1.03);
-}
-
-.resume-brand-tag {
-  display: flex;
-  align-items: center;
-  gap: 0.6rem;
-}
-
-.brand-mark-box {
-  width: 26px;
-  height: 26px;
-  background: var(--inverse);
-  color: var(--inverse-text);
-  border-radius: 5px;
-  display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 0.7rem;
-  font-weight: 800;
-  letter-spacing: -0.02em;
-  flex-shrink: 0;
 }
 
-.brand-text-block {
-  display: flex;
-  flex-direction: column;
+.sal-photo-stage {
+  position: relative;
+  width: 100%;
+  max-width: 215px;
+  aspect-ratio: 1 / 1;
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
+  cursor: crosshair;
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: none;
 }
 
-.brand-name {
-  font-size: 0.825rem;
-  font-weight: 700;
-  color: var(--text);
-  letter-spacing: -0.01em;
-  line-height: 1.2;
+.sal-photo-layer {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  pointer-events: none;
+  user-select: none;
+  -webkit-user-drag: none;
 }
 
-.brand-sub {
-  font-size: 0.7rem;
-  color: var(--muted);
+.sal-photo-base {
+  z-index: 1;
+  filter: drop-shadow(0 10px 24px rgba(0, 0, 0, 0.08));
+}
+
+[data-theme='dark'] .sal-photo-base {
+  filter: drop-shadow(0 10px 24px rgba(0, 0, 0, 0.4));
+}
+
+.sal-photo-spiderman {
+  z-index: 2;
+  opacity: 0;
+  transition: opacity 0.22s ease-out;
+  mask-image: radial-gradient(circle 50px at -999px -999px, black 0%, black 45%, transparent 100%);
+  -webkit-mask-image: radial-gradient(circle 50px at -999px -999px, black 0%, black 45%, transparent 100%);
+  mask-repeat: no-repeat;
+  -webkit-mask-repeat: no-repeat;
+}
+
+.sal-photo-stage.is-revealing .sal-photo-spiderman {
+  opacity: 1;
 }
 
 /* --------------------------------------------------------------------------

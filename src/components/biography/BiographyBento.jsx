@@ -5,6 +5,50 @@ import './BiographyBento.css';
 
 export function BiographyBento() {
   const [downloaded, setDownloaded] = useState(false);
+  const [isRevealing, setIsRevealing] = useState(false);
+  const photoRef = React.useRef(null);
+  const spiderRef = React.useRef(null);
+
+  const updateRevealSpot = (clientX, clientY) => {
+    if (!photoRef.current || !spiderRef.current) return;
+    const rect = photoRef.current.getBoundingClientRect();
+    const x = Math.round(clientX - rect.left);
+    const y = Math.round(clientY - rect.top);
+    // Radius kecil (50px circle) following cursor
+    const mask = `radial-gradient(circle 50px at ${x}px ${y}px, black 0%, black 45%, transparent 100%)`;
+    spiderRef.current.style.maskImage = mask;
+    spiderRef.current.style.webkitMaskImage = mask;
+  };
+
+  const handleMouseMove = (e) => {
+    updateRevealSpot(e.clientX, e.clientY);
+  };
+
+  const handleMouseEnter = (e) => {
+    setIsRevealing(true);
+    updateRevealSpot(e.clientX, e.clientY);
+  };
+
+  const handleMouseLeave = () => {
+    setIsRevealing(false);
+  };
+
+  const handleTouchMove = (e) => {
+    if (e.touches && e.touches[0]) {
+      updateRevealSpot(e.touches[0].clientX, e.touches[0].clientY);
+    }
+  };
+
+  const handleTouchStart = (e) => {
+    setIsRevealing(true);
+    if (e.touches && e.touches[0]) {
+      updateRevealSpot(e.touches[0].clientX, e.touches[0].clientY);
+    }
+  };
+
+  const handleTouchEnd = () => {
+    setIsRevealing(false);
+  };
 
   const handleDownloadCV = () => {
     setDownloaded(true);
@@ -21,26 +65,38 @@ export function BiographyBento() {
     <div className="editorial-resume-stage" data-reveal="fade-up">
       {/* TOP ROW: [PHOTO] [NAME + BIO + BUTTONS] [EXPERIENCE] [EDUCATION] */}
       <div className="resume-top-grid">
-        {/* COLUMN 1: PHOTO */}
+        {/* COLUMN 1: PHOTO (PURE CUTOUT WITH SPIDER-MAN HOVER SPOTLIGHT) */}
         <div className="resume-col-photo">
-          <div className="resume-photo-card">
+          <div
+            ref={photoRef}
+            className={`sal-photo-stage ${isRevealing ? 'is-revealing' : ''}`}
+            onMouseEnter={handleMouseEnter}
+            onMouseMove={handleMouseMove}
+            onMouseLeave={handleMouseLeave}
+            onTouchStart={handleTouchStart}
+            onTouchMove={handleTouchMove}
+            onTouchEnd={handleTouchEnd}
+            title="Hover cursor to reveal Spider-Man costume"
+          >
+            {/* Normal / Base Photo */}
             <img
               src="/images/sal.png"
               alt="Saldan Rama"
-              className="resume-photo-img"
+              className="sal-photo-layer sal-photo-base"
               onError={(e) => {
                 e.currentTarget.src = '/images/portrait.png';
               }}
+              draggable="false"
             />
-          </div>
-          <div className="resume-brand-tag">
-            <div className="brand-mark-box">
-              <span>SR</span>
-            </div>
-            <div className="brand-text-block">
-              <span className="brand-name">saldan rama</span>
-              <span className="brand-sub">Based in Makassar</span>
-            </div>
+
+            {/* Spider-Man reveal layer */}
+            <img
+              ref={spiderRef}
+              src="/images/spiderman.png"
+              alt="Saldan Rama Spider-Man"
+              className="sal-photo-layer sal-photo-spiderman"
+              draggable="false"
+            />
           </div>
         </div>
 
