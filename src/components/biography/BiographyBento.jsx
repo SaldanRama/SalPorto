@@ -3,6 +3,39 @@ import { Download, ArrowUpRight, CheckCircle2 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import './BiographyBento.css';
 
+const userTools = [
+  {
+    name: 'Figma',
+    role: 'UI/UX Design',
+    iconSrc: '/images/FigmaLogo.png',
+  },
+  {
+    name: 'Photoshop',
+    role: 'Graphic & Retouch',
+    iconSrc: '/images/PhotoshopLogo.png',
+  },
+  {
+    name: 'Affinity',
+    role: 'Vector Systems',
+    iconSrc: '/images/AffinityLogo.png',
+  },
+  {
+    name: 'Canva',
+    role: 'Brand & Content',
+    iconSrc: '/images/CanvaLogo.png',
+  },
+  {
+    name: 'CapCut',
+    role: 'Motion & Video',
+    iconSrc: '/images/CapcutLogo.png',
+  },
+  {
+    name: 'VS Code',
+    role: 'Front-End Dev',
+    iconSrc: '/images/VSCODELogo.png',
+  },
+];
+
 export function BiographyBento() {
   const [downloaded, setDownloaded] = useState(false);
   const [isRevealing, setIsRevealing] = useState(false);
@@ -198,6 +231,27 @@ export function BiographyBento() {
               </div>
             </div>
           </div>
+        </div>
+      </div>
+
+      {/* TOOLS & SOFTWARE ROW */}
+      <div className="resume-tools-row">
+        <div className="resume-section-eyebrow" style={{ marginBottom: '1.25rem' }}>
+          <span>T O O L S  &  S O F T W A R E</span>
+        </div>
+
+        <div className="resume-tools-grid">
+          {userTools.map((tool) => (
+            <div key={tool.name} className="resume-tool-item" title={`${tool.name} • ${tool.role}`}>
+              <div className="resume-tool-icon-box">
+                <img src={tool.iconSrc} alt={tool.name} className="resume-tool-icon-img" />
+              </div>
+              <div className="resume-tool-info">
+                <span className="resume-tool-name">{tool.name}</span>
+                <span className="resume-tool-role">{tool.role}</span>
+              </div>
+            </div>
+          ))}
         </div>
       </div>
 
