@@ -38,48 +38,48 @@ export function HeroVisual3D() {
   const hoverSpeed = 0.0016;
   const speedRef = useRef(defaultSpeed);
 
-  // 6 tools configured from user files in public/images/
+  // 6 tools configured from updated uniform user files in public/images/
   const tools = [
     {
       id: 'photoshop',
       name: 'Photoshop',
       role: 'Retouch & Edit',
-      iconSrc: '/images/AdobePhotoshop.svg',
+      iconSrc: '/images/PhotoshopLogo.png',
       baseAngle: 0,
     },
     {
       id: 'affinity',
       name: 'Affinity',
       role: 'Vector Systems',
-      iconSrc: '/images/Affinity.svg',
+      iconSrc: '/images/AffinityLogo.png',
       baseAngle: (2 * Math.PI) / 6,
     },
     {
       id: 'canva',
       name: 'Canva',
       role: 'Brand Assets',
-      iconSrc: '/images/CanvaLogo.jpg',
+      iconSrc: '/images/CanvaLogo.png',
       baseAngle: (4 * Math.PI) / 6,
     },
     {
       id: 'capcut',
       name: 'CapCut',
       role: 'Motion & Reels',
-      iconSrc: '/images/capcut.png',
+      iconSrc: '/images/CapcutLogo.png',
       baseAngle: (6 * Math.PI) / 6,
     },
     {
       id: 'vscode',
       name: 'VS Code',
       role: 'Code & Web Dev',
-      iconSrc: '/images/VSCODE.svg',
+      iconSrc: '/images/VSCODELogo.png',
       baseAngle: (8 * Math.PI) / 6,
     },
     {
       id: 'figma',
       name: 'Figma',
       role: 'UI/UX Prototypes',
-      iconSrc: '/images/FigmaIcon.webp',
+      iconSrc: '/images/FigmaLogo.png',
       baseAngle: (10 * Math.PI) / 6,
     },
   ];
