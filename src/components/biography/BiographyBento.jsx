@@ -3,45 +3,109 @@ import { Download, ArrowUpRight, CheckCircle2 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import './BiographyBento.css';
 
+// Synthesized mechanical keyboard switch "clack / thock" sound
+function playKeyClickSound() {
+  try {
+    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+    if (!AudioCtx) return;
+    const ctx = new AudioCtx();
+    const now = ctx.currentTime;
+
+    // Switch actuation click
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    const filter = ctx.createBiquadFilter();
+
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(360, now);
+    osc.frequency.exponentialRampToValueAtTime(70, now + 0.035);
+
+    filter.type = 'lowpass';
+    filter.frequency.setValueAtTime(1400, now);
+
+    gain.gain.setValueAtTime(0.35, now);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.04);
+
+    osc.connect(filter);
+    filter.connect(gain);
+    gain.connect(ctx.destination);
+
+    osc.start(now);
+    osc.stop(now + 0.045);
+
+    // Bottom-out thock
+    const osc2 = ctx.createOscillator();
+    const gain2 = ctx.createGain();
+    osc2.type = 'triangle';
+    osc2.frequency.setValueAtTime(140, now + 0.01);
+    osc2.frequency.exponentialRampToValueAtTime(45, now + 0.055);
+
+    gain2.gain.setValueAtTime(0.22, now + 0.01);
+    gain2.gain.exponentialRampToValueAtTime(0.001, now + 0.06);
+
+    osc2.connect(gain2);
+    gain2.connect(ctx.destination);
+
+    osc2.start(now + 0.01);
+    osc2.stop(now + 0.065);
+  } catch {
+    // Audio safe fallback
+  }
+}
+
 const userTools = [
   {
     name: 'Figma',
     role: 'UI/UX Design',
-    iconSrc: '/images/FigmaLogo.png',
+    iconSrc: '/images/FigmaKeycaps.png',
   },
   {
     name: 'Photoshop',
     role: 'Graphic & Retouch',
-    iconSrc: '/images/PhotoshopLogo.png',
+    iconSrc: '/images/PhotoshopKeycaps.png',
   },
   {
     name: 'Affinity',
     role: 'Vector Systems',
-    iconSrc: '/images/AffinityLogo.png',
+    iconSrc: '/images/AffinityKeycaps.png',
   },
   {
     name: 'Canva',
     role: 'Brand & Content',
-    iconSrc: '/images/CanvaLogo.png',
+    iconSrc: '/images/CanvaKeycaps.png',
   },
   {
     name: 'CapCut',
     role: 'Motion & Video',
-    iconSrc: '/images/CapcutLogo.png',
+    iconSrc: '/images/CapcutKeycaps.png',
   },
   {
     name: 'VS Code',
     role: 'Front-End Dev',
-    iconSrc: '/images/VSCODELogo.png',
+    iconSrc: '/images/VSCODEKeycaps.png',
+  },
+  {
+    name: 'Notion',
+    role: 'Productivity & Notes',
+    iconSrc: '/images/NotionKeycaps.png',
   },
 ];
 
 export function BiographyBento() {
   const [downloaded, setDownloaded] = useState(false);
   const [isRevealing, setIsRevealing] = useState(false);
+  const [activeKey, setActiveKey] = useState(null);
   const photoRef = React.useRef(null);
   const baseRef = React.useRef(null);
   const spiderRef = React.useRef(null);
+
+  const handleKeyClick = (name) => {
+    playKeyClickSound();
+    setActiveKey(name);
+    setTimeout(() => {
+      setActiveKey((curr) => (curr === name ? null : curr));
+    }, 160);
+  };
 
   const updateRevealSpot = (clientX, clientY) => {
     if (!photoRef.current || !spiderRef.current || !baseRef.current) return;
@@ -234,24 +298,39 @@ export function BiographyBento() {
         </div>
       </div>
 
-      {/* TOOLS & SOFTWARE ROW */}
+      {/* TOOLS & SOFTWARE ROW (CUSTOM 3D KEYCAPS WITH MECHANICAL CLICK EFFECT) */}
       <div className="resume-tools-row">
         <div className="resume-section-eyebrow" style={{ marginBottom: '1.25rem' }}>
           <span>T O O L S  &  S O F T W A R E</span>
         </div>
 
-        <div className="resume-tools-grid">
-          {userTools.map((tool) => (
-            <div key={tool.name} className="resume-tool-item" title={`${tool.name} • ${tool.role}`}>
-              <div className="resume-tool-icon-box">
-                <img src={tool.iconSrc} alt={tool.name} className="resume-tool-icon-img" />
-              </div>
-              <div className="resume-tool-info">
-                <span className="resume-tool-name">{tool.name}</span>
-                <span className="resume-tool-role">{tool.role}</span>
-              </div>
-            </div>
-          ))}
+        <div className="resume-keycaps-grid">
+          {userTools.map((tool) => {
+            const isPressed = activeKey === tool.name;
+            return (
+              <button
+                type="button"
+                key={tool.name}
+                className={`resume-keycap-item ${isPressed ? 'is-pressed' : ''}`}
+                onClick={() => handleKeyClick(tool.name)}
+                title={`Click to press ${tool.name} key`}
+                aria-label={`${tool.name} keycap`}
+              >
+                <div className="resume-keycap-visual">
+                  <img
+                    src={tool.iconSrc}
+                    alt={`${tool.name} Keycap`}
+                    className="resume-keycap-img"
+                    draggable="false"
+                  />
+                </div>
+                <div className="resume-tool-info">
+                  <span className="resume-tool-name">{tool.name}</span>
+                  <span className="resume-tool-role">{tool.role}</span>
+                </div>
+              </button>
+            );
+          })}
         </div>
       </div>
 
