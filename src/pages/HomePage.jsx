@@ -36,11 +36,8 @@ export function HomePage() {
       {/* SECTION 2: BIOGRAPHY BENTO & CORE PILLARS (Layout as requested by user) */}
       <section id="about-manifesto" className="section-manifesto" aria-label="About & Biography">
         <div className="container">
-          <div style={{ maxWidth: '850px', marginBottom: '2.5rem' }} data-reveal="fade-up">
+          <div style={{ marginBottom: '2rem' }} data-reveal="fade-up">
             <span className="section-label">01 / Profile & Track Record</span>
-            <h2 className="manifesto-headline" style={{ marginBottom: '1.25rem' }}>
-              Designing digital products with <em>substance</em>, clarity, and intent.
-            </h2>
           </div>
 
           {/* Executive Biography Bento Card with Interactive 3D Keyboard */}
