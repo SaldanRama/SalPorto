@@ -201,6 +201,25 @@
   background: var(--surface);
 }
 
+.orbit-tool-icon-wrap {
+  width: 24px;
+  height: 24px;
+  min-width: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 5px;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.orbit-tool-icon-img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+}
+
 .orbit-tool-info {
   display: flex;
   flex-direction: column;

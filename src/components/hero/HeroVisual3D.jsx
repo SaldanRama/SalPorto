@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Sparkles, User, Layers } from 'lucide-react';
-import { ToolIcon } from './ToolIcons';
 import './HeroVisual3D.css';
 
 export function HeroVisual3D() {
@@ -39,14 +38,50 @@ export function HeroVisual3D() {
   const hoverSpeed = 0.0016;
   const speedRef = useRef(defaultSpeed);
 
-  // 6 tools: Photoshop, Affinity Designer, Canva, CapCut, VSCO, Figma
+  // 6 tools configured from user files in public/images/
   const tools = [
-    { id: 'photoshop', name: 'Photoshop', role: 'Retouch & Edit', baseAngle: 0 },
-    { id: 'affinity', name: 'Affinity', role: 'Vector Systems', baseAngle: (2 * Math.PI) / 6 },
-    { id: 'canva', name: 'Canva', role: 'Brand Assets', baseAngle: (4 * Math.PI) / 6 },
-    { id: 'capcut', name: 'CapCut', role: 'Motion & Reels', baseAngle: (6 * Math.PI) / 6 },
-    { id: 'vsco', name: 'VSCO', role: 'Color Grading', baseAngle: (8 * Math.PI) / 6 },
-    { id: 'figma', name: 'Figma', role: 'UI/UX Prototypes', baseAngle: (10 * Math.PI) / 6 },
+    {
+      id: 'photoshop',
+      name: 'Photoshop',
+      role: 'Retouch & Edit',
+      iconSrc: '/images/AdobePhotoshop.svg',
+      baseAngle: 0,
+    },
+    {
+      id: 'affinity',
+      name: 'Affinity',
+      role: 'Vector Systems',
+      iconSrc: '/images/Affinity.svg',
+      baseAngle: (2 * Math.PI) / 6,
+    },
+    {
+      id: 'canva',
+      name: 'Canva',
+      role: 'Brand Assets',
+      iconSrc: '/images/CanvaLogo.jpg',
+      baseAngle: (4 * Math.PI) / 6,
+    },
+    {
+      id: 'capcut',
+      name: 'CapCut',
+      role: 'Motion & Reels',
+      iconSrc: '/images/capcut.png',
+      baseAngle: (6 * Math.PI) / 6,
+    },
+    {
+      id: 'vscode',
+      name: 'VS Code',
+      role: 'Code & Web Dev',
+      iconSrc: '/images/VSCODE.svg',
+      baseAngle: (8 * Math.PI) / 6,
+    },
+    {
+      id: 'figma',
+      name: 'Figma',
+      role: 'UI/UX Prototypes',
+      iconSrc: '/images/FigmaIcon.webp',
+      baseAngle: (10 * Math.PI) / 6,
+    },
   ];
 
   // Animation loop with gentle deceleration on hover
@@ -181,7 +216,14 @@ export function HeroVisual3D() {
                 }}
                 title={`${tool.name} — ${tool.role}`}
               >
-                <ToolIcon name={tool.id} size={22} />
+                <div className="orbit-tool-icon-wrap">
+                  <img
+                    src={tool.iconSrc}
+                    alt={tool.name}
+                    className="orbit-tool-icon-img"
+                    loading="eager"
+                  />
+                </div>
                 <div className="orbit-tool-info">
                   <span className="orbit-tool-name">{tool.name}</span>
                   <span className="orbit-tool-role">{tool.role}</span>
