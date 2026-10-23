@@ -4,6 +4,7 @@ import { Calendar, Briefcase, ArrowUpRight, CheckCircle2, Sparkles, Building2 } 
 import { Button } from '@/components/ui/Button';
 import { StackedImageGallery } from './StackedImageGallery';
 import { mockExperiences } from '@/data/mockData';
+import { getExperiences } from '@/lib/supabaseClient';
 import './ExperienceTimeline.css';
 
 /**
@@ -14,7 +15,21 @@ import './ExperienceTimeline.css';
  * matching the user reference image.
  */
 export function ExperienceTimeline() {
-  const primaryExperiences = mockExperiences.slice(0, 3);
+  const [experiences, setExperiences] = useState(mockExperiences);
+
+  useEffect(() => {
+    let isMounted = true;
+    getExperiences().then((data) => {
+      if (isMounted && data && data.length > 0) {
+        setExperiences(data);
+      }
+    });
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  const primaryExperiences = experiences.slice(0, 3);
   const stemRef = useRef(null);
   const progressLineRef = useRef(null);
   const nodeRefs = useRef([]);

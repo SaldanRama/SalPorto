@@ -1,9 +1,23 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { ArrowUpRight, Briefcase, GraduationCap, Building2 } from 'lucide-react';
 import { mockExperiences } from '@/data/mockData';
+import { getExperiences } from '@/lib/supabaseClient';
 import { Button } from '@/components/ui/Button';
 
 export function ExperiencePage() {
+  const [experiences, setExperiences] = useState(mockExperiences);
+
+  useEffect(() => {
+    let isMounted = true;
+    getExperiences().then((data) => {
+      if (isMounted && data && data.length > 0) {
+        setExperiences(data);
+      }
+    });
+    return () => {
+      isMounted = false;
+    };
+  }, []);
   const getIcon = (type) => {
     switch (type) {
       case 'Academic':
@@ -31,7 +45,7 @@ export function ExperiencePage() {
 
         {/* Timeline / Editorial List */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
-          {mockExperiences.map((exp) => (
+          {experiences.map((exp) => (
             <div
               key={exp.id}
               style={{

@@ -1,12 +1,26 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { ArrowLeft, ArrowUpRight, Sparkles } from 'lucide-react';
 import { mockProjects } from '@/data/mockData';
+import { getProjects } from '@/lib/supabaseClient';
 import { Button } from '@/components/ui/Button';
 
 export function ProjectDetailPage() {
   const { slug } = useParams();
-  const project = mockProjects.find((p) => p.slug === slug);
+  const [project, setProject] = useState(() => mockProjects.find((p) => p.slug === slug));
+
+  useEffect(() => {
+    let isMounted = true;
+    getProjects().then((list) => {
+      if (isMounted && list) {
+        const found = list.find((p) => p.slug === slug);
+        if (found) setProject(found);
+      }
+    });
+    return () => {
+      isMounted = false;
+    };
+  }, [slug]);
 
   if (!project) {
     return (
@@ -25,6 +39,8 @@ export function ProjectDetailPage() {
       </div>
     );
   }
+
+  const cover = project.coverImage || project.cover_image;
 
   return (
     <article className="section">
@@ -50,7 +66,7 @@ export function ProjectDetailPage() {
         {/* Header Metadata */}
         <div style={{ marginBottom: '2.5rem' }}>
           <span className="pill-badge" style={{ marginBottom: '1.25rem' }}>
-            {project.categoryLabel}
+            {project.categoryLabel || project.category}
           </span>
           <h1
             className="font-serif"
@@ -104,25 +120,36 @@ export function ProjectDetailPage() {
           style={{
             width: '100%',
             aspectRatio: '16 / 9',
-            background: 'linear-gradient(135deg, var(--surface) 0%, var(--bg) 100%)',
             borderRadius: 'var(--radius-lg)',
             border: '1px solid var(--line)',
+            overflow: 'hidden',
+            marginBottom: '4rem',
+            position: 'relative',
+            boxShadow: 'var(--shadow-card)',
+            background: 'linear-gradient(135deg, var(--surface) 0%, var(--bg) 100%)',
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
             justifyContent: 'center',
-            marginBottom: '4rem',
-            position: 'relative',
-            boxShadow: 'var(--shadow-card)',
           }}
         >
-          <Sparkles size={40} style={{ color: 'var(--accent-strong)', marginBottom: '1rem' }} />
-          <span className="font-serif" style={{ fontSize: '1.5rem', color: 'var(--text)' }}>
-            {project.title} Visual Showcase
-          </span>
-          <span style={{ fontSize: '0.875rem', color: 'var(--muted)', marginTop: '0.25rem' }}>
-            Case study visual assets & screens preview
-          </span>
+          {cover ? (
+            <img
+              src={cover}
+              alt={project.title}
+              style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+            />
+          ) : (
+            <>
+              <Sparkles size={40} style={{ color: 'var(--accent-strong)', marginBottom: '1rem' }} />
+              <span className="font-serif" style={{ fontSize: '1.5rem', color: 'var(--text)' }}>
+                {project.title} Visual Showcase
+              </span>
+              <span style={{ fontSize: '0.875rem', color: 'var(--muted)', marginTop: '0.25rem' }}>
+                Case study visual assets & screens preview
+              </span>
+            </>
+          )}
         </div>
 
         {/* Editorial Body / Process */}

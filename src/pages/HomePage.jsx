@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowUpRight, ArrowRight, ArrowDown, Sparkles, Layers, Code, Palette } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
@@ -6,9 +6,24 @@ import { HeroVisual3D } from '@/components/hero/HeroVisual3D';
 import { BiographyBento } from '@/components/biography/BiographyBento';
 import { ExperienceTimeline } from '@/components/experience/ExperienceTimeline';
 import { mockProjects } from '@/data/mockData';
+import { getProjects } from '@/lib/supabaseClient';
 import './HomePage.css';
 
 export function HomePage() {
+  const [projects, setProjects] = useState(mockProjects);
+
+  useEffect(() => {
+    let isMounted = true;
+    getProjects().then((data) => {
+      if (isMounted && data && data.length > 0) {
+        setProjects(data);
+      }
+    });
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
   return (
     <div className="home-page">
       {/* SECTION 1: TOP 3D STAGE (First screen upon arrival) */}
@@ -107,40 +122,51 @@ export function HomePage() {
           </div>
 
           <div className="projects-grid">
-            {mockProjects.map((project, index) => (
-              <Link
-                key={project.id}
-                to={`/work/${project.slug}`}
-                className="project-card"
-                aria-label={`View case study for ${project.title}`}
-                data-reveal="fade-up"
-                data-reveal-delay={`${(index + 1) * 150}`}
-              >
-                <div className="project-card-image-box">
-                  <div className="project-card-placeholder-graphic">
-                    <Sparkles size={28} style={{ marginBottom: '0.5rem', opacity: 0.8 }} />
-                    <span style={{ fontSize: '0.8125rem', fontWeight: 600, letterSpacing: '0.04em', textTransform: 'uppercase' }}>
-                      {project.categoryLabel}
-                    </span>
+            {projects.map((project, index) => {
+              const cover = project.coverImage || project.cover_image;
+              return (
+                <Link
+                  key={project.id}
+                  to={`/work/${project.slug}`}
+                  className="project-card"
+                  aria-label={`View case study for ${project.title}`}
+                  data-reveal="fade-up"
+                  data-reveal-delay={`${(index + 1) * 150}`}
+                >
+                  <div className="project-card-image-box">
+                    {cover ? (
+                      <img
+                        src={cover}
+                        alt={project.title}
+                        style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+                      />
+                    ) : (
+                      <div className="project-card-placeholder-graphic">
+                        <Sparkles size={28} style={{ marginBottom: '0.5rem', opacity: 0.8 }} />
+                        <span style={{ fontSize: '0.8125rem', fontWeight: 600, letterSpacing: '0.04em', textTransform: 'uppercase' }}>
+                          {project.categoryLabel || project.category}
+                        </span>
+                      </div>
+                    )}
                   </div>
-                </div>
 
-                <div className="project-card-body">
-                  <div className="project-card-meta">
-                    <span>{project.projectType}</span>
-                    <span>{project.year}</span>
+                  <div className="project-card-body">
+                    <div className="project-card-meta">
+                      <span>{project.projectType}</span>
+                      <span>{project.year}</span>
+                    </div>
+
+                    <h3 className="project-card-title">{project.title}</h3>
+                    <p className="project-card-summary">{project.summary}</p>
+
+                    <div className="project-card-footer">
+                      <span>View Case Study</span>
+                      <ArrowUpRight size={16} />
+                    </div>
                   </div>
-
-                  <h3 className="project-card-title">{project.title}</h3>
-                  <p className="project-card-summary">{project.summary}</p>
-
-                  <div className="project-card-footer">
-                    <span>View Case Study</span>
-                    <ArrowUpRight size={16} />
-                  </div>
-                </div>
-              </Link>
-            ))}
+                </Link>
+              );
+            })}
           </div>
         </div>
       </section>

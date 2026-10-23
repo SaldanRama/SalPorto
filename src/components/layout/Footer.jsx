@@ -94,7 +94,10 @@ export function Footer() {
             <span>Based in Makassar, Indonesia • Open to opportunities</span>
           </div>
           <div>
-            © {currentYear} Saldan Rama. Built with React & Vite.
+            © {currentYear} Saldan Rama. Built with React &amp; Vite. •{' '}
+            <Link to="/admin" style={{ color: 'inherit', textDecoration: 'none', opacity: 0.6 }} title="Admin Dashboard">
+              Admin
+            </Link>
           </div>
         </div>
       </div>

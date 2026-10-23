@@ -1,12 +1,26 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { ArrowUpRight, Sparkles } from 'lucide-react';
 import { mockProjects } from '@/data/mockData';
+import { getProjects } from '@/lib/supabaseClient';
 import './HomePage.css';
 
 export function WorkPage() {
+  const [projects, setProjects] = useState(mockProjects);
   const [searchParams, setSearchParams] = useSearchParams();
   const activeCategory = searchParams.get('category') || 'all';
+
+  useEffect(() => {
+    let isMounted = true;
+    getProjects().then((data) => {
+      if (isMounted && data && data.length > 0) {
+        setProjects(data);
+      }
+    });
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   const categories = [
     { id: 'all', label: 'All Projects' },
@@ -17,8 +31,8 @@ export function WorkPage() {
 
   const filteredProjects =
     activeCategory === 'all'
-      ? mockProjects
-      : mockProjects.filter((p) => p.category === activeCategory);
+      ? projects
+      : projects.filter((p) => p.category === activeCategory);
 
   const handleCategoryChange = (catId) => {
     if (catId === 'all') {
@@ -77,38 +91,49 @@ export function WorkPage() {
 
         {/* Projects Grid */}
         <div className="projects-grid">
-          {filteredProjects.map((project) => (
-            <Link
-              key={project.id}
-              to={`/work/${project.slug}`}
-              className="project-card"
-              aria-label={`View case study for ${project.title}`}
-            >
-              <div className="project-card-image-box">
-                <div className="project-card-placeholder-graphic">
-                  <Sparkles size={28} style={{ marginBottom: '0.5rem', opacity: 0.8 }} />
-                  <span style={{ fontSize: '0.8125rem', fontWeight: 600, letterSpacing: '0.04em', textTransform: 'uppercase' }}>
-                    {project.categoryLabel}
-                  </span>
+          {filteredProjects.map((project) => {
+            const cover = project.coverImage || project.cover_image;
+            return (
+              <Link
+                key={project.id}
+                to={`/work/${project.slug}`}
+                className="project-card"
+                aria-label={`View case study for ${project.title}`}
+              >
+                <div className="project-card-image-box">
+                  {cover ? (
+                    <img
+                      src={cover}
+                      alt={project.title}
+                      style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+                    />
+                  ) : (
+                    <div className="project-card-placeholder-graphic">
+                      <Sparkles size={28} style={{ marginBottom: '0.5rem', opacity: 0.8 }} />
+                      <span style={{ fontSize: '0.8125rem', fontWeight: 600, letterSpacing: '0.04em', textTransform: 'uppercase' }}>
+                        {project.categoryLabel || project.category}
+                      </span>
+                    </div>
+                  )}
                 </div>
-              </div>
 
-              <div className="project-card-body">
-                <div className="project-card-meta">
-                  <span>{project.projectType}</span>
-                  <span>{project.year}</span>
+                <div className="project-card-body">
+                  <div className="project-card-meta">
+                    <span>{project.projectType}</span>
+                    <span>{project.year}</span>
+                  </div>
+
+                  <h2 className="project-card-title">{project.title}</h2>
+                  <p className="project-card-summary">{project.summary}</p>
+
+                  <div className="project-card-footer">
+                    <span>Explore Details</span>
+                    <ArrowUpRight size={16} />
+                  </div>
                 </div>
-
-                <h2 className="project-card-title">{project.title}</h2>
-                <p className="project-card-summary">{project.summary}</p>
-
-                <div className="project-card-footer">
-                  <span>Explore Details</span>
-                  <ArrowUpRight size={16} />
-                </div>
-              </div>
-            </Link>
-          ))}
+              </Link>
+            );
+          })}
         </div>
       </div>
     </div>

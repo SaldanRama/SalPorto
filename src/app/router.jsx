@@ -8,8 +8,13 @@ import { AboutPage } from '@/pages/AboutPage';
 import { ExperiencePage } from '@/pages/ExperiencePage';
 import { ContactPage } from '@/pages/ContactPage';
 import { NotFoundPage } from '@/pages/NotFoundPage';
+import { AdminDashboardPage } from '@/pages/admin/AdminDashboardPage';
 
 export const router = createBrowserRouter([
+  {
+    path: '/admin',
+    element: <AdminDashboardPage />,
+  },
   {
     path: '/',
     element: <Layout />,
