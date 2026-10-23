@@ -3,6 +3,7 @@ import { ArrowUpRight, Briefcase, GraduationCap, Building2 } from 'lucide-react'
 import { mockExperiences } from '@/data/mockData';
 import { getExperiences } from '@/lib/supabaseClient';
 import { Button } from '@/components/ui/Button';
+import { ExperienceTools } from '@/components/experience/ExperienceTools';
 
 export function ExperiencePage() {
   const [experiences, setExperiences] = useState(mockExperiences);
@@ -118,6 +119,13 @@ export function ExperiencePage() {
                 <p style={{ fontSize: '0.975rem', color: 'var(--muted)', lineHeight: 1.65, marginBottom: '1.5rem' }}>
                   {exp.description}
                 </p>
+              )}
+
+              {/* Tools & Teknologi yang Digunakan */}
+              {exp.tools && exp.tools.length > 0 && (
+                <div style={{ marginTop: '0.5rem', marginBottom: '1rem' }}>
+                  <ExperienceTools tools={exp.tools} />
+                </div>
               )}
 
               {exp.images && exp.images.length > 0 && (

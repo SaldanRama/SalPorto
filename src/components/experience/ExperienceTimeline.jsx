@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { Calendar, Briefcase, ArrowUpRight, CheckCircle2, Sparkles, Building2 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { StackedImageGallery } from './StackedImageGallery';
+import { ExperienceTools } from './ExperienceTools';
 import { mockExperiences } from '@/data/mockData';
 import { getExperiences } from '@/lib/supabaseClient';
 import './ExperienceTimeline.css';
@@ -250,6 +251,11 @@ function ExperienceContentBody({ exp, index }) {
           )}
         </ul>
       </div>
+
+      {/* 6. Tools & Teknologi yang Digunakan */}
+      {exp.tools && exp.tools.length > 0 && (
+        <ExperienceTools tools={exp.tools} />
+      )}
     </div>
   );
 }

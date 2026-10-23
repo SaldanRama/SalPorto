@@ -66,6 +66,7 @@ export const mockExperiences = [
       'Melakukan code review komprehensif, pemeriksaan best practices arsitektur web, dan evaluasi berkala tugas praktikum.',
       'Memfasilitasi sesi troubleshooting bug, debugging instruksional, serta pendampingan proyek akhir mahasiswa.'
     ],
+    tools: ['VS Code', 'React', 'JavaScript', 'PHP', 'Laravel'],
     images: [
       {
         url: '/images/experience/01-lab-assistant/image-1.svg',
@@ -100,6 +101,7 @@ export const mockExperiences = [
       'Mengimplementasikan komponen antarmuka front-end responsif berbasis standar web modern yang ramah aksesibilitas publik.',
       'Melakukan usability evaluation bersama tim Diskominfo serta mengiterasi desain berdasarkan masukan para pemangku kepentingan.'
     ],
+    tools: ['Figma', 'VS Code', 'JavaScript', 'CSS3'],
     images: [
       {
         url: '/images/experience/02-diskominfo/image-1.svg',
@@ -134,6 +136,7 @@ export const mockExperiences = [
       'Mendukung koordinasi operasional pelayanan publik dan verifikasi data rujukan berjenjang layanan kesehatan.',
       'Menyusun laporan rekapitulasi periodik guna meningkatkan efisiensi dan transparansi alur kerja administrasi internal cabang.'
     ],
+    tools: ['Notion', 'Microsoft Excel', 'Data Analytics'],
     images: [
       {
         url: '/images/experience/03-bpjs-kesehatan/image-1.svg',

@@ -222,6 +222,7 @@ export async function getExperiences() {
           ...e,
           isCurrent: e.is_current !== undefined ? e.is_current : e.isCurrent,
           sortOrder: e.sort_order ?? e.sortOrder,
+          tools: Array.isArray(e.tools) ? e.tools : [],
         }));
         localStorage.setItem('salporto_experiences', JSON.stringify(normalized));
         return normalized;
@@ -254,6 +255,7 @@ export async function saveExperience(expData) {
     is_current: expData.is_current !== undefined ? expData.is_current : (expData.isCurrent ?? false),
     logo: expData.logo || '',
     jobdesk: Array.isArray(expData.jobdesk) ? expData.jobdesk : [],
+    tools: Array.isArray(expData.tools) ? expData.tools : [],
     images: Array.isArray(expData.images) ? expData.images : [],
     description: expData.description || '',
     sort_order: parseInt(expData.sort_order ?? expData.sortOrder ?? 0, 10),
@@ -268,11 +270,25 @@ export async function saveExperience(expData) {
 
   if (isSupabaseConfigured()) {
     try {
-      const { data, error } = await supabase
+      let { data, error } = await supabase
         .from('experiences')
         .upsert(row, { onConflict: 'id' })
         .select()
         .single();
+
+      // If Supabase table does not have 'tools' column yet, gracefully retry without it
+      if (error && (error.message?.includes('tools') || error.code === '42703')) {
+        const { tools, ...fallbackRow } = row;
+        const retry = await supabase
+          .from('experiences')
+          .upsert(fallbackRow, { onConflict: 'id' })
+          .select()
+          .single();
+        if (!retry.error) {
+          error = null;
+          data = { ...retry.data, tools: row.tools };
+        }
+      }
 
       if (error) {
         console.error('Supabase saveExperience error:', error);
@@ -283,6 +299,7 @@ export async function saveExperience(expData) {
           ...data,
           isCurrent: data.is_current !== undefined ? data.is_current : data.isCurrent,
           sortOrder: data.sort_order ?? data.sortOrder,
+          tools: Array.isArray(data.tools) ? data.tools : row.tools,
         };
       }
     } catch (e) {

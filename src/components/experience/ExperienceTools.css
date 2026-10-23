@@ -1,0 +1,82 @@
+/* ==========================================================================
+   EXPERIENCE TOOLS STRIP STYLING
+   ========================================================================== */
+
+.experience-tools-strip {
+  margin-top: 1.25rem;
+  padding-top: 1.15rem;
+  border-top: 1px dashed var(--line);
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+.experience-tools-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+  opacity: 0.85;
+}
+
+.experience-tools-list {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+}
+
+.experience-tool-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.35rem 0.75rem;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-pill);
+  transition: all var(--transition-fast);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+.experience-tool-chip:hover {
+  transform: translateY(-1px);
+  border-color: var(--accent-strong);
+  box-shadow: 0 4px 10px rgba(99, 102, 241, 0.15);
+}
+
+.tool-chip-icon-box {
+  width: 18px;
+  height: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.tool-pill-logo {
+  width: 18px;
+  height: 18px;
+  object-fit: contain;
+  display: block;
+  border-radius: 3px;
+}
+
+.tool-pill-logo.svg {
+  width: 18px;
+  height: 18px;
+}
+
+.tool-pill-default-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 9999px;
+  background: var(--accent-strong);
+}
+
+.tool-chip-name {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--text);
+  letter-spacing: -0.01em;
+}

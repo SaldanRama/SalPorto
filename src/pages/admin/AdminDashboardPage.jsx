@@ -26,8 +26,10 @@ import {
   Calendar,
   Building2,
   CheckCircle2,
+  Wrench,
 } from 'lucide-react';
 import { ThemeToggle } from '@/components/ui/ThemeToggle';
+import { getToolLogo } from '@/components/experience/ExperienceTools';
 import {
   supabase,
   isSupabaseConfigured,
@@ -42,9 +44,27 @@ import {
 } from '@/lib/supabaseClient';
 import './AdminDashboardPage.css';
 
+// Popular Tools List for 1-Click Selection
+const PRESET_TOOLS = [
+  'VS Code',
+  'Figma',
+  'Photoshop',
+  'Affinity',
+  'Canva',
+  'CapCut',
+  'React',
+  'JavaScript',
+  'HTML',
+  'CSS',
+  'PHP',
+  'Laravel',
+  'Notion',
+  'Microsoft Excel',
+];
+
 export function AdminDashboardPage() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [activeTab, setActiveTab] = useState('experiences'); // default to experiences per user focus
+  const [activeTab, setActiveTab] = useState('experiences'); // Default focus on experiences
   const [projects, setProjects] = useState([]);
   const [experiences, setExperiences] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -71,6 +91,7 @@ export function AdminDashboardPage() {
   const [editingExp, setEditingExp] = useState(null);
   const [expForm, setExpForm] = useState(getEmptyExpForm());
   const [expUploadLoading, setExpUploadLoading] = useState(false);
+  const [customToolInput, setCustomToolInput] = useState('');
 
   // Media Tab State
   const [uploadedMediaList, setUploadedMediaList] = useState([]);
@@ -187,9 +208,10 @@ export function AdminDashboardPage() {
       period: 'Agustus 2024 — Sekarang',
       type: 'Internship',
       isCurrent: false,
-      sortOrder: 0, // 0: paling atas di timeline beranda
+      sortOrder: 0, // 0 = Posisi #1 di Timeline Beranda
       logo: '',
       jobdesk: [''],
+      tools: ['VS Code', 'Figma'],
       images: [],
     };
   }
@@ -266,6 +288,7 @@ export function AdminDashboardPage() {
   const openNewExpModal = () => {
     setEditingExp(null);
     setExpForm(getEmptyExpForm());
+    setCustomToolInput('');
     setIsExpModalOpen(true);
   };
 
@@ -276,8 +299,10 @@ export function AdminDashboardPage() {
       isCurrent: exp.is_current !== undefined ? exp.is_current : (exp.isCurrent ?? false),
       sortOrder: exp.sort_order !== undefined ? exp.sort_order : (exp.sortOrder ?? 0),
       jobdesk: Array.isArray(exp.jobdesk) && exp.jobdesk.length > 0 ? exp.jobdesk : [''],
+      tools: Array.isArray(exp.tools) ? exp.tools : [],
       images: Array.isArray(exp.images) ? exp.images : [],
     });
+    setCustomToolInput('');
     setIsExpModalOpen(true);
   };
 
@@ -293,6 +318,7 @@ export function AdminDashboardPage() {
     const toSave = {
       ...expForm,
       jobdesk: filteredJobdesk,
+      tools: Array.isArray(expForm.tools) ? expForm.tools : [],
       sort_order: parseInt(expForm.sortOrder ?? expForm.sort_order ?? 0, 10),
       is_current: expForm.isCurrent ?? expForm.is_current ?? false,
     };
@@ -334,6 +360,28 @@ export function AdminDashboardPage() {
       const list = (prev.jobdesk || []).filter((_, i) => i !== idx);
       return { ...prev, jobdesk: list.length > 0 ? list : [''] };
     });
+  };
+
+  // Tools toggle and custom tools
+  const toggleTool = (toolName) => {
+    setExpForm((prev) => {
+      const current = prev.tools || [];
+      if (current.includes(toolName)) {
+        return { ...prev, tools: current.filter((t) => t !== toolName) };
+      } else {
+        return { ...prev, tools: [...current, toolName] };
+      }
+    });
+  };
+
+  const addCustomTool = (e) => {
+    if (e) e.preventDefault();
+    if (!customToolInput.trim()) return;
+    const name = customToolInput.trim();
+    if (!expForm.tools?.includes(name)) {
+      setExpForm((prev) => ({ ...prev, tools: [...(prev.tools || []), name] }));
+    }
+    setCustomToolInput('');
   };
 
   // Upload photo into experience images array
@@ -420,7 +468,7 @@ export function AdminDashboardPage() {
   });
 
   // =========================================================================
-  // LOGIN SCREEN (If not authenticated)
+  // LOGIN SCREEN
   // =========================================================================
   if (!isAuthenticated) {
     return (
@@ -503,7 +551,7 @@ export function AdminDashboardPage() {
   }
 
   // =========================================================================
-  // AUTHENTICATED DASHBOARD (User Friendly Layout with Poppins)
+  // AUTHENTICATED DASHBOARD
   // =========================================================================
   return (
     <div className="admin-app">
@@ -515,7 +563,7 @@ export function AdminDashboardPage() {
         </div>
       )}
 
-      {/* TOP NAVIGATION BAR */}
+      {/* TOPBAR */}
       <header className="admin-topbar">
         <div className="admin-topbar-left">
           <Link to="/admin" className="admin-brand">
@@ -604,14 +652,14 @@ export function AdminDashboardPage() {
 
       {/* MAIN CONTAINER */}
       <main className="admin-main-container">
-        {/* ================= TAB 1: KELOLA PENGALAMAN (EXPERIENCE) ================= */}
+        {/* ================= TAB 1: KELOLA PENGALAMAN ================= */}
         {activeTab === 'experiences' && (
           <div className="admin-tab-pane">
             <div className="admin-pane-header">
               <div>
                 <h1 className="admin-pane-title">Manajemen Pengalaman (Career Timeline)</h1>
                 <p className="admin-pane-subtitle">
-                  Atur riwayat jabatan, instansi, jangka waktu, jobdesk, dan 3 foto dokumentasi yang tampil di timeline website.
+                  Atur riwayat jabatan, instansi, jangka waktu, jobdesk, tools yang digunakan, dan foto dokumentasi di timeline.
                 </p>
               </div>
               <button
@@ -707,6 +755,21 @@ export function AdminDashboardPage() {
                     </div>
                   )}
 
+                  {/* Tools preview */}
+                  {exp.tools && exp.tools.length > 0 && (
+                    <div className="exp-card-tools-row">
+                      <span className="card-tools-label">Tools:</span>
+                      <div className="card-tools-chips">
+                        {exp.tools.map((t, tIdx) => (
+                          <span key={tIdx} className="card-tool-tag">
+                            <span className="tag-icon">{getToolLogo(t)}</span>
+                            <span>{t}</span>
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
                   {/* Photos preview strip */}
                   <div className="exp-card-photos-strip">
                     <div className="photos-strip-title">
@@ -715,8 +778,8 @@ export function AdminDashboardPage() {
                     {exp.images && exp.images.length > 0 ? (
                       <div className="photos-strip-thumbnails">
                         {exp.images.map((img, i) => (
-                          <div key={i} className="photo-thumb-item" title={img.title || `Foto ${i + 1}`}>
-                            <img src={img.url} alt={img.title || `Foto ${i + 1}`} />
+                          <div key={i} className="photo-thumb-item">
+                            <img src={img.url} alt={`Dokumentasi ${i + 1}`} />
                           </div>
                         ))}
                       </div>
@@ -742,7 +805,7 @@ export function AdminDashboardPage() {
           </div>
         )}
 
-        {/* ================= TAB 2: KELOLA PROYEK (PROJECTS) ================= */}
+        {/* ================= TAB 2: KELOLA PROYEK ================= */}
         {activeTab === 'projects' && (
           <div className="admin-tab-pane">
             <div className="admin-pane-header">
@@ -980,7 +1043,6 @@ export function AdminDashboardPage() {
               </div>
             </div>
 
-            {/* Dropzone */}
             <div className="admin-dropzone-box">
               <UploadCloud size={40} className="dropzone-icon" />
               <h3 className="dropzone-title">Pilih atau Seret Gambar ke Sini</h3>
@@ -999,7 +1061,6 @@ export function AdminDashboardPage() {
               </label>
             </div>
 
-            {/* Uploaded Items List */}
             {uploadedMediaList.length > 0 && (
               <div className="admin-media-results-section">
                 <h3 className="section-label">Media yang Baru Diunggah:</h3>
@@ -1042,65 +1103,7 @@ export function AdminDashboardPage() {
               <button
                 type="button"
                 onClick={() => {
-                  const sql = `-- ==============================================================================
--- SALPORTO SUPABASE DATABASE & STORAGE SETUP SCRIPT (FULL FIX)
--- ==============================================================================
-CREATE TABLE IF NOT EXISTS public.projects (
-  id TEXT PRIMARY KEY,
-  slug TEXT UNIQUE NOT NULL,
-  title TEXT NOT NULL,
-  category TEXT NOT NULL,
-  category_label TEXT,
-  year INTEGER,
-  role TEXT,
-  project_type TEXT,
-  summary TEXT,
-  cover_image TEXT,
-  featured BOOLEAN DEFAULT true,
-  published BOOLEAN DEFAULT true,
-  tags JSONB DEFAULT '[]'::jsonb,
-  created_at TIMESTAMPTZ DEFAULT timezone('utc'::text, now()),
-  updated_at TIMESTAMPTZ DEFAULT timezone('utc'::text, now())
-);
-
-CREATE TABLE IF NOT EXISTS public.experiences (
-  id TEXT PRIMARY KEY,
-  role TEXT NOT NULL,
-  organization TEXT NOT NULL,
-  period TEXT NOT NULL,
-  type TEXT DEFAULT 'Internship',
-  is_current BOOLEAN DEFAULT false,
-  logo TEXT,
-  jobdesk JSONB DEFAULT '[]'::jsonb,
-  images JSONB DEFAULT '[]'::jsonb,
-  description TEXT,
-  sort_order INTEGER DEFAULT 0,
-  created_at TIMESTAMPTZ DEFAULT timezone('utc'::text, now()),
-  updated_at TIMESTAMPTZ DEFAULT timezone('utc'::text, now())
-);
-
-ALTER TABLE public.projects ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.experiences ENABLE ROW LEVEL SECURITY;
-
-DROP POLICY IF EXISTS "Allow All Projects" ON public.projects;
-CREATE POLICY "Allow All Projects" ON public.projects FOR ALL USING (true) WITH CHECK (true);
-
-DROP POLICY IF EXISTS "Allow All Experiences" ON public.experiences;
-CREATE POLICY "Allow All Experiences" ON public.experiences FOR ALL USING (true) WITH CHECK (true);
-
-INSERT INTO storage.buckets (id, name, public)
-VALUES ('portfolio-images', 'portfolio-images', true)
-ON CONFLICT (id) DO UPDATE SET public = true;
-
-DROP POLICY IF EXISTS "Storage Select Policy" ON storage.objects;
-DROP POLICY IF EXISTS "Storage Insert Policy" ON storage.objects;
-DROP POLICY IF EXISTS "Storage Update Policy" ON storage.objects;
-DROP POLICY IF EXISTS "Storage Delete Policy" ON storage.objects;
-
-CREATE POLICY "Storage Select Policy" ON storage.objects FOR SELECT USING (bucket_id = 'portfolio-images');
-CREATE POLICY "Storage Insert Policy" ON storage.objects FOR INSERT WITH CHECK (bucket_id = 'portfolio-images');
-CREATE POLICY "Storage Update Policy" ON storage.objects FOR UPDATE USING (bucket_id = 'portfolio-images');
-CREATE POLICY "Storage Delete Policy" ON storage.objects FOR DELETE USING (bucket_id = 'portfolio-images');`;
+                  const sql = `-- SalPorto Database Setup Script\nALTER TABLE public.experiences ADD COLUMN IF NOT EXISTS tools JSONB DEFAULT '[]'::jsonb;`;
                   copyToClipboard(sql);
                 }}
                 className="admin-btn admin-btn-primary"
@@ -1129,16 +1132,17 @@ CREATE POLICY "Storage Delete Policy" ON storage.objects FOR DELETE USING (bucke
       </main>
 
       {/* =========================================================================
-          MODAL: EDIT / CREATE EXPERIENCE (USER-FRIENDLY & POPPINS)
+          MODAL: EDIT / CREATE EXPERIENCE (CLEAN, SPACIOUS & USER-FRIENDLY)
           ========================================================================= */}
       {isExpModalOpen && (
         <div className="admin-modal-backdrop" onClick={() => setIsExpModalOpen(false)}>
           <div className="admin-modal-content" onClick={(e) => e.stopPropagation()}>
+            {/* Modal Header */}
             <div className="admin-modal-header">
               <div>
                 <span className="modal-badge">
                   <Briefcase size={14} />
-                  <span>Career Experience</span>
+                  <span>Pengalaman Karir</span>
                 </span>
                 <h2 className="modal-title">
                   {editingExp ? 'Edit Pengalaman' : 'Tambah Pengalaman Baru'}
@@ -1148,20 +1152,21 @@ CREATE POLICY "Storage Delete Policy" ON storage.objects FOR DELETE USING (bucke
                 type="button"
                 className="modal-close-btn"
                 onClick={() => setIsExpModalOpen(false)}
+                title="Tutup Modal"
               >
                 <X size={20} />
               </button>
             </div>
 
             <form onSubmit={handleSaveExperience} className="admin-modal-form">
-              {/* SECTION 1: INFORMASI JABATAN & INSTANSI */}
-              <div className="modal-section-box">
-                <div className="modal-section-header">
-                  <span className="section-step-num">1</span>
+              {/* SECTION 1: INFORMASI UTAMA */}
+              <div className="modal-section-card">
+                <div className="modal-section-title-row">
+                  <span className="section-badge-num">1</span>
                   <h4>Informasi Jabatan &amp; Instansi</h4>
                 </div>
 
-                <div className="form-grid-2">
+                <div className="modal-form-grid-2">
                   <div className="admin-field">
                     <label>Nama Jabatan (Role) *</label>
                     <input
@@ -1184,12 +1189,12 @@ CREATE POLICY "Storage Delete Policy" ON storage.objects FOR DELETE USING (bucke
                         setExpForm({ ...expForm, organization: e.target.value })
                       }
                       className="admin-input"
-                      placeholder="Contoh: Web Programming Laboratory — Unhas"
+                      placeholder="Contoh: Web Programming Lab — Unhas"
                     />
                   </div>
                 </div>
 
-                <div className="form-grid-3">
+                <div className="modal-form-grid-2">
                   <div className="admin-field">
                     <label>Jangka Waktu Bulan / Periode *</label>
                     <input
@@ -1216,9 +1221,11 @@ CREATE POLICY "Storage Delete Policy" ON storage.objects FOR DELETE USING (bucke
                       <option value="Freelance">Freelance</option>
                     </select>
                   </div>
+                </div>
 
+                <div className="modal-form-grid-2">
                   <div className="admin-field">
-                    <label>Urutan di Timeline</label>
+                    <label>Urutan di Timeline Beranda</label>
                     <select
                       value={expForm.sortOrder}
                       onChange={(e) =>
@@ -1232,27 +1239,27 @@ CREATE POLICY "Storage Delete Policy" ON storage.objects FOR DELETE USING (bucke
                       <option value="10">Pengalaman Lainnya (Halaman /experience)</option>
                     </select>
                   </div>
-                </div>
 
-                <div className="admin-field checkbox-field">
-                  <label className="admin-checkbox-label">
-                    <input
-                      type="checkbox"
-                      checked={expForm.isCurrent}
-                      onChange={(e) =>
-                        setExpForm({ ...expForm, isCurrent: e.target.checked })
-                      }
-                    />
-                    <span>Tandai sebagai <strong>Peran yang Sedang Aktif Berjalan (Current Role)</strong></span>
-                  </label>
+                  <div className="admin-field checkbox-cell">
+                    <label className="admin-checkbox-label">
+                      <input
+                        type="checkbox"
+                        checked={expForm.isCurrent}
+                        onChange={(e) =>
+                          setExpForm({ ...expForm, isCurrent: e.target.checked })
+                        }
+                      />
+                      <span>Sedang Aktif Berjalan (Current Role)</span>
+                    </label>
+                  </div>
                 </div>
               </div>
 
-              {/* SECTION 2: LIST JOBDESK / TANGGUNG JAWAB */}
-              <div className="modal-section-box">
-                <div className="modal-section-header between">
+              {/* SECTION 2: RINCIAN JOBDESK */}
+              <div className="modal-section-card">
+                <div className="modal-section-title-row between">
                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
-                    <span className="section-step-num">2</span>
+                    <span className="section-badge-num">2</span>
                     <h4>Rincian Tanggung Jawab / Jobdesk</h4>
                   </div>
                   <button
@@ -1274,13 +1281,13 @@ CREATE POLICY "Storage Delete Policy" ON storage.objects FOR DELETE USING (bucke
                         value={item}
                         onChange={(e) => updateJobdeskPoint(idx, e.target.value)}
                         className="admin-input"
-                        placeholder="Contoh: Membimbing praktikum coding dan evaluasi tugas..."
+                        placeholder="Contoh: Merancang user flow, wireframe, dan antarmuka web..."
                       />
                       <button
                         type="button"
                         onClick={() => removeJobdeskPoint(idx)}
                         className="point-remove-btn"
-                        title="Hapus poin"
+                        title="Hapus poin ini"
                       >
                         <Trash2 size={15} />
                       </button>
@@ -1289,14 +1296,96 @@ CREATE POLICY "Storage Delete Policy" ON storage.objects FOR DELETE USING (bucke
                 </div>
               </div>
 
-              {/* SECTION 3: FOTO DOKUMENTASI UNTUK 3 FOTO BERTUMPUK */}
-              <div className="modal-section-box">
-                <div className="modal-section-header">
-                  <span className="section-step-num">3</span>
+              {/* SECTION 3: TOOLS & TEKNOLOGI YANG DIGUNAKAN */}
+              <div className="modal-section-card">
+                <div className="modal-section-title-row">
+                  <span className="section-badge-num">3</span>
+                  <div>
+                    <h4>Tools &amp; Teknologi yang Digunakan</h4>
+                    <p className="section-desc-hint">
+                      Pilih dari preset tools berlogo atau ketik tool kustom Anda di bawah.
+                    </p>
+                  </div>
+                </div>
+
+                {/* Preset Tools Grid */}
+                <div className="modal-tools-chips-grid">
+                  {PRESET_TOOLS.map((toolName) => {
+                    const isSelected = expForm.tools?.includes(toolName);
+                    return (
+                      <button
+                        key={toolName}
+                        type="button"
+                        onClick={() => toggleTool(toolName)}
+                        className={`modal-tool-chip ${isSelected ? 'active' : ''}`}
+                      >
+                        <span className="tool-chip-logo-box">
+                          {getToolLogo(toolName)}
+                        </span>
+                        <span>{toolName}</span>
+                        {isSelected && <Check size={13} className="chip-check-icon" />}
+                      </button>
+                    );
+                  })}
+                </div>
+
+                {/* Add Custom Tool Input */}
+                <div className="custom-tool-input-row">
+                  <input
+                    type="text"
+                    placeholder="Tambah tool kustom lainnya (contoh: TailwindCSS, Next.js, Python)..."
+                    value={customToolInput}
+                    onChange={(e) => setCustomToolInput(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                        addCustomTool();
+                      }
+                    }}
+                    className="admin-input"
+                  />
+                  <button
+                    type="button"
+                    onClick={addCustomTool}
+                    className="admin-btn admin-btn-secondary"
+                  >
+                    <Plus size={15} />
+                    <span>Tambah</span>
+                  </button>
+                </div>
+
+                {/* Selected Tools Preview */}
+                {expForm.tools && expForm.tools.length > 0 && (
+                  <div className="selected-tools-preview-strip">
+                    <span className="selected-label">Tools Terpilih ({expForm.tools.length}):</span>
+                    <div className="selected-pills-list">
+                      {expForm.tools.map((t, idx) => (
+                        <span key={idx} className="selected-tool-tag">
+                          <span className="tag-logo">{getToolLogo(t)}</span>
+                          <span>{t}</span>
+                          <button
+                            type="button"
+                            onClick={() => toggleTool(t)}
+                            className="tag-remove-btn"
+                            title="Hapus tool"
+                          >
+                            <X size={12} />
+                          </button>
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* SECTION 4: FOTO DOKUMENTASI UNTUK 3 FOTO BERTUMPUK */}
+              <div className="modal-section-card">
+                <div className="modal-section-title-row">
+                  <span className="section-badge-num">4</span>
                   <div>
                     <h4>Dokumentasi Foto Pengalaman (Untuk Tumpukan 3 Foto)</h4>
                     <p className="section-desc-hint">
-                      Foto otomatis diunggah ke Supabase Storage dan ditampilkan sebagai galeri tumpuk interaktif.
+                      Foto otomatis diunggah ke Supabase Storage dan ditampilkan sebagai galeri tumpuk interaktif tanpa label teks nama file.
                     </p>
                   </div>
                 </div>
@@ -1323,7 +1412,7 @@ CREATE POLICY "Storage Delete Policy" ON storage.objects FOR DELETE USING (bucke
                   <div className="form-image-preview-grid">
                     {expForm.images.map((img, i) => (
                       <div key={i} className="preview-thumb-box">
-                        <img src={img.url} alt={img.title || `Foto ${i + 1}`} />
+                        <img src={img.url} alt={`Foto ${i + 1}`} />
                         <span className="preview-thumb-number">Foto {i + 1}</span>
                         <button
                           type="button"
@@ -1344,6 +1433,7 @@ CREATE POLICY "Storage Delete Policy" ON storage.objects FOR DELETE USING (bucke
                 )}
               </div>
 
+              {/* Modal Footer */}
               <div className="admin-modal-footer">
                 <button
                   type="button"
@@ -1382,174 +1472,176 @@ CREATE POLICY "Storage Delete Policy" ON storage.objects FOR DELETE USING (bucke
                 type="button"
                 className="modal-close-btn"
                 onClick={() => setIsProjectModalOpen(false)}
+                title="Tutup Modal"
               >
                 <X size={20} />
               </button>
             </div>
 
             <form onSubmit={handleSaveProject} className="admin-modal-form">
-              <div className="form-grid-2">
-                <div className="admin-field">
-                  <label>Judul Proyek *</label>
-                  <input
-                    type="text"
-                    required
-                    value={projectForm.title}
-                    onChange={(e) =>
-                      setProjectForm({ ...projectForm, title: e.target.value })
-                    }
-                    className="admin-input"
-                    placeholder="Contoh: PerdosFit Gym Management"
-                  />
-                </div>
-
-                <div className="admin-field">
-                  <label>Slug URL (Opsional)</label>
-                  <input
-                    type="text"
-                    value={projectForm.slug}
-                    onChange={(e) =>
-                      setProjectForm({ ...projectForm, slug: e.target.value })
-                    }
-                    className="admin-input"
-                    placeholder="perdosfit (otomatis jika dikosongkan)"
-                  />
-                </div>
-              </div>
-
-              <div className="form-grid-3">
-                <div className="admin-field">
-                  <label>Kategori</label>
-                  <select
-                    value={projectForm.category}
-                    onChange={(e) => {
-                      const cat = e.target.value;
-                      const labels = {
-                        'ui-ux': 'UI/UX Design',
-                        web: 'Web Projects',
-                        'graphic-design': 'Graphic Design',
-                      };
-                      setProjectForm({
-                        ...projectForm,
-                        category: cat,
-                        categoryLabel: labels[cat] || 'Design',
-                      });
-                    }}
-                    className="admin-input"
-                  >
-                    <option value="ui-ux">UI/UX Design</option>
-                    <option value="web">Web Development</option>
-                    <option value="graphic-design">Graphic Design</option>
-                  </select>
-                </div>
-
-                <div className="admin-field">
-                  <label>Tahun</label>
-                  <input
-                    type="number"
-                    value={projectForm.year}
-                    onChange={(e) =>
-                      setProjectForm({ ...projectForm, year: e.target.value })
-                    }
-                    className="admin-input"
-                  />
-                </div>
-
-                <div className="admin-field">
-                  <label>Peran / Role</label>
-                  <input
-                    type="text"
-                    value={projectForm.role}
-                    onChange={(e) =>
-                      setProjectForm({ ...projectForm, role: e.target.value })
-                    }
-                    className="admin-input"
-                    placeholder="UI/UX Designer"
-                  />
-                </div>
-              </div>
-
-              <div className="admin-field">
-                <label>Tipe Proyek / Instansi</label>
-                <input
-                  type="text"
-                  value={projectForm.projectType}
-                  onChange={(e) =>
-                    setProjectForm({ ...projectForm, projectType: e.target.value })
-                  }
-                  className="admin-input"
-                  placeholder="Academic / Diskominfo Makassar"
-                />
-              </div>
-
-              <div className="admin-field">
-                <label>Ringkasan Proyek (Summary) *</label>
-                <textarea
-                  required
-                  rows={3}
-                  value={projectForm.summary}
-                  onChange={(e) =>
-                    setProjectForm({ ...projectForm, summary: e.target.value })
-                  }
-                  className="admin-input"
-                  placeholder="Jelaskan secara singkat tujuan dan solusi proyek ini..."
-                />
-              </div>
-
-              {/* Cover Image Upload */}
-              <div className="admin-field">
-                <label>Cover Image (Unggah ke Supabase Storage)</label>
-                <div className="upload-control-row">
-                  <input
-                    type="text"
-                    value={projectForm.coverImage}
-                    onChange={(e) =>
-                      setProjectForm({ ...projectForm, coverImage: e.target.value })
-                    }
-                    className="admin-input"
-                    placeholder="URL gambar atau unggah file..."
-                  />
-                  <label className="admin-btn admin-btn-secondary upload-btn-label">
-                    <span>{projectUploadLoading ? 'Mengunggah...' : 'Pilih File'}</span>
+              <div className="modal-section-card">
+                <div className="modal-form-grid-2">
+                  <div className="admin-field">
+                    <label>Judul Proyek *</label>
                     <input
-                      type="file"
-                      accept="image/*"
-                      onChange={handleCoverUpload}
-                      disabled={projectUploadLoading}
-                      style={{ display: 'none' }}
+                      type="text"
+                      required
+                      value={projectForm.title}
+                      onChange={(e) =>
+                        setProjectForm({ ...projectForm, title: e.target.value })
+                      }
+                      className="admin-input"
+                      placeholder="Contoh: PerdosFit Gym Management"
                     />
+                  </div>
+
+                  <div className="admin-field">
+                    <label>Slug URL (Opsional)</label>
+                    <input
+                      type="text"
+                      value={projectForm.slug}
+                      onChange={(e) =>
+                        setProjectForm({ ...projectForm, slug: e.target.value })
+                      }
+                      className="admin-input"
+                      placeholder="perdosfit (otomatis jika dikosongkan)"
+                    />
+                  </div>
+                </div>
+
+                <div className="modal-form-grid-3">
+                  <div className="admin-field">
+                    <label>Kategori</label>
+                    <select
+                      value={projectForm.category}
+                      onChange={(e) => {
+                        const cat = e.target.value;
+                        const labels = {
+                          'ui-ux': 'UI/UX Design',
+                          web: 'Web Projects',
+                          'graphic-design': 'Graphic Design',
+                        };
+                        setProjectForm({
+                          ...projectForm,
+                          category: cat,
+                          categoryLabel: labels[cat] || 'Design',
+                        });
+                      }}
+                      className="admin-input"
+                    >
+                      <option value="ui-ux">UI/UX Design</option>
+                      <option value="web">Web Development</option>
+                      <option value="graphic-design">Graphic Design</option>
+                    </select>
+                  </div>
+
+                  <div className="admin-field">
+                    <label>Tahun</label>
+                    <input
+                      type="number"
+                      value={projectForm.year}
+                      onChange={(e) =>
+                        setProjectForm({ ...projectForm, year: e.target.value })
+                      }
+                      className="admin-input"
+                    />
+                  </div>
+
+                  <div className="admin-field">
+                    <label>Peran / Role</label>
+                    <input
+                      type="text"
+                      value={projectForm.role}
+                      onChange={(e) =>
+                        setProjectForm({ ...projectForm, role: e.target.value })
+                      }
+                      className="admin-input"
+                      placeholder="UI/UX Designer"
+                    />
+                  </div>
+                </div>
+
+                <div className="admin-field">
+                  <label>Tipe Proyek / Instansi</label>
+                  <input
+                    type="text"
+                    value={projectForm.projectType}
+                    onChange={(e) =>
+                      setProjectForm({ ...projectForm, projectType: e.target.value })
+                    }
+                    className="admin-input"
+                    placeholder="Academic / Diskominfo Makassar"
+                  />
+                </div>
+
+                <div className="admin-field">
+                  <label>Ringkasan Proyek (Summary) *</label>
+                  <textarea
+                    required
+                    rows={3}
+                    value={projectForm.summary}
+                    onChange={(e) =>
+                      setProjectForm({ ...projectForm, summary: e.target.value })
+                    }
+                    className="admin-input"
+                    placeholder="Jelaskan secara singkat tujuan dan solusi proyek ini..."
+                  />
+                </div>
+
+                <div className="admin-field">
+                  <label>Cover Image (Unggah ke Supabase Storage)</label>
+                  <div className="upload-control-row">
+                    <input
+                      type="text"
+                      value={projectForm.coverImage}
+                      onChange={(e) =>
+                        setProjectForm({ ...projectForm, coverImage: e.target.value })
+                      }
+                      className="admin-input"
+                      placeholder="URL gambar atau unggah file..."
+                    />
+                    <label className="admin-btn admin-btn-secondary upload-btn-label">
+                      <span>{projectUploadLoading ? 'Mengunggah...' : 'Pilih File'}</span>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleCoverUpload}
+                        disabled={projectUploadLoading}
+                        style={{ display: 'none' }}
+                      />
+                    </label>
+                  </div>
+
+                  {projectForm.coverImage && (
+                    <div className="form-cover-preview">
+                      <img src={projectForm.coverImage} alt="Cover preview" />
+                    </div>
+                  )}
+                </div>
+
+                <div className="form-checkbox-row">
+                  <label className="admin-checkbox-label">
+                    <input
+                      type="checkbox"
+                      checked={projectForm.featured}
+                      onChange={(e) =>
+                        setProjectForm({ ...projectForm, featured: e.target.checked })
+                      }
+                    />
+                    <span>Tampilkan di Beranda (Featured)</span>
+                  </label>
+
+                  <label className="admin-checkbox-label">
+                    <input
+                      type="checkbox"
+                      checked={projectForm.published !== false}
+                      onChange={(e) =>
+                        setProjectForm({ ...projectForm, published: e.target.checked })
+                      }
+                    />
+                    <span>Publikasikan (Published)</span>
                   </label>
                 </div>
-
-                {projectForm.coverImage && (
-                  <div className="form-cover-preview">
-                    <img src={projectForm.coverImage} alt="Cover preview" />
-                  </div>
-                )}
-              </div>
-
-              <div className="form-checkbox-row">
-                <label className="admin-checkbox-label">
-                  <input
-                    type="checkbox"
-                    checked={projectForm.featured}
-                    onChange={(e) =>
-                      setProjectForm({ ...projectForm, featured: e.target.checked })
-                    }
-                  />
-                  <span>Tampilkan di Beranda (Featured)</span>
-                </label>
-
-                <label className="admin-checkbox-label">
-                  <input
-                    type="checkbox"
-                    checked={projectForm.published !== false}
-                    onChange={(e) =>
-                      setProjectForm({ ...projectForm, published: e.target.checked })
-                    }
-                  />
-                  <span>Publikasikan (Published)</span>
-                </label>
               </div>
 
               <div className="admin-modal-footer">
