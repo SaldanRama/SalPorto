@@ -928,33 +928,11 @@ export function AdminDashboardPage() {
               <button
                 type="button"
                 onClick={() => {
-                  const sql = `-- SalPorto Setup Script\n-- Buka file: supabase_schema.sql di root project`;
-                  copyToClipboard(sql);
-                }}
-                className="admin-btn admin-btn-primary"
-              >
-                <Copy size={15} />
-                <span>Salin Script SQL</span>
-              </button>
-            </div>
+                  const sql = `-- ==============================================================================
+-- SALPORTO SUPABASE DATABASE & STORAGE SETUP SCRIPT (FULL FIX)
+-- ==============================================================================
 
-            <div className="admin-sql-viewer">
-              <div className="sql-instruction-step">
-                <span className="step-num">1</span>
-                <span>Buka Dashboard Supabase Anda: <strong>https://supabase.com/dashboard/project/qarvsujzxunsyktofquu</strong></span>
-              </div>
-              <div className="sql-instruction-step">
-                <span className="step-num">2</span>
-                <span>Buka menu <strong>SQL Editor</strong> di bilah navigasi kiri.</span>
-              </div>
-              <div className="sql-instruction-step">
-                <span className="step-num">3</span>
-                <span>Klik <strong>New Query</strong>, paste isi file <code>supabase_schema.sql</code>, lalu klik tombol <strong>Run</strong>.</span>
-              </div>
-
-              <div className="sql-code-box">
-                <pre>
-{`-- Cuplikan Script (Buka supabase_schema.sql untuk versi lengkap):
+-- 1. CREATE PROJECTS TABLE
 CREATE TABLE IF NOT EXISTS public.projects (
   id TEXT PRIMARY KEY,
   slug TEXT UNIQUE NOT NULL,
@@ -968,9 +946,12 @@ CREATE TABLE IF NOT EXISTS public.projects (
   cover_image TEXT,
   featured BOOLEAN DEFAULT true,
   published BOOLEAN DEFAULT true,
-  tags JSONB DEFAULT '[]'::jsonb
+  tags JSONB DEFAULT '[]'::jsonb,
+  created_at TIMESTAMPTZ DEFAULT timezone('utc'::text, now()),
+  updated_at TIMESTAMPTZ DEFAULT timezone('utc'::text, now())
 );
 
+-- 2. CREATE EXPERIENCES TABLE
 CREATE TABLE IF NOT EXISTS public.experiences (
   id TEXT PRIMARY KEY,
   role TEXT NOT NULL,
@@ -981,8 +962,96 @@ CREATE TABLE IF NOT EXISTS public.experiences (
   logo TEXT,
   jobdesk JSONB DEFAULT '[]'::jsonb,
   images JSONB DEFAULT '[]'::jsonb,
-  sort_order INTEGER DEFAULT 0
-);`}
+  description TEXT,
+  sort_order INTEGER DEFAULT 0,
+  created_at TIMESTAMPTZ DEFAULT timezone('utc'::text, now()),
+  updated_at TIMESTAMPTZ DEFAULT timezone('utc'::text, now())
+);
+
+-- 3. ENABLE ROW LEVEL SECURITY (RLS)
+ALTER TABLE public.projects ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.experiences ENABLE ROW LEVEL SECURITY;
+
+-- 4. RLS POLICIES FOR PROJECTS & EXPERIENCES
+DROP POLICY IF EXISTS "Public Read Projects" ON public.projects;
+DROP POLICY IF EXISTS "Admin All Projects" ON public.projects;
+DROP POLICY IF EXISTS "Allow All Projects" ON public.projects;
+
+DROP POLICY IF EXISTS "Public Read Experiences" ON public.experiences;
+DROP POLICY IF EXISTS "Admin All Experiences" ON public.experiences;
+DROP POLICY IF EXISTS "Allow All Experiences" ON public.experiences;
+
+CREATE POLICY "Allow All Projects" ON public.projects
+  FOR ALL USING (true) WITH CHECK (true);
+
+CREATE POLICY "Allow All Experiences" ON public.experiences
+  FOR ALL USING (true) WITH CHECK (true);
+
+-- 5. STORAGE BUCKET CREATION FOR PORTFOLIO IMAGES
+INSERT INTO storage.buckets (id, name, public)
+VALUES ('portfolio-images', 'portfolio-images', true)
+ON CONFLICT (id) DO UPDATE SET public = true;
+
+-- Drop old storage policies if any
+DROP POLICY IF EXISTS "Public Access Storage" ON storage.objects;
+DROP POLICY IF EXISTS "Admin Upload Storage" ON storage.objects;
+DROP POLICY IF EXISTS "Admin Update Storage" ON storage.objects;
+DROP POLICY IF EXISTS "Admin Delete Storage" ON storage.objects;
+DROP POLICY IF EXISTS "Storage Select Policy" ON storage.objects;
+DROP POLICY IF EXISTS "Storage Insert Policy" ON storage.objects;
+DROP POLICY IF EXISTS "Storage Update Policy" ON storage.objects;
+DROP POLICY IF EXISTS "Storage Delete Policy" ON storage.objects;
+
+-- Create storage policies allowing read, upload, update, and delete on 'portfolio-images' bucket
+CREATE POLICY "Storage Select Policy" ON storage.objects
+  FOR SELECT USING (bucket_id = 'portfolio-images');
+
+CREATE POLICY "Storage Insert Policy" ON storage.objects
+  FOR INSERT WITH CHECK (bucket_id = 'portfolio-images');
+
+CREATE POLICY "Storage Update Policy" ON storage.objects
+  FOR UPDATE USING (bucket_id = 'portfolio-images');
+
+CREATE POLICY "Storage Delete Policy" ON storage.objects
+  FOR DELETE USING (bucket_id = 'portfolio-images');`;
+                  copyToClipboard(sql);
+                }}
+                className="admin-btn admin-btn-primary"
+              >
+                <Copy size={15} />
+                <span>Salin Script SQL Lengkap</span>
+              </button>
+            </div>
+
+            <div className="admin-sql-viewer">
+              <div className="sql-instruction-step">
+                <span className="step-num">1</span>
+                <span>Buka Dashboard Supabase: <strong>https://supabase.com/dashboard/project/qarvsujzxunsyktofquu</strong></span>
+              </div>
+              <div className="sql-instruction-step">
+                <span className="step-num">2</span>
+                <span>Buka menu <strong>SQL Editor</strong> di bilah navigasi kiri.</span>
+              </div>
+              <div className="sql-instruction-step">
+                <span className="step-num">3</span>
+                <span>Klik <strong>New Query</strong>, paste script SQL, lalu klik tombol <strong>Run</strong>.</span>
+              </div>
+
+              <div className="sql-code-box">
+                <pre>
+{`-- Solusi Cepat Row-Level Security (RLS) Supabase Storage:
+INSERT INTO storage.buckets (id, name, public)
+VALUES ('portfolio-images', 'portfolio-images', true)
+ON CONFLICT (id) DO UPDATE SET public = true;
+
+DROP POLICY IF EXISTS "Admin Upload Storage" ON storage.objects;
+DROP POLICY IF EXISTS "Storage Insert Policy" ON storage.objects;
+
+CREATE POLICY "Storage Insert Policy" ON storage.objects
+  FOR INSERT WITH CHECK (bucket_id = 'portfolio-images');
+
+CREATE POLICY "Storage Select Policy" ON storage.objects
+  FOR SELECT USING (bucket_id = 'portfolio-images');`}
                 </pre>
               </div>
             </div>

@@ -43,36 +43,50 @@ CREATE TABLE IF NOT EXISTS public.experiences (
 ALTER TABLE public.projects ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.experiences ENABLE ROW LEVEL SECURITY;
 
--- 4. RLS POLICIES: Public read access, Authenticated write access
-CREATE POLICY "Public Read Projects" ON public.projects
-  FOR SELECT USING (true);
+-- 4. RLS POLICIES FOR PROJECTS & EXPERIENCES
+-- Drop existing policies if any
+DROP POLICY IF EXISTS "Public Read Projects" ON public.projects;
+DROP POLICY IF EXISTS "Admin All Projects" ON public.projects;
+DROP POLICY IF EXISTS "Allow All Projects" ON public.projects;
 
-CREATE POLICY "Admin All Projects" ON public.projects
-  FOR ALL USING (auth.role() = 'authenticated');
+DROP POLICY IF EXISTS "Public Read Experiences" ON public.experiences;
+DROP POLICY IF EXISTS "Admin All Experiences" ON public.experiences;
+DROP POLICY IF EXISTS "Allow All Experiences" ON public.experiences;
 
-CREATE POLICY "Public Read Experiences" ON public.experiences
-  FOR SELECT USING (true);
+-- Create open policies for personal portfolio website
+CREATE POLICY "Allow All Projects" ON public.projects
+  FOR ALL USING (true) WITH CHECK (true);
 
-CREATE POLICY "Admin All Experiences" ON public.experiences
-  FOR ALL USING (auth.role() = 'authenticated');
+CREATE POLICY "Allow All Experiences" ON public.experiences
+  FOR ALL USING (true) WITH CHECK (true);
 
 -- 5. STORAGE BUCKET CREATION FOR PORTFOLIO IMAGES
 INSERT INTO storage.buckets (id, name, public)
 VALUES ('portfolio-images', 'portfolio-images', true)
-ON CONFLICT (id) DO NOTHING;
+ON CONFLICT (id) DO UPDATE SET public = true;
 
--- Storage RLS Policies
-CREATE POLICY "Public Access Storage" ON storage.objects
+-- Drop old storage policies if any
+DROP POLICY IF EXISTS "Public Access Storage" ON storage.objects;
+DROP POLICY IF EXISTS "Admin Upload Storage" ON storage.objects;
+DROP POLICY IF EXISTS "Admin Update Storage" ON storage.objects;
+DROP POLICY IF EXISTS "Admin Delete Storage" ON storage.objects;
+DROP POLICY IF EXISTS "Storage Select Policy" ON storage.objects;
+DROP POLICY IF EXISTS "Storage Insert Policy" ON storage.objects;
+DROP POLICY IF EXISTS "Storage Update Policy" ON storage.objects;
+DROP POLICY IF EXISTS "Storage Delete Policy" ON storage.objects;
+
+-- Create storage policies allowing read, upload, update, and delete on 'portfolio-images' bucket
+CREATE POLICY "Storage Select Policy" ON storage.objects
   FOR SELECT USING (bucket_id = 'portfolio-images');
 
-CREATE POLICY "Admin Upload Storage" ON storage.objects
-  FOR INSERT WITH CHECK (bucket_id = 'portfolio-images' AND auth.role() = 'authenticated');
+CREATE POLICY "Storage Insert Policy" ON storage.objects
+  FOR INSERT WITH CHECK (bucket_id = 'portfolio-images');
 
-CREATE POLICY "Admin Update Storage" ON storage.objects
-  FOR UPDATE USING (bucket_id = 'portfolio-images' AND auth.role() = 'authenticated');
+CREATE POLICY "Storage Update Policy" ON storage.objects
+  FOR UPDATE USING (bucket_id = 'portfolio-images');
 
-CREATE POLICY "Admin Delete Storage" ON storage.objects
-  FOR DELETE USING (bucket_id = 'portfolio-images' AND auth.role() = 'authenticated');
+CREATE POLICY "Storage Delete Policy" ON storage.objects
+  FOR DELETE USING (bucket_id = 'portfolio-images');
 
 -- 6. INSERT INITIAL SEED DATA (If table is empty)
 INSERT INTO public.projects (id, slug, title, category, category_label, year, role, project_type, summary, cover_image, featured, published, tags)
