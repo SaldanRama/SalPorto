@@ -54,32 +54,122 @@ export const mockProjects = [
 export const mockExperiences = [
   {
     id: 'lab-assistant',
-    organization: 'Web Programming Laboratory',
-    role: 'Laboratory Assistant',
+    role: 'Laboratory Assistant (Asisten Laboratorium)',
+    organization: 'Web Programming Laboratory — Universitas Hasanuddin',
+    period: 'Agustus 2023 — Sekarang',
     type: 'Academic',
-    period: '2023 — Present',
     isCurrent: true,
+    logo: '/images/UnhasLogo.png',
+    jobdesk: [
+      'Membimbing lebih dari 100+ mahasiswa dalam praktikum intensif Web Development (HTML5, CSS3, Modern JavaScript, React, dan PHP/Laravel).',
+      'Menyusun silabus, modul praktikum kurikulum teknologi web terkini, materi hands-on coding, serta tugas studi kasus riil.',
+      'Melakukan code review komprehensif, pemeriksaan best practices arsitektur web, dan evaluasi berkala tugas praktikum.',
+      'Memfasilitasi sesi troubleshooting bug, debugging instruksional, serta pendampingan proyek akhir mahasiswa.'
+    ],
+    images: [
+      {
+        url: '/images/experience/01-lab-assistant/image-1.svg',
+        title: 'Sesi Praktikum Coding & Lab Mentoring',
+        caption: 'Membimbing mahasiswa dalam penguasaan fundamental web modern dan arsitektur aplikasi di laboratorium.'
+      },
+      {
+        url: '/images/experience/01-lab-assistant/image-2.svg',
+        title: 'Review Kode & Evaluasi Tugas Mahasiswa',
+        caption: 'Pemeriksaan standar kode, semantic markup, optimasi performa, dan pengujian fungsionalitas aplikasi.'
+      },
+      {
+        url: '/images/experience/01-lab-assistant/image-3.svg',
+        title: 'Penyusunan Modul & Workshop Arsitektur Web',
+        caption: 'Pengembangan bahan ajar praktikum terstruktur mencakup client-server, REST API, dan basis data.'
+      }
+    ],
     description:
-      'Guided university students through practical web development sessions, grading assignments, assisting module development, and conducting hands-on coding labs.',
+      'Guided university students through practical web development sessions, grading assignments, assisting module development, and conducting hands-on coding labs.'
   },
   {
     id: 'diskominfo',
-    organization: 'Diskominfo Kota Makassar',
-    role: 'UI/UX & Front-End Intern',
+    role: 'UI/UX Designer & Front-End Intern',
+    organization: 'Diskominfo Kota Makassar (Dinas Komunikasi & Informatika)',
+    period: 'Juli 2024 — September 2024',
     type: 'Internship',
-    period: '2024',
     isCurrent: false,
+    logo: '/images/KominfoLogo.png',
+    jobdesk: [
+      'Merancang arsitektur informasi, alur pengalaman pengguna (user journey), dan antarmuka web portal "Website Kelurahan Cantik".',
+      'Membuat wireframe, prototipe interaktif high-fidelity, serta atomic design system yang konsisten di Figma.',
+      'Mengimplementasikan komponen antarmuka front-end responsif berbasis standar web modern yang ramah aksesibilitas publik.',
+      'Melakukan usability evaluation bersama tim Diskominfo serta mengiterasi desain berdasarkan masukan para pemangku kepentingan.'
+    ],
+    images: [
+      {
+        url: '/images/experience/02-diskominfo/image-1.svg',
+        title: 'Antarmuka Portal Layanan Publik Kelurahan Cantik',
+        caption: 'Desain visual dashboard penyajian data kependudukan dan transparansi statistik kelurahan kota Makassar.'
+      },
+      {
+        url: '/images/experience/02-diskominfo/image-2.svg',
+        title: 'Figma Design System & Komponen Terstandarisasi',
+        caption: 'Penyusunan atomic components, token warna, tipografi, dan navigasi ramah pengguna di Figma.'
+      },
+      {
+        url: '/images/experience/02-diskominfo/image-3.svg',
+        title: 'Implementasi Front-End & Pengujian Usabilitas',
+        caption: 'Penerapan kode antarmuka web responsif dan audit standar performa serta aksesibilitas WCAG.'
+      }
+    ],
     description:
-      'Collaborated with the public services team to design interface solutions for Website Kelurahan Cantik and implemented front-end code components.',
+      'Collaborated with the public services team to design interface solutions for Website Kelurahan Cantik and implemented front-end code components.'
   },
   {
     id: 'bpjs-kesehatan',
-    organization: 'BPJS Kesehatan Makassar',
     role: 'Operational & Data Support Intern',
+    organization: 'BPJS Kesehatan Cabang Utama Makassar',
+    period: 'Januari 2023 — Maret 2023',
     type: 'Internship',
-    period: '2023',
     isCurrent: false,
+    logo: '/images/BpjsLogo.png',
+    jobdesk: [
+      'Melakukan audit data, pencocokan (data matching), dan validasi database mitra Fasilitas Kesehatan (Faskes) se-Makassar.',
+      'Menstandarisasi sistem pengarsipan digital untuk ribuan berkas administrasi dan dokumen kerja sama fasilitas kesehatan.',
+      'Mendukung koordinasi operasional pelayanan publik dan verifikasi data rujukan berjenjang layanan kesehatan.',
+      'Menyusun laporan rekapitulasi periodik guna meningkatkan efisiensi dan transparansi alur kerja administrasi internal cabang.'
+    ],
+    images: [
+      {
+        url: '/images/experience/03-bpjs-kesehatan/image-1.svg',
+        title: 'Validasi & Rekonsiliasi Data Mitra Faskes',
+        caption: 'Pencocokan data fasilitas kesehatan dan verifikasi kelayakan dokumen administrasi faskes mitra BPJS.'
+      },
+      {
+        url: '/images/experience/03-bpjs-kesehatan/image-2.svg',
+        title: 'Sistem Pengarsipan Digital Dokumen Operasional',
+        caption: 'Standardisasi pengelompokan berkas digital untuk mempermudah akses retrieval berkas tim verifikator.'
+      },
+      {
+        url: '/images/experience/03-bpjs-kesehatan/image-3.svg',
+        title: 'Laporan Rekapitulasi & Dukungan Operasional',
+        caption: 'Penyusunan ringkasan performa verifikasi dokumen dan koordinasi lintas bagian operasional kantor cabang.'
+      }
+    ],
     description:
-      'Facilitated health-facility data validation, digital archiving, document organization, and administrative operational workflows.',
+      'Facilitated health-facility data validation, digital archiving, document organization, and administrative operational workflows.'
   },
+  {
+    id: 'kknt-lakessi',
+    role: 'Visual Identity & Branding Specialist',
+    organization: 'KKN-T Gelombang 110 — Universitas Hasanuddin (Kel. Lakessi)',
+    period: 'Juli 2023 — Agustus 2023',
+    type: 'Community / Project',
+    isCurrent: false,
+    logo: '/images/UnhasLogo.png',
+    jobdesk: [
+      'Merancang identitas visual, kemasan produk, dan materi promosi digital untuk pelaku UMKM lokal di Kelurahan Lakessi, Parepare.',
+      'Mengembangkan logo, label stiker kemasan ramah cetak, serta banner toko guna meningkatkan daya tarik pasar.',
+      'Memberikan edukasi dan pendampingan branding visual serta pemanfaatan media digital bagi pemilik usaha mikro.'
+    ],
+    images: [],
+    description:
+      'Visual identity design and packaging assets crafted for local micro-enterprises in Lakessi, Parepare, empowering local market presence.'
+  }
 ];
+

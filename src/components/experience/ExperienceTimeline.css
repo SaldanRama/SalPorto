@@ -1,0 +1,536 @@
+/* ==========================================================================
+   EXPERIENCE VERTICAL TIMELINE STYLING
+   Center vertical line with point dots inspired by user reference,
+   alternating stacked photos and structured experience details.
+   ========================================================================== */
+
+.section-experience {
+  background-color: var(--bg);
+  padding-top: clamp(4.5rem, 8vw, 7.5rem);
+  padding-bottom: clamp(5rem, 9vw, 8rem);
+  position: relative;
+  border-top: 1px solid var(--line);
+  overflow: hidden;
+}
+
+/* SECTION HEADER */
+.experience-header {
+  text-align: center;
+  max-width: 720px;
+  margin: 0 auto clamp(3.5rem, 6vw, 5.5rem);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.experience-header-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.35rem 0.95rem;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-pill);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 1rem;
+  box-shadow: var(--shadow-subtle);
+}
+
+.experience-pill-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--accent-strong);
+}
+
+.experience-title {
+  font-size: var(--text-h2);
+  line-height: 1.08;
+  color: var(--text);
+  margin-bottom: 1rem;
+}
+
+.experience-title em {
+  font-style: italic;
+  font-weight: 400;
+  color: var(--text);
+}
+
+.experience-subtitle {
+  font-size: var(--text-body-lg);
+  color: var(--muted);
+  line-height: 1.6;
+  max-width: 600px;
+}
+
+/* ==========================================================================
+   VERTICAL TIMELINE ARCHITECTURE (DESKTOP)
+   ========================================================================== */
+
+.timeline-wrapper {
+  position: relative;
+  max-width: 1240px;
+  margin: 0 auto;
+}
+
+/* Central vertical continuous line stem with dynamic scroll progress (Image 2 style) */
+.timeline-central-stem {
+  position: absolute;
+  top: 36px;
+  bottom: 36px;
+  left: 50%;
+  width: 1.5px;
+  transform: translateX(-50%);
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* Inactive hairline track (dim base line) */
+.timeline-stem-track {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(255, 255, 255, 0.16);
+}
+
+[data-theme='light'] .timeline-stem-track {
+  background: rgba(0, 0, 0, 0.14);
+}
+
+/* Active progress line that fills down on scroll down, shrinks on scroll up */
+.timeline-stem-progress {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  background: #FFFFFF;
+  box-shadow: 0 0 8px rgba(255, 255, 255, 0.45);
+  will-change: height;
+  transition: height 60ms linear;
+}
+
+[data-theme='light'] .timeline-stem-progress {
+  background: #111111;
+  box-shadow: 0 0 6px rgba(0, 0, 0, 0.2);
+}
+
+/* Tip marker at current scroll progress edge (micro square cap from image 2) */
+.timeline-progress-tip {
+  position: absolute;
+  bottom: -2px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 5px;
+  height: 5px;
+  background: #FFFFFF;
+  border-radius: 1px;
+  box-shadow: 0 0 8px rgba(255, 255, 255, 0.9);
+}
+
+[data-theme='light'] .timeline-progress-tip {
+  background: #111111;
+  box-shadow: 0 0 5px rgba(0, 0, 0, 0.3);
+}
+
+/* Bottom end cap of the base track */
+.timeline-stem-end-cap {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 4px;
+  height: 4px;
+  background: rgba(255, 255, 255, 0.25);
+  border-radius: 1px;
+}
+
+[data-theme='light'] .timeline-stem-end-cap {
+  background: rgba(0, 0, 0, 0.2);
+}
+
+/* TIMELINE ROW (Alternating 2-Column Desktop Grid) */
+.timeline-items-list {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(4rem, 7vw, 6.5rem);
+  position: relative;
+  z-index: 2;
+}
+
+.timeline-row {
+  display: grid;
+  grid-template-columns: 1fr 64px 1fr;
+  align-items: center;
+  gap: 1.5rem;
+  position: relative;
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+
+/* CENTER COLUMN: POINT DOT (Inspired directly by user reference image 2) */
+.timeline-col-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  height: 100%;
+}
+
+.timeline-node {
+  position: relative;
+  width: 18px;
+  height: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 3;
+}
+
+/* Dot ring design matching Image 2: hollow circular ring centered on the line */
+.timeline-node-dot {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--bg);
+  border: 1.5px solid rgba(255, 255, 255, 0.3);
+  box-shadow: 0 0 0 4px var(--bg);
+  transition: transform 220ms cubic-bezier(0.2, 0.8, 0.2, 1),
+              border-color 220ms ease,
+              box-shadow 220ms ease,
+              background-color 220ms ease;
+}
+
+[data-theme='light'] .timeline-node-dot {
+  border: 1.5px solid #CBD5E1;
+  box-shadow: 0 0 0 4px var(--bg);
+}
+
+/* Active Dot: When scroll progress passes through this node (Image 2 style) */
+.timeline-node--active .timeline-node-dot {
+  border: 2px solid #FFFFFF;
+  background: var(--bg);
+  transform: scale(1.15);
+  box-shadow: 0 0 0 4px var(--bg), 0 0 12px rgba(255, 255, 255, 0.6);
+}
+
+[data-theme='light'] .timeline-node--active .timeline-node-dot {
+  border: 2px solid #111111;
+  transform: scale(1.15);
+  box-shadow: 0 0 0 4px var(--bg), 0 0 8px rgba(0, 0, 0, 0.25);
+}
+
+/* Row Hover effect */
+.timeline-row:hover .timeline-node-dot {
+  transform: scale(1.3);
+  border-color: #FFFFFF;
+}
+
+[data-theme='light'] .timeline-row:hover .timeline-node-dot {
+  border-color: #111111;
+}
+
+/* LEFT & RIGHT COLUMNS */
+.timeline-col {
+  position: relative;
+}
+
+.timeline-media-card {
+  width: 100%;
+}
+
+/* CONTENT CARD BODY */
+.timeline-content-card {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  padding: clamp(1.75rem, 3.5vw, 2.5rem);
+  box-shadow: var(--shadow-subtle);
+  transition: transform var(--transition-normal), border-color var(--transition-normal), box-shadow var(--transition-normal);
+  position: relative;
+}
+
+.timeline-row:hover .timeline-content-card {
+  border-color: var(--accent-strong);
+  box-shadow: var(--shadow-card);
+  transform: translateY(-2px);
+}
+
+/* Content typography */
+.experience-body-inner {
+  display: flex;
+  flex-direction: column;
+}
+
+.experience-top-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.85rem;
+  flex-wrap: wrap;
+}
+
+.experience-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+}
+
+.experience-status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.2rem 0.6rem;
+  background: rgba(52, 118, 91, 0.12);
+  color: var(--success);
+  border-radius: var(--radius-pill);
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.status-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--success);
+  animation: pulseDot 2s infinite ease-in-out;
+}
+
+@keyframes pulseDot {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.4; transform: scale(0.85); }
+}
+
+/* 1. Nama Jabatan */
+.experience-role {
+  font-size: clamp(1.4rem, 2.2vw, 1.85rem);
+  line-height: 1.15;
+  color: var(--text);
+  margin-bottom: 0.4rem;
+  letter-spacing: -0.01em;
+}
+
+/* 2. Nama Instansi */
+.experience-instansi {
+  margin-bottom: 0.65rem;
+}
+
+.experience-instansi-name {
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--text);
+  opacity: 0.9;
+}
+
+/* 3. Jangka Waktu Bulan */
+.experience-period {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--muted);
+  margin-bottom: 1.5rem;
+  padding-bottom: 1.25rem;
+  border-bottom: 1px solid var(--line);
+}
+
+.period-icon {
+  color: var(--muted);
+}
+
+/* 4. List Jobdesk Yang Saya Lakukan */
+.experience-jobdesk-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.jobdesk-header-label {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--muted);
+  margin-bottom: 0.25rem;
+}
+
+.experience-jobdesk-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.jobdesk-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.65rem;
+  font-size: 0.9375rem;
+  line-height: 1.55;
+  color: var(--text);
+  opacity: 0.88;
+}
+
+.jobdesk-check-icon {
+  flex-shrink: 0;
+  color: var(--accent-strong);
+  margin-top: 0.15rem;
+}
+
+[data-theme='light'] .jobdesk-check-icon {
+  color: #4B5563;
+}
+
+.jobdesk-text {
+  flex: 1;
+}
+
+/* ==========================================================================
+   MORE EXPERIENCE ACTION (Minimalist button with subtitle)
+   ========================================================================== */
+
+.timeline-more-section {
+  margin-top: clamp(3rem, 5vw, 4.5rem);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: 0.65rem;
+  position: relative;
+  z-index: 2;
+}
+
+.timeline-more-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.5rem 1.25rem;
+  border-radius: var(--radius-pill);
+  font-size: 0.84375rem;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  background: transparent;
+  color: var(--text);
+  border: 1px solid var(--line);
+  text-decoration: none;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.timeline-more-btn svg {
+  transition: transform var(--transition-fast);
+  opacity: 0.7;
+}
+
+.timeline-more-btn:hover {
+  background: var(--surface);
+  border-color: var(--text);
+  transform: translateY(-1px);
+  color: var(--text);
+}
+
+.timeline-more-btn:hover svg {
+  transform: translate(2px, -2px);
+  opacity: 1;
+}
+
+.timeline-more-subtitle {
+  font-size: 0.8125rem;
+  color: var(--muted);
+  opacity: 0.75;
+  line-height: 1.4;
+  margin: 0;
+  letter-spacing: 0.015em;
+}
+
+/* ==========================================================================
+   RESPONSIVE DESIGN (TABLETS & MOBILE SCREENS < 960px)
+   ========================================================================== */
+
+@media (max-width: 959px) {
+  .timeline-central-stem {
+    left: 20px;
+    transform: none;
+    top: 20px;
+    bottom: 40px;
+  }
+
+  .timeline-items-list {
+    gap: 3.5rem;
+    padding-left: 10px;
+  }
+
+  .timeline-row {
+    display: flex;
+    flex-direction: column;
+    padding-left: 36px;
+    gap: 1.5rem;
+  }
+
+  /* Reposition the center dot to sit on the left-side vertical line */
+  .timeline-col-center {
+    position: absolute;
+    left: 11px;
+    top: 24px;
+    transform: none;
+    width: 18px;
+    height: 18px;
+  }
+
+  /* Normal and reversed rows follow a unified mobile flow:
+     Content Card on Top, Stacked Images Card below it */
+  .timeline-row--normal .timeline-col--left {
+    order: 2;
+  }
+  .timeline-row--normal .timeline-col--right {
+    order: 1;
+  }
+
+  .timeline-row--reversed .timeline-col--left {
+    order: 1;
+  }
+  .timeline-row--reversed .timeline-col--right {
+    order: 2;
+  }
+
+  .timeline-col {
+    width: 100%;
+  }
+
+  .timeline-content-card {
+    padding: 1.5rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .timeline-central-stem {
+    left: 14px;
+  }
+
+  .timeline-col-center {
+    left: 5px;
+  }
+
+  .timeline-row {
+    padding-left: 26px;
+  }
+
+  .experience-role {
+    font-size: 1.35rem;
+  }
+}

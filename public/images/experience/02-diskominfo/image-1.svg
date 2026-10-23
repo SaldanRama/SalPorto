@@ -1,0 +1,67 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600" width="100%" height="100%">
+  <defs>
+    <linearGradient id="diskominfoBg1" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0F172A"/>
+      <stop offset="100%" stop-color="#1E293B"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="800" height="600" fill="url(#diskominfoBg1)"/>
+
+  <rect x="50" y="45" width="700" height="60" rx="14" fill="#1E293B" stroke="#334155" stroke-width="1.5"/>
+  <rect x="75" y="62" width="26" height="26" rx="6" fill="#0284C7"/>
+  <text x="115" y="80" fill="#F8FAFC" font-family="-apple-system, sans-serif" font-size="15" font-weight="700">PORTAL KELURAHAN CANTIK — DISKOMINFO MAKASSAR</text>
+  <rect x="625" y="60" width="105" height="30" rx="15" fill="#0284C7"/>
+  <text x="677" y="79" fill="#FFFFFF" font-family="sans-serif" font-size="12" font-weight="700" text-anchor="middle">UI/UX INTERN</text>
+
+  <rect x="50" y="125" width="700" height="425" rx="16" fill="#090D16" stroke="#334155" stroke-width="1.5"/>
+
+  <g transform="translate(80, 155)">
+    <rect width="640" height="65" rx="10" fill="#1E293B"/>
+    <text x="25" y="40" fill="#38BDF8" font-family="sans-serif" font-size="16" font-weight="700">Sistem Informasi Statistik &amp; Pelayanan Kelurahan Cantik</text>
+    <rect x="510" y="18" width="105" height="30" rx="15" fill="#38BDF8" opacity="0.15"/>
+    <text x="562" y="38" fill="#38BDF8" font-family="sans-serif" font-size="12" font-weight="600" text-anchor="middle">LIVE PREVIEW</text>
+  </g>
+
+  <g transform="translate(80, 240)">
+    <rect width="195" height="110" rx="12" fill="#1E293B" stroke="#334155" stroke-width="1"/>
+    <text x="20" y="35" fill="#94A3B8" font-family="sans-serif" font-size="12" font-weight="600">DATA PENDUDUK</text>
+    <text x="20" y="70" fill="#FFFFFF" font-family="sans-serif" font-size="24" font-weight="700">14,280 Jiwa</text>
+    <text x="20" y="95" fill="#34D399" font-family="sans-serif" font-size="12">Terverifikasi BPS</text>
+
+    <g transform="translate(222, 0)">
+      <rect width="195" height="110" rx="12" fill="#1E293B" stroke="#334155" stroke-width="1"/>
+      <text x="20" y="35" fill="#94A3B8" font-family="sans-serif" font-size="12" font-weight="600">LAYANAN PUBLIK</text>
+      <text x="20" y="70" fill="#FFFFFF" font-family="sans-serif" font-size="24" font-weight="700">28 Modul</text>
+      <text x="20" y="95" fill="#38BDF8" font-family="sans-serif" font-size="12">Online Self-Service</text>
+    </g>
+
+    <g transform="translate(445, 0)">
+      <rect width="195" height="110" rx="12" fill="#1E293B" stroke="#334155" stroke-width="1"/>
+      <text x="20" y="35" fill="#94A3B8" font-family="sans-serif" font-size="12" font-weight="600">STATUS SISTEM</text>
+      <text x="20" y="70" fill="#34D399" font-family="sans-serif" font-size="24" font-weight="700">Optimal</text>
+      <text x="20" y="95" fill="#94A3B8" font-family="sans-serif" font-size="12">Diskominfo Server</text>
+    </g>
+  </g>
+
+  <g transform="translate(80, 370)">
+    <rect width="640" height="155" rx="12" fill="#1E293B" stroke="#334155" stroke-width="1"/>
+    <text x="25" y="35" fill="#F1F5F9" font-family="sans-serif" font-size="14" font-weight="600">Visualisasi Distribusi Demografi &amp; Transparansi Data Wilayah</text>
+    
+    <rect x="25" y="60" width="80" height="60" rx="4" fill="#334155"/>
+    <rect x="25" y="80" width="80" height="40" rx="4" fill="#0284C7"/>
+    <text x="65" y="135" fill="#94A3B8" font-family="sans-serif" font-size="11" text-anchor="middle">RW 01</text>
+
+    <rect x="125" y="60" width="80" height="60" rx="4" fill="#334155"/>
+    <rect x="125" y="70" width="80" height="50" rx="4" fill="#0284C7"/>
+    <text x="165" y="135" fill="#94A3B8" font-family="sans-serif" font-size="11" text-anchor="middle">RW 02</text>
+
+    <rect x="225" y="60" width="80" height="60" rx="4" fill="#334155"/>
+    <rect x="225" y="90" width="80" height="30" rx="4" fill="#0284C7"/>
+    <text x="265" y="135" fill="#94A3B8" font-family="sans-serif" font-size="11" text-anchor="middle">RW 03</text>
+
+    <text x="340" y="75" fill="#CBD5E1" font-family="sans-serif" font-size="13">• UI dirancang dengan pendekatan Double Diamond</text>
+    <text x="340" y="100" fill="#CBD5E1" font-family="sans-serif" font-size="13">• Fokus kemudahan akses data untuk masyarakat awam</text>
+    <text x="340" y="125" fill="#34D399" font-family="sans-serif" font-size="13">✓ Disetujui oleh Kepala Seksi Aplikasi Diskominfo</text>
+  </g>
+</svg>

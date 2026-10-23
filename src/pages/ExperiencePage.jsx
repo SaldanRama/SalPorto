@@ -82,13 +82,47 @@ export function ExperiencePage() {
               <h2 className="font-serif" style={{ fontSize: '1.75rem', color: 'var(--text)', marginBottom: '0.25rem' }}>
                 {exp.role}
               </h2>
-              <div style={{ fontSize: '1.05rem', fontWeight: 500, color: 'var(--text)', marginBottom: '1.25rem' }}>
+              <div style={{ fontSize: '1.05rem', fontWeight: 600, color: 'var(--text)', marginBottom: '1.25rem' }}>
                 {exp.organization}
               </div>
 
-              <p style={{ fontSize: '0.975rem', color: 'var(--muted)', lineHeight: 1.65 }}>
-                {exp.description}
-              </p>
+              {exp.jobdesk && exp.jobdesk.length > 0 ? (
+                <div style={{ marginTop: '1rem', marginBottom: '1.5rem' }}>
+                  <span style={{ fontSize: '0.8125rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--muted)', display: 'block', marginBottom: '0.6rem' }}>
+                    Tanggung Jawab &amp; Kontribusi:
+                  </span>
+                  <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
+                    {exp.jobdesk.map((jd, jIdx) => (
+                      <li key={jIdx} style={{ display: 'flex', alignItems: 'flex-start', gap: '0.65rem', fontSize: '0.9375rem', color: 'var(--text)', opacity: 0.88, lineHeight: 1.55 }}>
+                        <span style={{ color: 'var(--accent-strong)', fontWeight: 700, marginTop: '0.1rem' }}>✓</span>
+                        <span>{jd}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ) : (
+                <p style={{ fontSize: '0.975rem', color: 'var(--muted)', lineHeight: 1.65, marginBottom: '1.5rem' }}>
+                  {exp.description}
+                </p>
+              )}
+
+              {exp.images && exp.images.length > 0 && (
+                <div style={{ marginTop: '1.5rem', paddingTop: '1.5rem', borderTop: '1px solid var(--line)' }}>
+                  <span style={{ fontSize: '0.8125rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--muted)', display: 'block', marginBottom: '1rem' }}>
+                    Dokumentasi Kegiatan ({exp.images.length} Foto):
+                  </span>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '1rem' }}>
+                    {exp.images.map((img, iIdx) => (
+                      <div key={iIdx} style={{ borderRadius: 'var(--radius-sm)', overflow: 'hidden', border: '1px solid var(--line)', background: 'var(--bg)' }}>
+                        <img src={img.url} alt={img.title} style={{ width: '100%', aspectRatio: '16/10', objectFit: 'cover', display: 'block' }} />
+                        <div style={{ padding: '0.6rem', fontSize: '0.75rem', fontWeight: 600, color: 'var(--text)' }}>
+                          {img.title}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           ))}
         </div>

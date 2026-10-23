@@ -1,0 +1,452 @@
+/* ==========================================================================
+   STACKED IMAGE GALLERY STYLING
+   Tactile 3-layer physical photo stack with flip cycling & fullscreen lightbox
+   ========================================================================== */
+
+.stacked-gallery-container {
+  width: 100%;
+  max-width: 480px;
+  margin: 0 auto;
+  position: relative;
+  user-select: none;
+}
+
+/* 3-CARD STACK DECK */
+.stacked-deck {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 11;
+  cursor: pointer;
+  perspective: 1000px;
+  padding: 1rem 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.stacked-card {
+  position: absolute;
+  inset: 0.5rem;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  box-shadow: var(--shadow-card);
+  transition: transform 400ms cubic-bezier(0.2, 0.8, 0.2, 1),
+              opacity 350ms ease,
+              filter 350ms ease,
+              box-shadow 350ms ease;
+  transform-origin: center center;
+}
+
+/* Offset 0: Active Top Card */
+.stacked-card--offset-0 {
+  transform: rotate(0deg) translate(0px, 0px) scale(1);
+  opacity: 1;
+  filter: brightness(1);
+  box-shadow: 0 16px 36px -6px rgba(0, 0, 0, 0.16), 0 0 0 1px var(--line);
+}
+
+/* Offset 1: Second Card Peeking to the Right */
+.stacked-card--offset-1 {
+  transform: rotate(3.5deg) translate(14px, 8px) scale(0.96);
+  opacity: 0.9;
+  filter: brightness(0.92);
+}
+
+/* Offset 2: Third Card Peeking to the Left */
+.stacked-card--offset-2 {
+  transform: rotate(-3.8deg) translate(-14px, 14px) scale(0.92);
+  opacity: 0.8;
+  filter: brightness(0.85);
+}
+
+/* Interactive Fan-Out on Hover */
+.stacked-deck:hover .stacked-card--offset-0 {
+  transform: rotate(-0.5deg) translate(0px, -4px) scale(1.01);
+  box-shadow: 0 22px 42px -6px rgba(0, 0, 0, 0.22), 0 0 0 1px var(--accent-strong);
+}
+
+.stacked-deck:hover .stacked-card--offset-1 {
+  transform: rotate(6.5deg) translate(26px, 8px) scale(0.97);
+  filter: brightness(0.96);
+}
+
+.stacked-deck:hover .stacked-card--offset-2 {
+  transform: rotate(-6.5deg) translate(-26px, 16px) scale(0.93);
+  filter: brightness(0.9);
+}
+
+/* Card Inner & Media */
+.stacked-card-inner {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  background: var(--surface);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.stacked-card-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: transform 500ms ease;
+}
+
+.stacked-deck:hover .stacked-card--offset-0 .stacked-card-img {
+  transform: scale(1.02);
+}
+
+/* Card Floating Overlay */
+.stacked-card-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 1rem;
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0.3) 0%, transparent 40%, rgba(0, 0, 0, 0.6) 100%);
+  pointer-events: none;
+}
+
+.stacked-card-logo {
+  align-self: flex-start;
+  width: 42px;
+  height: 42px;
+  border-radius: var(--radius-sm);
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(8px);
+  padding: 4px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.stacked-card-logo img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+}
+
+.stacked-card-meta {
+  align-self: flex-start;
+}
+
+.stacked-card-caption-title {
+  color: #FFFFFF;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  background: rgba(0, 0, 0, 0.55);
+  backdrop-filter: blur(6px);
+  padding: 0.35rem 0.75rem;
+  border-radius: var(--radius-pill);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  display: inline-block;
+}
+
+/* STACK CONTROLS & STATUS BAR */
+.stacked-controls-bar {
+  position: absolute;
+  bottom: -0.25rem;
+  left: 1rem;
+  right: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  z-index: 10;
+}
+
+.stacked-badge {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  background: var(--surface);
+  color: var(--text);
+  border: 1px solid var(--line);
+  padding: 0.35rem 0.75rem;
+  border-radius: var(--radius-pill);
+  font-size: 0.75rem;
+  font-weight: 600;
+  box-shadow: var(--shadow-subtle);
+  backdrop-filter: blur(8px);
+}
+
+.stacked-hint {
+  color: var(--muted);
+  font-weight: 400;
+}
+
+.stacked-expand-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  background: var(--surface);
+  color: var(--text);
+  border: 1px solid var(--line);
+  padding: 0.35rem 0.75rem;
+  border-radius: var(--radius-pill);
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: var(--shadow-subtle);
+  transition: all var(--transition-fast);
+}
+
+.stacked-expand-btn:hover {
+  background: var(--accent);
+  color: var(--inverse-text);
+  border-color: var(--accent-strong);
+  transform: translateY(-1px);
+}
+
+[data-theme='dark'] .stacked-expand-btn:hover {
+  color: var(--inverse-text);
+}
+
+/* PLACEHOLDER */
+.stacked-gallery-placeholder {
+  width: 100%;
+  aspect-ratio: 16 / 11;
+  border-radius: var(--radius-md);
+  border: 2px dashed var(--line);
+  background: var(--surface);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  color: var(--muted);
+  padding: 2rem;
+  text-align: center;
+  font-size: 0.875rem;
+}
+
+/* ==========================================================================
+   LIGHTBOX MODAL (OPENING PHOTOS ONE BY ONE IN HIGH RESOLUTION)
+   ========================================================================== */
+
+.gallery-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  background: rgba(10, 12, 16, 0.88);
+  backdrop-filter: blur(14px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: clamp(1rem, 3vw, 2.5rem);
+  animation: modalFadeIn 250ms ease forwards;
+}
+
+@keyframes modalFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.gallery-modal-content {
+  width: 100%;
+  max-width: 940px;
+  max-height: 90vh;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 25px 60px -10px rgba(0, 0, 0, 0.45);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  animation: modalScaleUp 280ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes modalScaleUp {
+  from {
+    transform: scale(0.95) translateY(12px);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1) translateY(0);
+    opacity: 1;
+  }
+}
+
+/* Header */
+.gallery-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.25rem 1.75rem;
+  border-bottom: 1px solid var(--line);
+}
+
+.gallery-modal-category {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-weight: 600;
+  color: var(--muted);
+  display: block;
+  margin-bottom: 0.2rem;
+}
+
+.gallery-modal-title {
+  font-family: var(--font-serif);
+  font-size: 1.35rem;
+  color: var(--text);
+  margin: 0;
+}
+
+.gallery-modal-close-btn {
+  width: 38px;
+  height: 38px;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--line);
+  background: transparent;
+  color: var(--text);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--transition-fast);
+}
+
+.gallery-modal-close-btn:hover {
+  background: var(--line);
+  transform: rotate(90deg);
+}
+
+/* Stage Area with Nav Arrows */
+.gallery-modal-stage {
+  position: relative;
+  width: 100%;
+  height: clamp(280px, 50vh, 480px);
+  background: #090B0E;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.gallery-modal-image-wrapper {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+
+.gallery-modal-img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  border-radius: var(--radius-sm);
+  transition: transform 300ms ease;
+}
+
+.gallery-nav-btn {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 44px;
+  height: 44px;
+  border-radius: var(--radius-pill);
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(8px);
+  color: #FFFFFF;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 10;
+  transition: all var(--transition-fast);
+}
+
+.gallery-nav-btn:hover {
+  background: rgba(255, 255, 255, 0.3);
+  transform: translateY(-50%) scale(1.08);
+}
+
+.gallery-nav-prev {
+  left: 1.25rem;
+}
+
+.gallery-nav-next {
+  right: 1.25rem;
+}
+
+/* Footer & Captions */
+.gallery-modal-footer {
+  padding: 1.25rem 1.75rem;
+  border-top: 1px solid var(--line);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.gallery-modal-caption-box {
+  flex: 1;
+  min-width: 260px;
+}
+
+.gallery-modal-count-pill {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--muted);
+  margin-bottom: 0.35rem;
+}
+
+.gallery-modal-photo-title {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 0.25rem;
+}
+
+.gallery-modal-photo-desc {
+  font-size: 0.875rem;
+  color: var(--muted);
+  line-height: 1.5;
+  margin: 0;
+}
+
+/* Thumbnails */
+.gallery-thumbnails {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.gallery-thumbnail-item {
+  width: 60px;
+  height: 42px;
+  border-radius: 6px;
+  overflow: hidden;
+  border: 2px solid transparent;
+  padding: 0;
+  background: transparent;
+  cursor: pointer;
+  opacity: 0.6;
+  transition: all var(--transition-fast);
+}
+
+.gallery-thumbnail-item.active {
+  opacity: 1;
+  border-color: var(--accent-strong);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.gallery-thumbnail-item img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}

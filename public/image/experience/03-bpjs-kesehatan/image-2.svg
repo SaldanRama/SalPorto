@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600" width="100%" height="100%">
+  <defs>
+    <linearGradient id="bpjsArchBg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#064E3B"/>
+      <stop offset="100%" stop-color="#022C22"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="800" height="600" fill="url(#bpjsArchBg)"/>
+
+  <rect x="50" y="45" width="700" height="60" rx="14" fill="#047857" stroke="#10B981" stroke-width="1.5"/>
+  <text x="80" y="80" fill="#FFFFFF" font-family="-apple-system, sans-serif" font-size="15" font-weight="700">PENGARSIPAN DIGITAL &amp; DOKUMEN OPERASIONAL</text>
+  <rect x="615" y="60" width="115" height="30" rx="15" fill="#34D399"/>
+  <text x="672" y="79" fill="#064E3B" font-family="sans-serif" font-size="12" font-weight="800" text-anchor="middle">DIGITAL ARCHIVE</text>
+
+  <rect x="50" y="125" width="700" height="425" rx="16" fill="#02231B" stroke="#059669" stroke-width="1.5"/>
+
+  <g transform="translate(80, 160)">
+    <rect width="195" height="150" rx="12" fill="#064E3B" stroke="#059669" stroke-width="1"/>
+    <path d="M 25 35 L 75 35 L 90 50 L 170 50 L 170 120 L 25 120 Z" fill="#047857" stroke="#10B981" stroke-width="1.5"/>
+    <text x="25" y="140" fill="#ECFDF5" font-family="sans-serif" font-size="12" font-weight="700">PKS Faskes 2023</text>
+    
+    <g transform="translate(222, 0)">
+      <rect width="195" height="150" rx="12" fill="#064E3B" stroke="#059669" stroke-width="1"/>
+      <path d="M 25 35 L 75 35 L 90 50 L 170 50 L 170 120 L 25 120 Z" fill="#047857" stroke="#10B981" stroke-width="1.5"/>
+      <text x="25" y="140" fill="#ECFDF5" font-family="sans-serif" font-size="12" font-weight="700">Klaim Administrasi</text>
+    </g>
+
+    <g transform="translate(445, 0)">
+      <rect width="195" height="150" rx="12" fill="#064E3B" stroke="#059669" stroke-width="1"/>
+      <path d="M 25 35 L 75 35 L 90 50 L 170 50 L 170 120 L 25 120 Z" fill="#047857" stroke="#10B981" stroke-width="1.5"/>
+      <text x="25" y="140" fill="#ECFDF5" font-family="sans-serif" font-size="12" font-weight="700">Audit Sarpras Faskes</text>
+    </g>
+  </g>
+
+  <g transform="translate(80, 340)">
+    <rect width="640" height="180" rx="12" fill="#064E3B" stroke="#059669" stroke-width="1"/>
+    <text x="30" y="35" fill="#FFFFFF" font-family="sans-serif" font-size="15" font-weight="700">Efisiensi &amp; Standarisasi Berkas</text>
+    <text x="30" y="70" fill="#A7F3D0" font-family="sans-serif" font-size="13">• Penataan kode klasifikasi digital untuk mempercepat pencarian data faskes</text>
+    <text x="30" y="100" fill="#A7F3D0" font-family="sans-serif" font-size="13">• Mendukung migrasi dokumen fisik menjadi arsip elektronik berindeks rapi</text>
+    <text x="30" y="130" fill="#34D399" font-family="sans-serif" font-size="13">✓ Memangkas waktu retrieval berkas bagi tim verifikator klaim</text>
+  </g>
+</svg>

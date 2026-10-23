@@ -4,6 +4,7 @@ import { ArrowUpRight, ArrowRight, ArrowDown, Sparkles, Layers, Code, Palette } 
 import { Button } from '@/components/ui/Button';
 import { HeroVisual3D } from '@/components/hero/HeroVisual3D';
 import { BiographyBento } from '@/components/biography/BiographyBento';
+import { ExperienceTimeline } from '@/components/experience/ExperienceTimeline';
 import { mockProjects } from '@/data/mockData';
 import './HomePage.css';
 
@@ -88,12 +89,15 @@ export function HomePage() {
         </div>
       </section>
 
-      {/* SECTION 3: SELECTED WORK (High-contrast card grid showcase) */}
+      {/* SECTION 3: EXPERIENCE TIMELINE (Vertical Timeline with Point Dots & Stacked Photos) */}
+      <ExperienceTimeline />
+
+      {/* SECTION 4: SELECTED WORK (High-contrast card grid showcase) */}
       <section className="section-work-showcase" aria-label="Curated Projects">
         <div className="container">
           <div className="section-header-row" data-reveal="fade-up">
             <div>
-              <span className="section-label">02 / Curated Portfolio</span>
+              <span className="section-label">03 / Curated Portfolio</span>
               <h2 className="section-title">Selected Work</h2>
             </div>
             <Button to="/work" variant="ghost" size="md">
