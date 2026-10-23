@@ -353,8 +353,8 @@ export function AdminDashboardPage() {
             ...(prev.images || []),
             {
               url,
-              title: file.name.replace(/\.[^/.]+$/, ''),
-              caption: 'Dokumentasi kegiatan',
+              title: '',
+              caption: '',
             },
           ],
         }));

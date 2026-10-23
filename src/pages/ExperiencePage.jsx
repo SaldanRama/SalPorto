@@ -128,10 +128,7 @@ export function ExperiencePage() {
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '1rem' }}>
                     {exp.images.map((img, iIdx) => (
                       <div key={iIdx} style={{ borderRadius: 'var(--radius-sm)', overflow: 'hidden', border: '1px solid var(--line)', background: 'var(--bg)' }}>
-                        <img src={img.url} alt={img.title} style={{ width: '100%', aspectRatio: '16/10', objectFit: 'cover', display: 'block' }} />
-                        <div style={{ padding: '0.6rem', fontSize: '0.75rem', fontWeight: 600, color: 'var(--text)' }}>
-                          {img.title}
-                        </div>
+                        <img src={img.url} alt={exp.role} style={{ width: '100%', aspectRatio: '16/10', objectFit: 'cover', display: 'block' }} />
                       </div>
                     ))}
                   </div>

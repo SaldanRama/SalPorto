@@ -96,17 +96,13 @@ export function StackedImageGallery({ images = [], altTitle = 'Dokumentasi Penga
                   loading="lazy"
                 />
                 
-                <div className="stacked-card-overlay">
-                  {companyLogo && offset === 0 && (
+                {companyLogo && offset === 0 && (
+                  <div className="stacked-card-overlay">
                     <div className="stacked-card-logo">
                       <img src={companyLogo} alt="Institution Logo" />
                     </div>
-                  )}
-
-                  <div className="stacked-card-meta">
-                    <span className="stacked-card-caption-title">{item.title}</span>
                   </div>
-                </div>
+                )}
               </div>
             </div>
           );
@@ -188,8 +184,6 @@ export function StackedImageGallery({ images = [], altTitle = 'Dokumentasi Penga
                 <div className="gallery-modal-count-pill">
                   Foto {activeIndex + 1} dari {total}
                 </div>
-                <h5 className="gallery-modal-photo-title">{images[activeIndex]?.title}</h5>
-                <p className="gallery-modal-photo-desc">{images[activeIndex]?.caption}</p>
               </div>
 
               {/* Thumbnail Strip */}
