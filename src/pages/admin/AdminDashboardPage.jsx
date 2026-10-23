@@ -22,8 +22,11 @@ import {
   RefreshCw,
   Sparkles,
   Layers,
+  Search,
+  Calendar,
+  Building2,
+  CheckCircle2,
 } from 'lucide-react';
-import { Button } from '@/components/ui/Button';
 import { ThemeToggle } from '@/components/ui/ThemeToggle';
 import {
   supabase,
@@ -41,11 +44,15 @@ import './AdminDashboardPage.css';
 
 export function AdminDashboardPage() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [activeTab, setActiveTab] = useState('overview'); // 'overview' | 'projects' | 'experiences' | 'media' | 'sql'
+  const [activeTab, setActiveTab] = useState('experiences'); // default to experiences per user focus
   const [projects, setProjects] = useState([]);
   const [experiences, setExperiences] = useState([]);
   const [loading, setLoading] = useState(true);
   const [toastMessage, setToastMessage] = useState(null);
+
+  // Search & Filter state
+  const [expSearch, setExpSearch] = useState('');
+  const [projSearch, setProjSearch] = useState('');
 
   // Auth Form State
   const [email, setEmail] = useState('');
@@ -73,14 +80,14 @@ export function AdminDashboardPage() {
   // Check auth session on load
   useEffect(() => {
     async function checkAuth() {
-      // Check Supabase session
       if (isSupabaseConfigured()) {
-        const { data } = await supabase.auth.getSession();
-        if (data?.session) {
-          setIsAuthenticated(true);
-        }
+        try {
+          const { data } = await supabase.auth.getSession();
+          if (data?.session) {
+            setIsAuthenticated(true);
+          }
+        } catch (_) {}
       }
-      // Check local developer override
       const devAuth = sessionStorage.getItem('salporto_admin_authed');
       if (devAuth === 'true') {
         setIsAuthenticated(true);
@@ -106,7 +113,7 @@ export function AdminDashboardPage() {
 
   const showToast = (msg) => {
     setToastMessage(msg);
-    setTimeout(() => setToastMessage(null), 3000);
+    setTimeout(() => setToastMessage(null), 3500);
   };
 
   // Auth Handlers
@@ -129,9 +136,9 @@ export function AdminDashboardPage() {
           return;
         }
       }
-      throw new Error('Konfigurasi Supabase Auth belum aktif atau kredensial belum terdaftar.');
+      throw new Error('Kredensial belum terdaftar di Supabase Auth.');
     } catch (err) {
-      setAuthError(err.message || 'Login gagal');
+      setAuthError(err.message || 'Login gagal. Periksa email & password.');
     } finally {
       setAuthLoading(false);
     }
@@ -140,12 +147,14 @@ export function AdminDashboardPage() {
   const handleDevBypass = () => {
     setIsAuthenticated(true);
     sessionStorage.setItem('salporto_admin_authed', 'true');
-    showToast('Masuk via Akses Pengembang');
+    showToast('Masuk via Mode Pengembang (Bypass)');
   };
 
   const handleLogout = async () => {
     if (isSupabaseConfigured()) {
-      await supabase.auth.signOut();
+      try {
+        await supabase.auth.signOut();
+      } catch (_) {}
     }
     sessionStorage.removeItem('salporto_admin_authed');
     setIsAuthenticated(false);
@@ -175,9 +184,10 @@ export function AdminDashboardPage() {
       id: `exp-${Date.now()}`,
       role: '',
       organization: '',
-      period: '2024',
+      period: 'Agustus 2024 — Sekarang',
       type: 'Internship',
       isCurrent: false,
+      sortOrder: 0, // 0: paling atas di timeline beranda
       logo: '',
       jobdesk: [''],
       images: [],
@@ -202,7 +212,10 @@ export function AdminDashboardPage() {
 
   const handleSaveProject = async (e) => {
     e.preventDefault();
-    if (!projectForm.title) return;
+    if (!projectForm.title) {
+      alert('Mohon isi Judul Proyek.');
+      return;
+    }
 
     const slug =
       projectForm.slug ||
@@ -214,10 +227,15 @@ export function AdminDashboardPage() {
       year: parseInt(projectForm.year, 10) || new Date().getFullYear(),
     };
 
-    await saveProject(toSave);
+    const res = await saveProject(toSave);
+    if (res?.error) {
+      alert(`Gagal menyimpan proyek ke database: ${res.error.message || JSON.stringify(res.error)}`);
+      return;
+    }
+
     await loadData();
     setIsProjectModalOpen(false);
-    showToast('Proyek berhasil disimpan!');
+    showToast('Proyek berhasil disimpan ke website!');
   };
 
   const handleDeleteProject = async (id, title) => {
@@ -237,9 +255,9 @@ export function AdminDashboardPage() {
     const { url, error } = await uploadImageToStorage(file, 'projects');
     if (url) {
       setProjectForm((prev) => ({ ...prev, coverImage: url }));
-      showToast('Gambar cover berhasil diunggah ke Supabase Storage!');
+      showToast('Cover gambar berhasil diunggah ke Supabase Storage!');
     } else {
-      alert(`Gagal mengunggah: ${error?.message || 'Periksa koneksi Supabase'}`);
+      alert(`Gagal mengunggah gambar: ${error?.message || 'Periksa koneksi Supabase'}`);
     }
     setProjectUploadLoading(false);
   };
@@ -255,6 +273,8 @@ export function AdminDashboardPage() {
     setEditingExp(exp);
     setExpForm({
       ...exp,
+      isCurrent: exp.is_current !== undefined ? exp.is_current : (exp.isCurrent ?? false),
+      sortOrder: exp.sort_order !== undefined ? exp.sort_order : (exp.sortOrder ?? 0),
       jobdesk: Array.isArray(exp.jobdesk) && exp.jobdesk.length > 0 ? exp.jobdesk : [''],
       images: Array.isArray(exp.images) ? exp.images : [],
     });
@@ -263,19 +283,29 @@ export function AdminDashboardPage() {
 
   const handleSaveExperience = async (e) => {
     e.preventDefault();
-    if (!expForm.role || !expForm.organization) return;
+    if (!expForm.role || !expForm.organization) {
+      alert('Mohon isi Nama Jabatan dan Nama Instansi / Perusahaan.');
+      return;
+    }
 
-    const filteredJobdesk = (expForm.jobdesk || []).filter((item) => item.trim() !== '');
+    const filteredJobdesk = (expForm.jobdesk || []).filter((item) => item && item.trim() !== '');
 
     const toSave = {
       ...expForm,
       jobdesk: filteredJobdesk,
+      sort_order: parseInt(expForm.sortOrder ?? expForm.sort_order ?? 0, 10),
+      is_current: expForm.isCurrent ?? expForm.is_current ?? false,
     };
 
-    await saveExperience(toSave);
+    const res = await saveExperience(toSave);
+    if (res?.error) {
+      alert(`Gagal menyimpan pengalaman: ${res.error.message || JSON.stringify(res.error)}`);
+      return;
+    }
+
     await loadData();
     setIsExpModalOpen(false);
-    showToast('Pengalaman berhasil disimpan!');
+    showToast('Pengalaman baru berhasil disimpan ke website!');
   };
 
   const handleDeleteExperience = async (id, role) => {
@@ -312,9 +342,11 @@ export function AdminDashboardPage() {
     if (files.length === 0) return;
 
     setExpUploadLoading(true);
+    let successCount = 0;
     for (const file of files) {
-      const { url } = await uploadImageToStorage(file, 'experiences');
+      const { url, error } = await uploadImageToStorage(file, 'experiences');
       if (url) {
+        successCount++;
         setExpForm((prev) => ({
           ...prev,
           images: [
@@ -326,10 +358,14 @@ export function AdminDashboardPage() {
             },
           ],
         }));
+      } else {
+        alert(`Gagal upload ${file.name}: ${error?.message || 'Error Supabase Storage'}`);
       }
     }
     setExpUploadLoading(false);
-    showToast('Foto dokumentasi berhasil diunggah ke Supabase!');
+    if (successCount > 0) {
+      showToast(`${successCount} foto dokumentasi berhasil diunggah ke Supabase!`);
+    }
   };
 
   // --- MEDIA TAB DIRECT UPLOAD ---
@@ -340,13 +376,12 @@ export function AdminDashboardPage() {
     setMediaUploading(true);
     const newItems = [];
     for (const file of files) {
-      const { url, path, error } = await uploadImageToStorage(file, 'media');
+      const { url, error } = await uploadImageToStorage(file, 'uploads');
       if (url) {
         newItems.push({
-          name: file.name,
           url,
-          path,
-          size: (file.size / 1024).toFixed(1) + ' KB',
+          name: file.name,
+          size: `${(file.size / 1024).toFixed(1)} KB`,
           uploadedAt: new Date().toLocaleTimeString(),
         });
       } else {
@@ -365,7 +400,28 @@ export function AdminDashboardPage() {
     showToast('Tautan berhasil disalin!');
   };
 
+  // Filtered lists for search
+  const filteredExperiences = experiences.filter((e) => {
+    const term = expSearch.toLowerCase();
+    return (
+      (e.role && e.role.toLowerCase().includes(term)) ||
+      (e.organization && e.organization.toLowerCase().includes(term)) ||
+      (e.type && e.type.toLowerCase().includes(term))
+    );
+  });
+
+  const filteredProjects = projects.filter((p) => {
+    const term = projSearch.toLowerCase();
+    return (
+      (p.title && p.title.toLowerCase().includes(term)) ||
+      (p.category && p.category.toLowerCase().includes(term)) ||
+      (p.role && p.role.toLowerCase().includes(term))
+    );
+  });
+
+  // =========================================================================
   // LOGIN SCREEN (If not authenticated)
+  // =========================================================================
   if (!isAuthenticated) {
     return (
       <div className="admin-login-stage">
@@ -373,11 +429,11 @@ export function AdminDashboardPage() {
           <div className="admin-login-header">
             <span className="admin-badge">
               <ShieldCheck size={14} />
-              <span>SalPorto Studio</span>
+              <span>SalPorto Studio Admin</span>
             </span>
-            <h1 className="admin-login-title font-serif">Admin Dashboard</h1>
+            <h1 className="admin-login-title">Admin Dashboard</h1>
             <p className="admin-login-desc">
-              Kelola proyek, riwayat pengalaman, dan aset gambar secara dinamis dengan Supabase.
+              Kelola proyek, riwayat pengalaman, dan aset gambar secara dinamis dengan font Poppins &amp; Supabase.
             </p>
           </div>
 
@@ -432,8 +488,7 @@ export function AdminDashboardPage() {
               <span>Masuk Tanpa Password (Mode Demo / Dev)</span>
             </button>
             <p className="admin-bypass-hint">
-              Fitur ini memungkinkan Anda langsung mengelola dan menguji dashboard secara lokal
-              sebelum menambahkan akun di Supabase Auth.
+              Fitur ini memungkinkan Anda langsung mengelola dan menguji website secara lokal.
             </p>
           </div>
 
@@ -447,35 +502,39 @@ export function AdminDashboardPage() {
     );
   }
 
-  // AUTHENTICATED DASHBOARD
+  // =========================================================================
+  // AUTHENTICATED DASHBOARD (User Friendly Layout with Poppins)
+  // =========================================================================
   return (
     <div className="admin-app">
       {/* Toast Notification */}
       {toastMessage && (
         <div className="admin-toast">
-          <Check size={16} />
+          <CheckCircle2 size={16} className="toast-icon" />
           <span>{toastMessage}</span>
         </div>
       )}
 
-      {/* ADMIN TOP NAV */}
+      {/* TOP NAVIGATION BAR */}
       <header className="admin-topbar">
         <div className="admin-topbar-left">
           <Link to="/admin" className="admin-brand">
-            <span className="admin-brand-icon">S</span>
-            <span className="admin-brand-text">
-              SalPorto <em>Admin</em>
-            </span>
+            <div className="admin-brand-icon">S</div>
+            <div className="admin-brand-text">
+              <strong>SalPorto</strong> Admin
+            </div>
           </Link>
 
+          {/* Navigation Tabs */}
           <nav className="admin-nav-tabs">
             <button
               type="button"
-              className={`admin-nav-tab ${activeTab === 'overview' ? 'active' : ''}`}
-              onClick={() => setActiveTab('overview')}
+              className={`admin-nav-tab ${activeTab === 'experiences' ? 'active' : ''}`}
+              onClick={() => setActiveTab('experiences')}
             >
-              <LayoutDashboard size={16} />
-              <span>Overview</span>
+              <Briefcase size={16} />
+              <span>Kelola Pengalaman</span>
+              <span className="tab-badge">{experiences.length}</span>
             </button>
 
             <button
@@ -484,16 +543,17 @@ export function AdminDashboardPage() {
               onClick={() => setActiveTab('projects')}
             >
               <FolderKanban size={16} />
-              <span>Projects ({projects.length})</span>
+              <span>Kelola Proyek</span>
+              <span className="tab-badge">{projects.length}</span>
             </button>
 
             <button
               type="button"
-              className={`admin-nav-tab ${activeTab === 'experiences' ? 'active' : ''}`}
-              onClick={() => setActiveTab('experiences')}
+              className={`admin-nav-tab ${activeTab === 'overview' ? 'active' : ''}`}
+              onClick={() => setActiveTab('overview')}
             >
-              <Briefcase size={16} />
-              <span>Experience ({experiences.length})</span>
+              <LayoutDashboard size={16} />
+              <span>Overview</span>
             </button>
 
             <button
@@ -522,11 +582,10 @@ export function AdminDashboardPage() {
             target="_blank"
             rel="noopener noreferrer"
             className="admin-link-btn"
-            title="Lihat Website"
+            title="Buka Website di Tab Baru"
           >
-            <Eye size={15} />
+            <ExternalLink size={14} />
             <span>Lihat Website</span>
-            <ExternalLink size={12} />
           </a>
 
           <ThemeToggle />
@@ -535,157 +594,197 @@ export function AdminDashboardPage() {
             type="button"
             onClick={handleLogout}
             className="admin-logout-btn"
-            title="Keluar dari Admin"
+            title="Keluar dari Dashboard"
           >
-            <LogOut size={16} />
-            <span>Logout</span>
+            <LogOut size={14} />
+            <span>Keluar</span>
           </button>
         </div>
       </header>
 
-      {/* DASHBOARD CONTENT BODY */}
+      {/* MAIN CONTAINER */}
       <main className="admin-main-container">
-        {/* ================= TAB 1: OVERVIEW ================= */}
-        {activeTab === 'overview' && (
+        {/* ================= TAB 1: KELOLA PENGALAMAN (EXPERIENCE) ================= */}
+        {activeTab === 'experiences' && (
           <div className="admin-tab-pane">
             <div className="admin-pane-header">
               <div>
-                <h2 className="admin-pane-title font-serif">Ringkasan Sistem</h2>
+                <h1 className="admin-pane-title">Manajemen Pengalaman (Career Timeline)</h1>
                 <p className="admin-pane-subtitle">
-                  Pantau koneksi Supabase, ringkasan konten proyek, dan status hosting Vercel.
+                  Atur riwayat jabatan, instansi, jangka waktu, jobdesk, dan 3 foto dokumentasi yang tampil di timeline website.
                 </p>
               </div>
-              <button type="button" onClick={loadData} className="admin-btn admin-btn-outline">
-                <RefreshCw size={14} />
-                <span>Segarkan Data</span>
+              <button
+                type="button"
+                onClick={openNewExpModal}
+                className="admin-btn admin-btn-primary admin-btn-lg"
+              >
+                <Plus size={18} />
+                <span>Tambah Pengalaman Baru</span>
               </button>
             </div>
 
-            {/* Metric Cards */}
-            <div className="admin-stats-grid">
-              <div className="admin-stat-card">
-                <div className="stat-icon-wrap" style={{ background: 'rgba(99, 102, 241, 0.15)' }}>
-                  <FolderKanban size={20} color="#818CF8" />
-                </div>
-                <div>
-                  <span className="stat-label">Total Proyek</span>
-                  <div className="stat-value">{projects.length}</div>
-                </div>
+            {/* Filter & Search Bar */}
+            <div className="admin-filter-bar">
+              <div className="admin-search-box">
+                <Search size={16} className="search-icon" />
+                <input
+                  type="text"
+                  placeholder="Cari berdasarkan jabatan atau instansi..."
+                  value={expSearch}
+                  onChange={(e) => setExpSearch(e.target.value)}
+                  className="admin-search-input"
+                />
+                {expSearch && (
+                  <button onClick={() => setExpSearch('')} className="search-clear-btn">
+                    <X size={14} />
+                  </button>
+                )}
               </div>
-
-              <div className="admin-stat-card">
-                <div className="stat-icon-wrap" style={{ background: 'rgba(16, 185, 129, 0.15)' }}>
-                  <Briefcase size={20} color="#34D399" />
-                </div>
-                <div>
-                  <span className="stat-label">Total Pengalaman</span>
-                  <div className="stat-value">{experiences.length}</div>
-                </div>
-              </div>
-
-              <div className="admin-stat-card">
-                <div className="stat-icon-wrap" style={{ background: 'rgba(56, 189, 248, 0.15)' }}>
-                  <Database size={20} color="#38BDF8" />
-                </div>
-                <div>
-                  <span className="stat-label">Supabase Cloud</span>
-                  <div className="stat-status-badge">
-                    <span className="stat-dot-live"></span>
-                    <span>Terhubung</span>
-                  </div>
-                </div>
-              </div>
-
-              <div className="admin-stat-card">
-                <div className="stat-icon-wrap" style={{ background: 'rgba(245, 158, 11, 0.15)' }}>
-                  <UploadCloud size={20} color="#FBBF24" />
-                </div>
-                <div>
-                  <span className="stat-label">Storage Bucket</span>
-                  <div className="stat-value" style={{ fontSize: '1rem', fontWeight: 600 }}>
-                    {STORAGE_BUCKET}
-                  </div>
-                </div>
+              <div className="admin-filter-meta">
+                Menampilkan <strong>{filteredExperiences.length}</strong> pengalaman
               </div>
             </div>
 
-            {/* Quick Actions Panel */}
-            <div className="admin-quick-actions-panel">
-              <h3 className="panel-title">Tindakan Cepat</h3>
-              <div className="quick-actions-row">
-                <button
-                  type="button"
-                  onClick={openNewProjectModal}
-                  className="quick-action-btn"
-                >
-                  <Plus size={16} />
-                  <span>Tambah Proyek Baru</span>
-                </button>
+            {/* Experience Cards Grid */}
+            <div className="admin-exp-grid">
+              {filteredExperiences.map((exp, idx) => (
+                <div key={exp.id || idx} className="admin-exp-card">
+                  <div className="exp-card-header">
+                    <div className="exp-card-main">
+                      <div className="exp-badges-row">
+                        <span className="admin-tag-pill">{exp.type || 'Experience'}</span>
+                        {exp.isCurrent && (
+                          <span className="admin-status-pill live">Sedang Aktif (Current)</span>
+                        )}
+                        <span className="admin-order-badge" title="Urutan prioritas di timeline">
+                          Urutan #{exp.sort_order ?? exp.sortOrder ?? idx + 1}
+                        </span>
+                      </div>
+                      <h3 className="exp-card-role">{exp.role}</h3>
+                      <div className="exp-card-org">
+                        <Building2 size={15} />
+                        <span>{exp.organization}</span>
+                      </div>
+                      <div className="exp-card-period">
+                        <Calendar size={14} />
+                        <span>{exp.period}</span>
+                      </div>
+                    </div>
 
-                <button
-                  type="button"
-                  onClick={openNewExpModal}
-                  className="quick-action-btn"
-                >
-                  <Plus size={16} />
-                  <span>Tambah Pengalaman Baru</span>
-                </button>
+                    <div className="exp-card-actions">
+                      <button
+                        type="button"
+                        onClick={() => openEditExpModal(exp)}
+                        className="admin-icon-btn edit"
+                        title="Edit Pengalaman"
+                      >
+                        <Edit3 size={16} />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleDeleteExperience(exp.id, exp.role)}
+                        className="admin-icon-btn delete"
+                        title="Hapus Pengalaman"
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    </div>
+                  </div>
 
-                <button
-                  type="button"
-                  onClick={() => setActiveTab('media')}
-                  className="quick-action-btn"
-                >
-                  <ImagePlus size={16} />
-                  <span>Unggah Gambar ke Supabase</span>
-                </button>
+                  {/* Jobdesk summary */}
+                  {exp.jobdesk && exp.jobdesk.length > 0 && (
+                    <div className="exp-card-jobdesk">
+                      <div className="jobdesk-title">Tanggung Jawab ({exp.jobdesk.length} Poin):</div>
+                      <ul className="jobdesk-list-preview">
+                        {exp.jobdesk.slice(0, 2).map((jd, jIdx) => (
+                          <li key={jIdx}>{jd}</li>
+                        ))}
+                        {exp.jobdesk.length > 2 && (
+                          <li className="more-points">+{exp.jobdesk.length - 2} poin tanggung jawab lainnya</li>
+                        )}
+                      </ul>
+                    </div>
+                  )}
 
-                <button
-                  type="button"
-                  onClick={() => setActiveTab('sql')}
-                  className="quick-action-btn"
-                >
-                  <Database size={16} />
-                  <span>Salin Script SQL Supabase</span>
-                </button>
-              </div>
-            </div>
+                  {/* Photos preview strip */}
+                  <div className="exp-card-photos-strip">
+                    <div className="photos-strip-title">
+                      Foto Dokumentasi ({exp.images?.length || 0} Foto):
+                    </div>
+                    {exp.images && exp.images.length > 0 ? (
+                      <div className="photos-strip-thumbnails">
+                        {exp.images.map((img, i) => (
+                          <div key={i} className="photo-thumb-item" title={img.title || `Foto ${i + 1}`}>
+                            <img src={img.url} alt={img.title || `Foto ${i + 1}`} />
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="no-photos-hint">Belum ada foto dokumentasi diunggah</div>
+                    )}
+                  </div>
+                </div>
+              ))}
 
-            {/* Information Card */}
-            <div className="admin-info-banner">
-              <Sparkles size={20} className="info-banner-icon" />
-              <div>
-                <h4 className="info-banner-title">Siap Deploy ke Vercel</h4>
-                <p className="info-banner-desc">
-                  Proyek ini telah dikonfigurasi dengan file <code>vercel.json</code> untuk mendukung
-                  routing SPA secara otomatis tanpa error 404 saat melakukan reload halaman. Gambar
-                  disimpan langsung di CDN Supabase Storage.
-                </p>
-              </div>
+              {filteredExperiences.length === 0 && (
+                <div className="admin-empty-state">
+                  <Briefcase size={40} className="empty-icon" />
+                  <h3>Belum Ada Pengalaman Ditemukan</h3>
+                  <p>Klik tombol "+ Tambah Pengalaman Baru" di atas untuk menambahkan pengalaman pertama Anda.</p>
+                  <button onClick={openNewExpModal} className="admin-btn admin-btn-primary">
+                    <Plus size={16} />
+                    <span>Tambah Pengalaman Baru</span>
+                  </button>
+                </div>
+              )}
             </div>
           </div>
         )}
 
-        {/* ================= TAB 2: PROJECTS ================= */}
+        {/* ================= TAB 2: KELOLA PROYEK (PROJECTS) ================= */}
         {activeTab === 'projects' && (
           <div className="admin-tab-pane">
             <div className="admin-pane-header">
               <div>
-                <h2 className="admin-pane-title font-serif">Manajemen Proyek</h2>
+                <h1 className="admin-pane-title">Manajemen Proyek &amp; Studi Kasus</h1>
                 <p className="admin-pane-subtitle">
-                  Tambah, ubah, atau hapus case study portofolio UI/UX, Web, dan Desain Grafis.
+                  Kelola proyek desain UI/UX, proyek web, dan desain grafis yang tampil di beranda dan halaman /work.
                 </p>
               </div>
               <button
                 type="button"
                 onClick={openNewProjectModal}
-                className="admin-btn admin-btn-primary"
+                className="admin-btn admin-btn-primary admin-btn-lg"
               >
-                <Plus size={16} />
-                <span>Tambah Proyek</span>
+                <Plus size={18} />
+                <span>Tambah Proyek Baru</span>
               </button>
             </div>
 
+            {/* Filter & Search Bar */}
+            <div className="admin-filter-bar">
+              <div className="admin-search-box">
+                <Search size={16} className="search-icon" />
+                <input
+                  type="text"
+                  placeholder="Cari berdasarkan judul atau kategori..."
+                  value={projSearch}
+                  onChange={(e) => setProjSearch(e.target.value)}
+                  className="admin-search-input"
+                />
+                {projSearch && (
+                  <button onClick={() => setProjSearch('')} className="search-clear-btn">
+                    <X size={14} />
+                  </button>
+                )}
+              </div>
+              <div className="admin-filter-meta">
+                Menampilkan <strong>{filteredProjects.length}</strong> proyek
+              </div>
+            </div>
+
+            {/* Projects Table */}
             <div className="admin-table-wrapper">
               <table className="admin-table">
                 <thead>
@@ -694,65 +793,70 @@ export function AdminDashboardPage() {
                     <th>Judul &amp; Slug</th>
                     <th>Kategori</th>
                     <th>Tahun</th>
+                    <th>Peran</th>
                     <th>Status</th>
                     <th style={{ textAlign: 'right' }}>Aksi</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {projects.map((proj) => (
-                    <tr key={proj.id}>
-                      <td style={{ width: '80px' }}>
-                        <div className="admin-table-thumb">
-                          {proj.coverImage ? (
-                            <img src={proj.coverImage} alt={proj.title} />
+                  {filteredProjects.map((proj) => {
+                    const cover = proj.coverImage || proj.cover_image;
+                    return (
+                      <tr key={proj.id}>
+                        <td style={{ width: '80px' }}>
+                          <div className="table-cover-box">
+                            {cover ? (
+                              <img src={cover} alt={proj.title} />
+                            ) : (
+                              <div className="table-cover-placeholder">
+                                <Sparkles size={16} />
+                              </div>
+                            )}
+                          </div>
+                        </td>
+                        <td>
+                          <div className="table-item-title">{proj.title}</div>
+                          <div className="table-item-sub">/{proj.slug}</div>
+                        </td>
+                        <td>
+                          <span className="admin-tag-pill">{proj.categoryLabel || proj.category}</span>
+                        </td>
+                        <td>{proj.year}</td>
+                        <td>{proj.role || '—'}</td>
+                        <td>
+                          {proj.published !== false ? (
+                            <span className="admin-status-pill live">Published</span>
                           ) : (
-                            <div className="thumb-placeholder">No Cover</div>
+                            <span className="admin-status-pill draft">Draft</span>
                           )}
-                        </div>
-                      </td>
-                      <td>
-                        <div className="table-item-title">{proj.title}</div>
-                        <div className="table-item-sub">/{proj.slug}</div>
-                      </td>
-                      <td>
-                        <span className="admin-pill-tag">
-                          {proj.categoryLabel || proj.category}
-                        </span>
-                      </td>
-                      <td>{proj.year}</td>
-                      <td>
-                        <span
-                          className={`admin-status-pill ${proj.published !== false ? 'live' : 'draft'}`}
-                        >
-                          {proj.published !== false ? 'Published' : 'Draft'}
-                        </span>
-                      </td>
-                      <td style={{ textAlign: 'right' }}>
-                        <div className="table-actions-cell">
-                          <button
-                            type="button"
-                            onClick={() => openEditProjectModal(proj)}
-                            className="table-action-icon"
-                            title="Edit Proyek"
-                          >
-                            <Edit3 size={15} />
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => handleDeleteProject(proj.id, proj.title)}
-                            className="table-action-icon delete"
-                            title="Hapus Proyek"
-                          >
-                            <Trash2 size={15} />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                  {projects.length === 0 && (
+                        </td>
+                        <td style={{ textAlign: 'right' }}>
+                          <div className="table-actions-cell">
+                            <button
+                              type="button"
+                              onClick={() => openEditProjectModal(proj)}
+                              className="admin-icon-btn edit"
+                              title="Edit Proyek"
+                            >
+                              <Edit3 size={15} />
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleDeleteProject(proj.id, proj.title)}
+                              className="admin-icon-btn delete"
+                              title="Hapus Proyek"
+                            >
+                              <Trash2 size={15} />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                  {filteredProjects.length === 0 && (
                     <tr>
-                      <td colSpan={6} style={{ textAlign: 'center', padding: '3rem' }}>
-                        Belum ada data proyek. Klik tombol "Tambah Proyek" di atas.
+                      <td colSpan={7} style={{ textAlign: 'center', padding: '3.5rem' }}>
+                        Tidak ada data proyek yang cocok.
                       </td>
                     </tr>
                   )}
@@ -762,91 +866,104 @@ export function AdminDashboardPage() {
           </div>
         )}
 
-        {/* ================= TAB 3: EXPERIENCES ================= */}
-        {activeTab === 'experiences' && (
+        {/* ================= TAB 3: OVERVIEW ================= */}
+        {activeTab === 'overview' && (
           <div className="admin-tab-pane">
             <div className="admin-pane-header">
               <div>
-                <h2 className="admin-pane-title font-serif">Manajemen Pengalaman</h2>
+                <h1 className="admin-pane-title">Ringkasan Sistem Portofolio</h1>
                 <p className="admin-pane-subtitle">
-                  Atur riwayat jabatan, instansi, jangka waktu bulan, jobdesk, dan tumpukan 3 foto
-                  dokumentasi.
+                  Status database, ringkasan konten, dan akses cepat pengelolaan website Anda.
                 </p>
               </div>
-              <button
-                type="button"
-                onClick={openNewExpModal}
-                className="admin-btn admin-btn-primary"
-              >
-                <Plus size={16} />
-                <span>Tambah Pengalaman</span>
+              <button type="button" onClick={loadData} className="admin-btn admin-btn-outline">
+                <RefreshCw size={15} />
+                <span>Perbarui Data</span>
               </button>
             </div>
 
-            <div className="admin-table-wrapper">
-              <table className="admin-table">
-                <thead>
-                  <tr>
-                    <th>Jabatan</th>
-                    <th>Instansi</th>
-                    <th>Periode Bulan</th>
-                    <th>Tipe</th>
-                    <th>Foto</th>
-                    <th style={{ textAlign: 'right' }}>Aksi</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {experiences.map((exp) => (
-                    <tr key={exp.id}>
-                      <td>
-                        <div className="table-item-title">{exp.role}</div>
-                        {exp.isCurrent && (
-                          <span className="admin-status-pill live">Aktif / Current</span>
-                        )}
-                      </td>
-                      <td>
-                        <div className="table-item-org">{exp.organization}</div>
-                      </td>
-                      <td>{exp.period}</td>
-                      <td>
-                        <span className="admin-pill-tag">{exp.type}</span>
-                      </td>
-                      <td>
-                        <span className="table-item-count">
-                          {exp.images?.length || 0} Foto
-                        </span>
-                      </td>
-                      <td style={{ textAlign: 'right' }}>
-                        <div className="table-actions-cell">
-                          <button
-                            type="button"
-                            onClick={() => openEditExpModal(exp)}
-                            className="table-action-icon"
-                            title="Edit Pengalaman"
-                          >
-                            <Edit3 size={15} />
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => handleDeleteExperience(exp.id, exp.role)}
-                            className="table-action-icon delete"
-                            title="Hapus Pengalaman"
-                          >
-                            <Trash2 size={15} />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                  {experiences.length === 0 && (
-                    <tr>
-                      <td colSpan={6} style={{ textAlign: 'center', padding: '3rem' }}>
-                        Belum ada data pengalaman. Klik tombol "Tambah Pengalaman" di atas.
-                      </td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
+            {/* Metrics Grid */}
+            <div className="admin-metrics-grid">
+              <div className="admin-metric-card">
+                <div className="metric-icon-box blue">
+                  <Briefcase size={22} />
+                </div>
+                <div className="metric-info">
+                  <div className="metric-label">Total Pengalaman</div>
+                  <div className="metric-value">{experiences.length}</div>
+                </div>
+              </div>
+
+              <div className="admin-metric-card">
+                <div className="metric-icon-box purple">
+                  <FolderKanban size={22} />
+                </div>
+                <div className="metric-info">
+                  <div className="metric-label">Total Proyek</div>
+                  <div className="metric-value">{projects.length}</div>
+                </div>
+              </div>
+
+              <div className="admin-metric-card">
+                <div className="metric-icon-box green">
+                  <Database size={22} />
+                </div>
+                <div className="metric-info">
+                  <div className="metric-label">Database Supabase</div>
+                  <div className="metric-value" style={{ fontSize: '1rem', color: '#10b981' }}>
+                    {isSupabaseConfigured() ? 'Terhubung (Online)' : 'Mode Fallback'}
+                  </div>
+                </div>
+              </div>
+
+              <div className="admin-metric-card">
+                <div className="metric-icon-box orange">
+                  <Layers size={22} />
+                </div>
+                <div className="metric-info">
+                  <div className="metric-label">Hosting Ready</div>
+                  <div className="metric-value" style={{ fontSize: '1rem' }}>
+                    Vercel SPA Configured
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Quick Actions Card */}
+            <div className="admin-quick-actions-card">
+              <h3>Aksi Cepat</h3>
+              <div className="quick-actions-buttons">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setActiveTab('experiences');
+                    openNewExpModal();
+                  }}
+                  className="admin-btn admin-btn-primary"
+                >
+                  <Plus size={16} />
+                  <span>Tambah Pengalaman Baru</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setActiveTab('projects');
+                    openNewProjectModal();
+                  }}
+                  className="admin-btn admin-btn-secondary"
+                >
+                  <Plus size={16} />
+                  <span>Tambah Proyek Baru</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setActiveTab('media')}
+                  className="admin-btn admin-btn-outline"
+                >
+                  <UploadCloud size={16} />
+                  <span>Unggah Gambar ke Storage</span>
+                </button>
+              </div>
             </div>
           </div>
         )}
@@ -856,19 +973,18 @@ export function AdminDashboardPage() {
           <div className="admin-tab-pane">
             <div className="admin-pane-header">
               <div>
-                <h2 className="admin-pane-title font-serif">Supabase Media Storage</h2>
+                <h1 className="admin-pane-title">Supabase Media Storage</h1>
                 <p className="admin-pane-subtitle">
-                  Unggah file gambar ke bucket <code>{STORAGE_BUCKET}</code> dan dapatkan tautan URL
-                  publik secara instan.
+                  Unggah file gambar ke bucket <code>{STORAGE_BUCKET}</code> dan dapatkan tautan URL CDN publik secara instan.
                 </p>
               </div>
             </div>
 
             {/* Dropzone */}
             <div className="admin-dropzone-box">
-              <UploadCloud size={36} className="dropzone-icon" />
-              <h4 className="dropzone-title">Pilih atau Seret Gambar ke Sini</h4>
-              <p className="dropzone-desc">Mendukung format PNG, JPG, WebP, dan SVG</p>
+              <UploadCloud size={40} className="dropzone-icon" />
+              <h3 className="dropzone-title">Pilih atau Seret Gambar ke Sini</h3>
+              <p className="dropzone-desc">Mendukung format PNG, JPG, WebP, dan SVG langsung ke Supabase</p>
 
               <label className="admin-btn admin-btn-primary dropzone-file-btn">
                 <span>{mediaUploading ? 'Mengunggah ke Supabase...' : 'Pilih File Gambar'}</span>
@@ -918,11 +1034,9 @@ export function AdminDashboardPage() {
           <div className="admin-tab-pane">
             <div className="admin-pane-header">
               <div>
-                <h2 className="admin-pane-title font-serif">Setup Database Supabase</h2>
+                <h1 className="admin-pane-title">Setup Database Supabase</h1>
                 <p className="admin-pane-subtitle">
-                  Jalankan script SQL ini di <strong>Supabase Dashboard &gt; SQL Editor</strong> untuk
-                  membuat tabel <code>projects</code>, <code>experiences</code>, dan storage bucket
-                  secara otomatis.
+                  Script SQL lengkap untuk tabel <code>projects</code>, <code>experiences</code>, serta konfigurasi RLS Storage.
                 </p>
               </div>
               <button
@@ -931,8 +1045,6 @@ export function AdminDashboardPage() {
                   const sql = `-- ==============================================================================
 -- SALPORTO SUPABASE DATABASE & STORAGE SETUP SCRIPT (FULL FIX)
 -- ==============================================================================
-
--- 1. CREATE PROJECTS TABLE
 CREATE TABLE IF NOT EXISTS public.projects (
   id TEXT PRIMARY KEY,
   slug TEXT UNIQUE NOT NULL,
@@ -951,7 +1063,6 @@ CREATE TABLE IF NOT EXISTS public.projects (
   updated_at TIMESTAMPTZ DEFAULT timezone('utc'::text, now())
 );
 
--- 2. CREATE EXPERIENCES TABLE
 CREATE TABLE IF NOT EXISTS public.experiences (
   id TEXT PRIMARY KEY,
   role TEXT NOT NULL,
@@ -968,52 +1079,28 @@ CREATE TABLE IF NOT EXISTS public.experiences (
   updated_at TIMESTAMPTZ DEFAULT timezone('utc'::text, now())
 );
 
--- 3. ENABLE ROW LEVEL SECURITY (RLS)
 ALTER TABLE public.projects ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.experiences ENABLE ROW LEVEL SECURITY;
 
--- 4. RLS POLICIES FOR PROJECTS & EXPERIENCES
-DROP POLICY IF EXISTS "Public Read Projects" ON public.projects;
-DROP POLICY IF EXISTS "Admin All Projects" ON public.projects;
 DROP POLICY IF EXISTS "Allow All Projects" ON public.projects;
+CREATE POLICY "Allow All Projects" ON public.projects FOR ALL USING (true) WITH CHECK (true);
 
-DROP POLICY IF EXISTS "Public Read Experiences" ON public.experiences;
-DROP POLICY IF EXISTS "Admin All Experiences" ON public.experiences;
 DROP POLICY IF EXISTS "Allow All Experiences" ON public.experiences;
+CREATE POLICY "Allow All Experiences" ON public.experiences FOR ALL USING (true) WITH CHECK (true);
 
-CREATE POLICY "Allow All Projects" ON public.projects
-  FOR ALL USING (true) WITH CHECK (true);
-
-CREATE POLICY "Allow All Experiences" ON public.experiences
-  FOR ALL USING (true) WITH CHECK (true);
-
--- 5. STORAGE BUCKET CREATION FOR PORTFOLIO IMAGES
 INSERT INTO storage.buckets (id, name, public)
 VALUES ('portfolio-images', 'portfolio-images', true)
 ON CONFLICT (id) DO UPDATE SET public = true;
 
--- Drop old storage policies if any
-DROP POLICY IF EXISTS "Public Access Storage" ON storage.objects;
-DROP POLICY IF EXISTS "Admin Upload Storage" ON storage.objects;
-DROP POLICY IF EXISTS "Admin Update Storage" ON storage.objects;
-DROP POLICY IF EXISTS "Admin Delete Storage" ON storage.objects;
 DROP POLICY IF EXISTS "Storage Select Policy" ON storage.objects;
 DROP POLICY IF EXISTS "Storage Insert Policy" ON storage.objects;
 DROP POLICY IF EXISTS "Storage Update Policy" ON storage.objects;
 DROP POLICY IF EXISTS "Storage Delete Policy" ON storage.objects;
 
--- Create storage policies allowing read, upload, update, and delete on 'portfolio-images' bucket
-CREATE POLICY "Storage Select Policy" ON storage.objects
-  FOR SELECT USING (bucket_id = 'portfolio-images');
-
-CREATE POLICY "Storage Insert Policy" ON storage.objects
-  FOR INSERT WITH CHECK (bucket_id = 'portfolio-images');
-
-CREATE POLICY "Storage Update Policy" ON storage.objects
-  FOR UPDATE USING (bucket_id = 'portfolio-images');
-
-CREATE POLICY "Storage Delete Policy" ON storage.objects
-  FOR DELETE USING (bucket_id = 'portfolio-images');`;
+CREATE POLICY "Storage Select Policy" ON storage.objects FOR SELECT USING (bucket_id = 'portfolio-images');
+CREATE POLICY "Storage Insert Policy" ON storage.objects FOR INSERT WITH CHECK (bucket_id = 'portfolio-images');
+CREATE POLICY "Storage Update Policy" ON storage.objects FOR UPDATE USING (bucket_id = 'portfolio-images');
+CREATE POLICY "Storage Delete Policy" ON storage.objects FOR DELETE USING (bucket_id = 'portfolio-images');`;
                   copyToClipboard(sql);
                 }}
                 className="admin-btn admin-btn-primary"
@@ -1034,39 +1121,263 @@ CREATE POLICY "Storage Delete Policy" ON storage.objects
               </div>
               <div className="sql-instruction-step">
                 <span className="step-num">3</span>
-                <span>Klik <strong>New Query</strong>, paste script SQL, lalu klik tombol <strong>Run</strong>.</span>
-              </div>
-
-              <div className="sql-code-box">
-                <pre>
-{`-- Solusi Cepat Row-Level Security (RLS) Supabase Storage:
-INSERT INTO storage.buckets (id, name, public)
-VALUES ('portfolio-images', 'portfolio-images', true)
-ON CONFLICT (id) DO UPDATE SET public = true;
-
-DROP POLICY IF EXISTS "Admin Upload Storage" ON storage.objects;
-DROP POLICY IF EXISTS "Storage Insert Policy" ON storage.objects;
-
-CREATE POLICY "Storage Insert Policy" ON storage.objects
-  FOR INSERT WITH CHECK (bucket_id = 'portfolio-images');
-
-CREATE POLICY "Storage Select Policy" ON storage.objects
-  FOR SELECT USING (bucket_id = 'portfolio-images');`}
-                </pre>
+                <span>Paste script dan klik tombol <strong>Run</strong>.</span>
               </div>
             </div>
           </div>
         )}
       </main>
 
-      {/* ================= MODAL: EDIT / CREATE PROJECT ================= */}
+      {/* =========================================================================
+          MODAL: EDIT / CREATE EXPERIENCE (USER-FRIENDLY & POPPINS)
+          ========================================================================= */}
+      {isExpModalOpen && (
+        <div className="admin-modal-backdrop" onClick={() => setIsExpModalOpen(false)}>
+          <div className="admin-modal-content" onClick={(e) => e.stopPropagation()}>
+            <div className="admin-modal-header">
+              <div>
+                <span className="modal-badge">
+                  <Briefcase size={14} />
+                  <span>Career Experience</span>
+                </span>
+                <h2 className="modal-title">
+                  {editingExp ? 'Edit Pengalaman' : 'Tambah Pengalaman Baru'}
+                </h2>
+              </div>
+              <button
+                type="button"
+                className="modal-close-btn"
+                onClick={() => setIsExpModalOpen(false)}
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveExperience} className="admin-modal-form">
+              {/* SECTION 1: INFORMASI JABATAN & INSTANSI */}
+              <div className="modal-section-box">
+                <div className="modal-section-header">
+                  <span className="section-step-num">1</span>
+                  <h4>Informasi Jabatan &amp; Instansi</h4>
+                </div>
+
+                <div className="form-grid-2">
+                  <div className="admin-field">
+                    <label>Nama Jabatan (Role) *</label>
+                    <input
+                      type="text"
+                      required
+                      value={expForm.role}
+                      onChange={(e) => setExpForm({ ...expForm, role: e.target.value })}
+                      className="admin-input"
+                      placeholder="Contoh: Laboratory Assistant / UI/UX Designer"
+                    />
+                  </div>
+
+                  <div className="admin-field">
+                    <label>Nama Instansi / Perusahaan *</label>
+                    <input
+                      type="text"
+                      required
+                      value={expForm.organization}
+                      onChange={(e) =>
+                        setExpForm({ ...expForm, organization: e.target.value })
+                      }
+                      className="admin-input"
+                      placeholder="Contoh: Web Programming Laboratory — Unhas"
+                    />
+                  </div>
+                </div>
+
+                <div className="form-grid-3">
+                  <div className="admin-field">
+                    <label>Jangka Waktu Bulan / Periode *</label>
+                    <input
+                      type="text"
+                      required
+                      value={expForm.period}
+                      onChange={(e) => setExpForm({ ...expForm, period: e.target.value })}
+                      className="admin-input"
+                      placeholder="Contoh: Agustus 2024 — Sekarang"
+                    />
+                  </div>
+
+                  <div className="admin-field">
+                    <label>Tipe Pengalaman</label>
+                    <select
+                      value={expForm.type}
+                      onChange={(e) => setExpForm({ ...expForm, type: e.target.value })}
+                      className="admin-input"
+                    >
+                      <option value="Academic">Academic</option>
+                      <option value="Internship">Internship</option>
+                      <option value="Community / Project">Community / Project</option>
+                      <option value="Full-time">Full-time</option>
+                      <option value="Freelance">Freelance</option>
+                    </select>
+                  </div>
+
+                  <div className="admin-field">
+                    <label>Urutan di Timeline</label>
+                    <select
+                      value={expForm.sortOrder}
+                      onChange={(e) =>
+                        setExpForm({ ...expForm, sortOrder: parseInt(e.target.value, 10) })
+                      }
+                      className="admin-input"
+                    >
+                      <option value="0">Tampil Paling Atas (Posisi #1)</option>
+                      <option value="1">Tampil Kedua (Posisi #2)</option>
+                      <option value="2">Tampil Ketiga (Posisi #3)</option>
+                      <option value="10">Pengalaman Lainnya (Halaman /experience)</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div className="admin-field checkbox-field">
+                  <label className="admin-checkbox-label">
+                    <input
+                      type="checkbox"
+                      checked={expForm.isCurrent}
+                      onChange={(e) =>
+                        setExpForm({ ...expForm, isCurrent: e.target.checked })
+                      }
+                    />
+                    <span>Tandai sebagai <strong>Peran yang Sedang Aktif Berjalan (Current Role)</strong></span>
+                  </label>
+                </div>
+              </div>
+
+              {/* SECTION 2: LIST JOBDESK / TANGGUNG JAWAB */}
+              <div className="modal-section-box">
+                <div className="modal-section-header between">
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
+                    <span className="section-step-num">2</span>
+                    <h4>Rincian Tanggung Jawab / Jobdesk</h4>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={addJobdeskPoint}
+                    className="admin-btn admin-btn-sm admin-btn-outline"
+                  >
+                    <Plus size={14} />
+                    <span>Tambah Poin Jobdesk</span>
+                  </button>
+                </div>
+
+                <div className="jobdesk-inputs-list">
+                  {(expForm.jobdesk || ['']).map((item, idx) => (
+                    <div key={idx} className="jobdesk-input-row">
+                      <span className="point-badge">{idx + 1}</span>
+                      <input
+                        type="text"
+                        value={item}
+                        onChange={(e) => updateJobdeskPoint(idx, e.target.value)}
+                        className="admin-input"
+                        placeholder="Contoh: Membimbing praktikum coding dan evaluasi tugas..."
+                      />
+                      <button
+                        type="button"
+                        onClick={() => removeJobdeskPoint(idx)}
+                        className="point-remove-btn"
+                        title="Hapus poin"
+                      >
+                        <Trash2 size={15} />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* SECTION 3: FOTO DOKUMENTASI UNTUK 3 FOTO BERTUMPUK */}
+              <div className="modal-section-box">
+                <div className="modal-section-header">
+                  <span className="section-step-num">3</span>
+                  <div>
+                    <h4>Dokumentasi Foto Pengalaman (Untuk Tumpukan 3 Foto)</h4>
+                    <p className="section-desc-hint">
+                      Foto otomatis diunggah ke Supabase Storage dan ditampilkan sebagai galeri tumpuk interaktif.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="upload-control-row">
+                  <label className="admin-btn admin-btn-secondary upload-btn-label">
+                    <UploadCloud size={16} />
+                    <span>
+                      {expUploadLoading ? 'Sedang Mengunggah Foto ke Supabase...' : '+ Unggah Foto Dokumentasi'}
+                    </span>
+                    <input
+                      type="file"
+                      multiple
+                      accept="image/*"
+                      onChange={handleExpPhotoUpload}
+                      disabled={expUploadLoading}
+                      style={{ display: 'none' }}
+                    />
+                  </label>
+                </div>
+
+                {/* Thumbnails of current images */}
+                {expForm.images && expForm.images.length > 0 && (
+                  <div className="form-image-preview-grid">
+                    {expForm.images.map((img, i) => (
+                      <div key={i} className="preview-thumb-box">
+                        <img src={img.url} alt={img.title || `Foto ${i + 1}`} />
+                        <span className="preview-thumb-number">Foto {i + 1}</span>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setExpForm((prev) => ({
+                              ...prev,
+                              images: prev.images.filter((_, idx) => idx !== i),
+                            }));
+                          }}
+                          className="preview-remove-icon"
+                          title="Hapus foto ini"
+                        >
+                          <X size={13} />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              <div className="admin-modal-footer">
+                <button
+                  type="button"
+                  onClick={() => setIsExpModalOpen(false)}
+                  className="admin-btn admin-btn-outline"
+                >
+                  Batal
+                </button>
+                <button type="submit" className="admin-btn admin-btn-primary admin-btn-lg">
+                  <Check size={16} />
+                  <span>Simpan Pengalaman ke Website</span>
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* =========================================================================
+          MODAL: EDIT / CREATE PROJECT
+          ========================================================================= */}
       {isProjectModalOpen && (
         <div className="admin-modal-backdrop" onClick={() => setIsProjectModalOpen(false)}>
           <div className="admin-modal-content" onClick={(e) => e.stopPropagation()}>
             <div className="admin-modal-header">
-              <h3 className="modal-title font-serif">
-                {editingProject ? 'Edit Proyek' : 'Tambah Proyek Baru'}
-              </h3>
+              <div>
+                <span className="modal-badge">
+                  <FolderKanban size={14} />
+                  <span>Portfolio Project</span>
+                </span>
+                <h2 className="modal-title">
+                  {editingProject ? 'Edit Proyek' : 'Tambah Proyek Baru'}
+                </h2>
+              </div>
               <button
                 type="button"
                 className="modal-close-btn"
@@ -1088,12 +1399,12 @@ CREATE POLICY "Storage Select Policy" ON storage.objects
                       setProjectForm({ ...projectForm, title: e.target.value })
                     }
                     className="admin-input"
-                    placeholder="Contoh: PerdosFit"
+                    placeholder="Contoh: PerdosFit Gym Management"
                   />
                 </div>
 
                 <div className="admin-field">
-                  <label>Slug URL</label>
+                  <label>Slug URL (Opsional)</label>
                   <input
                     type="text"
                     value={projectForm.slug}
@@ -1111,18 +1422,19 @@ CREATE POLICY "Storage Select Policy" ON storage.objects
                   <label>Kategori</label>
                   <select
                     value={projectForm.category}
-                    onChange={(e) =>
+                    onChange={(e) => {
+                      const cat = e.target.value;
+                      const labels = {
+                        'ui-ux': 'UI/UX Design',
+                        web: 'Web Projects',
+                        'graphic-design': 'Graphic Design',
+                      };
                       setProjectForm({
                         ...projectForm,
-                        category: e.target.value,
-                        categoryLabel:
-                          e.target.value === 'ui-ux'
-                            ? 'UI/UX Design'
-                            : e.target.value === 'web'
-                            ? 'Web / Front-End'
-                            : 'Graphic Design',
-                      })
-                    }
+                        category: cat,
+                        categoryLabel: labels[cat] || 'Design',
+                      });
+                    }}
                     className="admin-input"
                   >
                     <option value="ui-ux">UI/UX Design</option>
@@ -1166,25 +1478,25 @@ CREATE POLICY "Storage Select Policy" ON storage.objects
                     setProjectForm({ ...projectForm, projectType: e.target.value })
                   }
                   className="admin-input"
-                  placeholder="Academic / Diskominfo Makassar / KKN-T"
+                  placeholder="Academic / Diskominfo Makassar"
                 />
               </div>
 
               <div className="admin-field">
                 <label>Ringkasan Proyek (Summary) *</label>
                 <textarea
-                  rows={3}
                   required
+                  rows={3}
                   value={projectForm.summary}
                   onChange={(e) =>
                     setProjectForm({ ...projectForm, summary: e.target.value })
                   }
                   className="admin-input"
-                  placeholder="Jelaskan secara singkat tujuan dan solusi proyek..."
+                  placeholder="Jelaskan secara singkat tujuan dan solusi proyek ini..."
                 />
               </div>
 
-              {/* Cover Image Upload directly to Supabase */}
+              {/* Cover Image Upload */}
               <div className="admin-field">
                 <label>Cover Image (Unggah ke Supabase Storage)</label>
                 <div className="upload-control-row">
@@ -1197,7 +1509,7 @@ CREATE POLICY "Storage Select Policy" ON storage.objects
                     className="admin-input"
                     placeholder="URL gambar atau unggah file..."
                   />
-                  <label className="admin-btn admin-btn-outline upload-btn-label">
+                  <label className="admin-btn admin-btn-secondary upload-btn-label">
                     <span>{projectUploadLoading ? 'Mengunggah...' : 'Pilih File'}</span>
                     <input
                       type="file"
@@ -1208,9 +1520,10 @@ CREATE POLICY "Storage Select Policy" ON storage.objects
                     />
                   </label>
                 </div>
+
                 {projectForm.coverImage && (
-                  <div className="form-image-preview">
-                    <img src={projectForm.coverImage} alt="Cover Preview" />
+                  <div className="form-cover-preview">
+                    <img src={projectForm.coverImage} alt="Cover preview" />
                   </div>
                 )}
               </div>
@@ -1247,194 +1560,9 @@ CREATE POLICY "Storage Select Policy" ON storage.objects
                 >
                   Batal
                 </button>
-                <button type="submit" className="admin-btn admin-btn-primary">
-                  Simpan Proyek
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {/* ================= MODAL: EDIT / CREATE EXPERIENCE ================= */}
-      {isExpModalOpen && (
-        <div className="admin-modal-backdrop" onClick={() => setIsExpModalOpen(false)}>
-          <div className="admin-modal-content" onClick={(e) => e.stopPropagation()}>
-            <div className="admin-modal-header">
-              <h3 className="modal-title font-serif">
-                {editingExp ? 'Edit Pengalaman' : 'Tambah Pengalaman Baru'}
-              </h3>
-              <button
-                type="button"
-                className="modal-close-btn"
-                onClick={() => setIsExpModalOpen(false)}
-              >
-                <X size={20} />
-              </button>
-            </div>
-
-            <form onSubmit={handleSaveExperience} className="admin-modal-form">
-              <div className="form-grid-2">
-                <div className="admin-field">
-                  <label>Nama Jabatan *</label>
-                  <input
-                    type="text"
-                    required
-                    value={expForm.role}
-                    onChange={(e) => setExpForm({ ...expForm, role: e.target.value })}
-                    className="admin-input"
-                    placeholder="Contoh: Laboratory Assistant"
-                  />
-                </div>
-
-                <div className="admin-field">
-                  <label>Nama Instansi / Perusahaan *</label>
-                  <input
-                    type="text"
-                    required
-                    value={expForm.organization}
-                    onChange={(e) =>
-                      setExpForm({ ...expForm, organization: e.target.value })
-                    }
-                    className="admin-input"
-                    placeholder="Universitas Hasanuddin / Diskominfo"
-                  />
-                </div>
-              </div>
-
-              <div className="form-grid-3">
-                <div className="admin-field">
-                  <label>Jangka Waktu Bulan *</label>
-                  <input
-                    type="text"
-                    required
-                    value={expForm.period}
-                    onChange={(e) => setExpForm({ ...expForm, period: e.target.value })}
-                    className="admin-input"
-                    placeholder="Agustus 2023 — Sekarang"
-                  />
-                </div>
-
-                <div className="admin-field">
-                  <label>Tipe</label>
-                  <select
-                    value={expForm.type}
-                    onChange={(e) => setExpForm({ ...expForm, type: e.target.value })}
-                    className="admin-input"
-                  >
-                    <option value="Academic">Academic</option>
-                    <option value="Internship">Internship</option>
-                    <option value="Community / Project">Community / Project</option>
-                    <option value="Full-time">Full-time</option>
-                  </select>
-                </div>
-
-                <div className="admin-field" style={{ justifyContent: 'center' }}>
-                  <label className="admin-checkbox-label" style={{ marginTop: '1.75rem' }}>
-                    <input
-                      type="checkbox"
-                      checked={expForm.isCurrent}
-                      onChange={(e) =>
-                        setExpForm({ ...expForm, isCurrent: e.target.checked })
-                      }
-                    />
-                    <span>Peran Aktif (Current)</span>
-                  </label>
-                </div>
-              </div>
-
-              {/* Dynamic Jobdesk Points */}
-              <div className="admin-field">
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <label>List Tanggung Jawab &amp; Jobdesk (Point-by-point)</label>
-                  <button
-                    type="button"
-                    onClick={addJobdeskPoint}
-                    className="admin-btn admin-btn-outline"
-                    style={{ padding: '0.25rem 0.65rem', fontSize: '0.75rem' }}
-                  >
-                    <Plus size={12} />
-                    <span>Tambah Point</span>
-                  </button>
-                </div>
-
-                <div className="jobdesk-inputs-list">
-                  {(expForm.jobdesk || ['']).map((item, idx) => (
-                    <div key={idx} className="jobdesk-input-row">
-                      <span className="point-index">{idx + 1}.</span>
-                      <input
-                        type="text"
-                        value={item}
-                        onChange={(e) => updateJobdeskPoint(idx, e.target.value)}
-                        className="admin-input"
-                        placeholder="Contoh: Membimbing praktikum web programming..."
-                      />
-                      <button
-                        type="button"
-                        onClick={() => removeJobdeskPoint(idx)}
-                        className="point-remove-btn"
-                        title="Hapus point"
-                      >
-                        <Trash2 size={14} />
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Photos upload for 3 stacked images */}
-              <div className="admin-field">
-                <label>Dokumentasi Foto Pengalaman (Untuk Tumpukan 3 Foto)</label>
-                <div className="upload-control-row">
-                  <label className="admin-btn admin-btn-outline upload-btn-label">
-                    <span>
-                      {expUploadLoading ? 'Mengunggah ke Supabase...' : '+ Unggah Foto Dokumentasi'}
-                    </span>
-                    <input
-                      type="file"
-                      multiple
-                      accept="image/*"
-                      onChange={handleExpPhotoUpload}
-                      disabled={expUploadLoading}
-                      style={{ display: 'none' }}
-                    />
-                  </label>
-                </div>
-
-                {/* Thumbnails of current images */}
-                {expForm.images && expForm.images.length > 0 && (
-                  <div className="form-image-preview-grid">
-                    {expForm.images.map((img, i) => (
-                      <div key={i} className="preview-thumb-box">
-                        <img src={img.url} alt={img.title || `Foto ${i + 1}`} />
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setExpForm((prev) => ({
-                              ...prev,
-                              images: prev.images.filter((_, idx) => idx !== i),
-                            }));
-                          }}
-                          className="preview-remove-icon"
-                        >
-                          <X size={12} />
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-
-              <div className="admin-modal-footer">
-                <button
-                  type="button"
-                  onClick={() => setIsExpModalOpen(false)}
-                  className="admin-btn admin-btn-outline"
-                >
-                  Batal
-                </button>
-                <button type="submit" className="admin-btn admin-btn-primary">
-                  Simpan Pengalaman
+                <button type="submit" className="admin-btn admin-btn-primary admin-btn-lg">
+                  <Check size={16} />
+                  <span>Simpan Proyek</span>
                 </button>
               </div>
             </form>

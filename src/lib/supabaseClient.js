@@ -84,9 +84,14 @@ export async function getProjects() {
         .order('year', { ascending: false });
 
       if (!error && data && data.length > 0) {
-        // Cache in localStorage for offline availability
-        localStorage.setItem('salporto_projects', JSON.stringify(data));
-        return data;
+        const normalized = data.map((p) => ({
+          ...p,
+          categoryLabel: p.category_label || p.categoryLabel,
+          projectType: p.project_type || p.projectType,
+          coverImage: p.cover_image || p.coverImage,
+        }));
+        localStorage.setItem('salporto_projects', JSON.stringify(normalized));
+        return normalized;
       }
     }
   } catch (err) {
@@ -108,38 +113,75 @@ export async function getProjects() {
  * Save / Update project (Supabase + localStorage sync)
  */
 export async function saveProject(projectData) {
-  let saved = projectData;
+  const row = {
+    id: String(projectData.id || `proj-${Date.now()}`),
+    slug:
+      projectData.slug ||
+      projectData.title?.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') ||
+      `proj-${Date.now()}`,
+    title: projectData.title,
+    category: projectData.category || 'ui-ux',
+    category_label: projectData.category_label || projectData.categoryLabel || 'UI/UX Design',
+    year: parseInt(projectData.year, 10) || new Date().getFullYear(),
+    role: projectData.role || '',
+    project_type: projectData.project_type || projectData.projectType || 'Case Study',
+    summary: projectData.summary || '',
+    cover_image: projectData.cover_image || projectData.coverImage || '',
+    featured: projectData.featured !== undefined ? projectData.featured : true,
+    published: projectData.published !== undefined ? projectData.published : true,
+    tags: Array.isArray(projectData.tags) ? projectData.tags : [],
+    updated_at: new Date().toISOString(),
+  };
 
-  // Sync to Supabase if available
+  let savedRow = {
+    ...row,
+    categoryLabel: row.category_label,
+    projectType: row.project_type,
+    coverImage: row.cover_image,
+  };
+
   if (isSupabaseConfigured()) {
     try {
       const { data, error } = await supabase
         .from('projects')
-        .upsert(projectData, { onConflict: 'id' })
+        .upsert(row, { onConflict: 'id' })
         .select()
         .single();
 
-      if (!error && data) {
-        saved = data;
+      if (error) {
+        console.error('Supabase saveProject error:', error);
+        return { data: null, error };
+      }
+      if (data) {
+        savedRow = {
+          ...data,
+          categoryLabel: data.category_label || data.categoryLabel,
+          projectType: data.project_type || data.projectType,
+          coverImage: data.cover_image || data.coverImage,
+        };
       }
     } catch (e) {
-      console.warn('Could not sync to Supabase table:', e);
+      console.error('Exception in saveProject:', e);
+      return { data: null, error: e };
     }
   }
 
-  // Always update local storage
-  const current = await getProjects();
-  const index = current.findIndex((p) => p.id === saved.id);
-  let updated;
-  if (index >= 0) {
-    updated = [...current];
-    updated[index] = saved;
-  } else {
-    updated = [saved, ...current];
-  }
-  localStorage.setItem('salporto_projects', JSON.stringify(updated));
+  // Update local storage
+  try {
+    const cached = localStorage.getItem('salporto_projects');
+    const current = cached ? JSON.parse(cached) : mockProjects;
+    const index = current.findIndex((p) => p.id === savedRow.id);
+    let updated;
+    if (index >= 0) {
+      updated = [...current];
+      updated[index] = savedRow;
+    } else {
+      updated = [savedRow, ...current];
+    }
+    localStorage.setItem('salporto_projects', JSON.stringify(updated));
+  } catch (_) {}
 
-  return saved;
+  return { data: savedRow, error: null };
 }
 
 /**
@@ -154,9 +196,13 @@ export async function deleteProject(projectId) {
     }
   }
 
-  const current = await getProjects();
-  const updated = current.filter((p) => p.id !== projectId);
-  localStorage.setItem('salporto_projects', JSON.stringify(updated));
+  try {
+    const cached = localStorage.getItem('salporto_projects');
+    const current = cached ? JSON.parse(cached) : mockProjects;
+    const updated = current.filter((p) => p.id !== projectId);
+    localStorage.setItem('salporto_projects', JSON.stringify(updated));
+  } catch (_) {}
+
   return true;
 }
 
@@ -172,8 +218,13 @@ export async function getExperiences() {
         .order('sort_order', { ascending: true });
 
       if (!error && data && data.length > 0) {
-        localStorage.setItem('salporto_experiences', JSON.stringify(data));
-        return data;
+        const normalized = data.map((e) => ({
+          ...e,
+          isCurrent: e.is_current !== undefined ? e.is_current : e.isCurrent,
+          sortOrder: e.sort_order ?? e.sortOrder,
+        }));
+        localStorage.setItem('salporto_experiences', JSON.stringify(normalized));
+        return normalized;
       }
     }
   } catch (err) {
@@ -194,36 +245,67 @@ export async function getExperiences() {
  * Save / Update experience
  */
 export async function saveExperience(expData) {
-  let saved = expData;
+  const row = {
+    id: String(expData.id || `exp-${Date.now()}`),
+    role: expData.role,
+    organization: expData.organization,
+    period: expData.period || '',
+    type: expData.type || 'Internship',
+    is_current: expData.is_current !== undefined ? expData.is_current : (expData.isCurrent ?? false),
+    logo: expData.logo || '',
+    jobdesk: Array.isArray(expData.jobdesk) ? expData.jobdesk : [],
+    images: Array.isArray(expData.images) ? expData.images : [],
+    description: expData.description || '',
+    sort_order: parseInt(expData.sort_order ?? expData.sortOrder ?? 0, 10),
+    updated_at: new Date().toISOString(),
+  };
+
+  let savedRow = {
+    ...row,
+    isCurrent: row.is_current,
+    sortOrder: row.sort_order,
+  };
 
   if (isSupabaseConfigured()) {
     try {
       const { data, error } = await supabase
         .from('experiences')
-        .upsert(expData, { onConflict: 'id' })
+        .upsert(row, { onConflict: 'id' })
         .select()
         .single();
 
-      if (!error && data) {
-        saved = data;
+      if (error) {
+        console.error('Supabase saveExperience error:', error);
+        return { data: null, error };
+      }
+      if (data) {
+        savedRow = {
+          ...data,
+          isCurrent: data.is_current !== undefined ? data.is_current : data.isCurrent,
+          sortOrder: data.sort_order ?? data.sortOrder,
+        };
       }
     } catch (e) {
-      console.warn('Could not sync experience to Supabase table:', e);
+      console.error('Exception in saveExperience:', e);
+      return { data: null, error: e };
     }
   }
 
-  const current = await getExperiences();
-  const index = current.findIndex((e) => e.id === saved.id);
-  let updated;
-  if (index >= 0) {
-    updated = [...current];
-    updated[index] = saved;
-  } else {
-    updated = [...current, saved];
-  }
-  localStorage.setItem('salporto_experiences', JSON.stringify(updated));
+  try {
+    const cached = localStorage.getItem('salporto_experiences');
+    const current = cached ? JSON.parse(cached) : mockExperiences;
+    const index = current.findIndex((e) => e.id === savedRow.id);
+    let updated;
+    if (index >= 0) {
+      updated = [...current];
+      updated[index] = savedRow;
+    } else {
+      updated = [...current, savedRow];
+    }
+    localStorage.setItem('salporto_experiences', JSON.stringify(updated));
+  } catch (_) {}
 
-  return saved;
+  return { data: savedRow, error: null };
 }
 
 /**
@@ -238,8 +320,12 @@ export async function deleteExperience(expId) {
     }
   }
 
-  const current = await getExperiences();
-  const updated = current.filter((e) => e.id !== expId);
-  localStorage.setItem('salporto_experiences', JSON.stringify(updated));
+  try {
+    const cached = localStorage.getItem('salporto_experiences');
+    const current = cached ? JSON.parse(cached) : mockExperiences;
+    const updated = current.filter((e) => e.id !== expId);
+    localStorage.setItem('salporto_experiences', JSON.stringify(updated));
+  } catch (_) {}
+
   return true;
 }
