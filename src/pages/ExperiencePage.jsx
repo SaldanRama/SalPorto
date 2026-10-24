@@ -1,12 +1,86 @@
 import React, { useState, useEffect } from 'react';
-import { ArrowUpRight, Briefcase, GraduationCap, Building2 } from 'lucide-react';
+import {
+  ArrowUpRight,
+  Briefcase,
+  GraduationCap,
+  Building2,
+  Maximize2,
+  ChevronLeft,
+  ChevronRight,
+  X,
+  ImagePlus,
+} from 'lucide-react';
 import { mockExperiences } from '@/data/mockData';
 import { getExperiences } from '@/lib/supabaseClient';
 import { Button } from '@/components/ui/Button';
 import { ExperienceTools } from '@/components/experience/ExperienceTools';
+import './ExperiencePage.css';
 
 export function ExperiencePage() {
   const [experiences, setExperiences] = useState(mockExperiences);
+
+  // Preview Lightbox Modal State
+  const [previewModal, setPreviewModal] = useState({
+    isOpen: false,
+    images: [],
+    activeIndex: 0,
+    role: '',
+    organization: '',
+  });
+
+  const getImageUrl = (img) => (typeof img === 'string' ? img : img?.url || '');
+
+  const openPreview = (images, index, exp) => {
+    setPreviewModal({
+      isOpen: true,
+      images: Array.isArray(images) ? images : [],
+      activeIndex: index,
+      role: exp.role || 'Dokumentasi Pengalaman',
+      organization: exp.organization || '',
+    });
+  };
+
+  const closePreview = () => {
+    setPreviewModal((prev) => ({ ...prev, isOpen: false }));
+  };
+
+  const handleNextPhoto = (e) => {
+    if (e) e.stopPropagation();
+    setPreviewModal((prev) => {
+      const total = prev.images.length;
+      if (total <= 1) return prev;
+      return { ...prev, activeIndex: (prev.activeIndex + 1) % total };
+    });
+  };
+
+  const handlePrevPhoto = (e) => {
+    if (e) e.stopPropagation();
+    setPreviewModal((prev) => {
+      const total = prev.images.length;
+      if (total <= 1) return prev;
+      return { ...prev, activeIndex: (prev.activeIndex - 1 + total) % total };
+    });
+  };
+
+  // Keyboard navigation & body scroll lock
+  useEffect(() => {
+    if (!previewModal.isOpen) return;
+
+    const handleKeyDown = (e) => {
+      if (e.key === 'ArrowRight') handleNextPhoto();
+      if (e.key === 'ArrowLeft') handlePrevPhoto();
+      if (e.key === 'Escape') closePreview();
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    const originalOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      document.body.style.overflow = originalOverflow;
+    };
+  }, [previewModal.isOpen, previewModal.images.length]);
 
   useEffect(() => {
     let isMounted = true;
@@ -167,16 +241,47 @@ export function ExperiencePage() {
               })()}
 
               {exp.images && exp.images.length > 0 && (
-                <div style={{ marginTop: '1.5rem', paddingTop: '1.5rem', borderTop: '1px solid var(--line)' }}>
-                  <span style={{ fontSize: '0.8125rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--muted)', display: 'block', marginBottom: '1rem' }}>
-                    Dokumentasi Kegiatan ({exp.images.length} Foto):
-                  </span>
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '1rem' }}>
-                    {exp.images.map((img, iIdx) => (
-                      <div key={iIdx} style={{ borderRadius: 'var(--radius-sm)', overflow: 'hidden', border: '1px solid var(--line)', background: 'var(--bg)' }}>
-                        <img src={img.url} alt={exp.role} style={{ width: '100%', aspectRatio: '16/10', objectFit: 'cover', display: 'block' }} />
-                      </div>
-                    ))}
+                <div className="exp-photos-section">
+                  <div className="exp-photos-header">
+                    <span className="exp-photos-title">
+                      <ImagePlus size={14} />
+                      <span>Dokumentasi Kegiatan ({exp.images.length} Foto)</span>
+                    </span>
+                    <span className="exp-photos-hint">
+                      • Klik foto untuk memperbesar / preview
+                    </span>
+                  </div>
+
+                  <div className="exp-photos-grid">
+                    {exp.images.map((img, iIdx) => {
+                      const url = getImageUrl(img);
+                      return (
+                        <button
+                          key={iIdx}
+                          type="button"
+                          className="exp-photo-thumb-btn"
+                          onClick={() => openPreview(exp.images, iIdx, exp)}
+                          title={`Klik untuk melihat foto ${iIdx + 1} (${exp.role})`}
+                          aria-label={`Buka preview foto ${iIdx + 1}`}
+                        >
+                          <img
+                            src={url}
+                            alt={`${exp.role} - Foto ${iIdx + 1}`}
+                            className="exp-photo-thumb-img"
+                            loading="lazy"
+                          />
+                          <div className="exp-photo-overlay">
+                            <span className="exp-photo-zoom-badge">
+                              <Maximize2 size={12} />
+                              <span>Lihat Foto</span>
+                            </span>
+                            <span className="exp-photo-num-badge">
+                              {iIdx + 1} / {exp.images.length}
+                            </span>
+                          </div>
+                        </button>
+                      );
+                    })}
                   </div>
                 </div>
               )}
@@ -197,6 +302,101 @@ export function ExperiencePage() {
             <ArrowUpRight size={16} />
           </Button>
         </div>
+
+        {/* PREVIEW LIGHTBOX MODAL */}
+        {previewModal.isOpen && previewModal.images.length > 0 && (
+          <div
+            className="exp-lightbox-backdrop"
+            onClick={closePreview}
+            role="dialog"
+            aria-modal="true"
+          >
+            <div className="exp-lightbox-content" onClick={(e) => e.stopPropagation()}>
+              {/* Modal Header */}
+              <div className="exp-lightbox-header">
+                <div>
+                  <span className="exp-lightbox-category">
+                    {previewModal.organization || 'Dokumentasi Pengalaman'}
+                  </span>
+                  <h3 className="exp-lightbox-title">{previewModal.role}</h3>
+                </div>
+                <button
+                  type="button"
+                  className="exp-lightbox-close-btn"
+                  onClick={closePreview}
+                  title="Tutup Preview (Esc)"
+                  aria-label="Tutup"
+                >
+                  <X size={18} />
+                </button>
+              </div>
+
+              {/* Stage Image Display */}
+              <div className="exp-lightbox-stage">
+                {previewModal.images.length > 1 && (
+                  <button
+                    type="button"
+                    className="exp-lightbox-nav-btn exp-lightbox-nav-prev"
+                    onClick={handlePrevPhoto}
+                    title="Foto Sebelumnya (←)"
+                    aria-label="Foto Sebelumnya"
+                  >
+                    <ChevronLeft size={22} />
+                  </button>
+                )}
+
+                <div className="exp-lightbox-image-wrap">
+                  <img
+                    src={getImageUrl(previewModal.images[previewModal.activeIndex])}
+                    alt={`${previewModal.role} - Foto ${previewModal.activeIndex + 1}`}
+                    className="exp-lightbox-img"
+                  />
+                </div>
+
+                {previewModal.images.length > 1 && (
+                  <button
+                    type="button"
+                    className="exp-lightbox-nav-btn exp-lightbox-nav-next"
+                    onClick={handleNextPhoto}
+                    title="Foto Selanjutnya (→)"
+                    aria-label="Foto Selanjutnya"
+                  >
+                    <ChevronRight size={22} />
+                  </button>
+                )}
+              </div>
+
+              {/* Modal Footer */}
+              <div className="exp-lightbox-footer">
+                <div className="exp-lightbox-count-pill">
+                  Foto {previewModal.activeIndex + 1} dari {previewModal.images.length}
+                </div>
+
+                {/* Thumbnail Strip */}
+                {previewModal.images.length > 1 && (
+                  <div className="exp-lightbox-thumbnails">
+                    {previewModal.images.map((item, idx) => (
+                      <button
+                        key={idx}
+                        type="button"
+                        className={`exp-lightbox-thumb-item ${
+                          idx === previewModal.activeIndex ? 'active' : ''
+                        }`}
+                        onClick={() =>
+                          setPreviewModal((prev) => ({ ...prev, activeIndex: idx }))
+                        }
+                        title={`Buka foto ${idx + 1}`}
+                        aria-label={`Lihat foto ${idx + 1}`}
+                      >
+                        <img src={getImageUrl(item)} alt={`Thumbnail ${idx + 1}`} />
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
