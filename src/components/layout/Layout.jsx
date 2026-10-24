@@ -34,6 +34,9 @@ export function Layout() {
       </main>
 
       <Footer />
+
+      {/* Static 15% Bottom Frosted Glass / Blur Overlay */}
+      <div className="bottom-glass-dock" aria-hidden="true" />
     </div>
   );
 }

@@ -33,3 +33,55 @@
 .skip-to-content:focus {
   top: 1.5rem;
 }
+
+/* ==========================================================================
+   STATIC 15% BOTTOM FROSTED GLASS / BLUR OVERLAY
+   Apple-style progressive glassmorphism diffusion at the bottom of the viewport.
+   Remains static/fixed while scrolling, occupying ~15% of the viewport height.
+   pointer-events: none ensures underlying interactions are never blocked.
+   ========================================================================== */
+.bottom-glass-dock {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  width: 100%;
+  height: 15vh;
+  min-height: 85px;
+  max-height: 160px;
+  pointer-events: none;
+  z-index: 40;
+  backdrop-filter: blur(20px) saturate(190%);
+  -webkit-backdrop-filter: blur(20px) saturate(190%);
+  mask-image: linear-gradient(
+    to top,
+    rgba(0, 0, 0, 1) 0%,
+    rgba(0, 0, 0, 0.9) 35%,
+    rgba(0, 0, 0, 0.4) 70%,
+    rgba(0, 0, 0, 0) 100%
+  );
+  -webkit-mask-image: linear-gradient(
+    to top,
+    rgba(0, 0, 0, 1) 0%,
+    rgba(0, 0, 0, 0.9) 35%,
+    rgba(0, 0, 0, 0.4) 70%,
+    rgba(0, 0, 0, 0) 100%
+  );
+  background: linear-gradient(
+    to top,
+    rgba(10, 12, 16, 0.65) 0%,
+    rgba(10, 12, 16, 0.25) 50%,
+    rgba(10, 12, 16, 0) 100%
+  );
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+[data-theme='light'] .bottom-glass-dock {
+  background: linear-gradient(
+    to top,
+    rgba(247, 246, 241, 0.72) 0%,
+    rgba(247, 246, 241, 0.3) 50%,
+    rgba(247, 246, 241, 0) 100%
+  );
+  border-top: 1px solid rgba(0, 0, 0, 0.04);
+}
