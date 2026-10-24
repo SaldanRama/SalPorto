@@ -23,8 +23,14 @@ import {
   Building,
   LayoutGrid,
   List,
+  ChevronUp,
+  ChevronDown,
+  Eye,
+  EyeOff,
+  Sparkles,
 } from 'lucide-react';
 import { getToolLogo } from '@/components/experience/ExperienceTools';
+import { MiniGalleryCoverflow } from '@/components/gallery/MiniGalleryCoverflow';
 import {
   getExperiences,
   saveExperience,
@@ -32,6 +38,9 @@ import {
   getProjects,
   saveProject,
   deleteProject,
+  getMiniGallery,
+  saveMiniGalleryItem,
+  deleteMiniGalleryItem,
   uploadImageToSanity,
   resolveExperienceLogo,
   projectId,
@@ -110,6 +119,27 @@ export function AdminDashboardPage() {
     tags: ['Design', 'Web'],
   });
 
+  // Mini Gallery State (16:9 Coverflow)
+  const [galleryItems, setGalleryItems] = useState([]);
+  const [isGalleryModalOpen, setIsGalleryModalOpen] = useState(false);
+  const [editingGalleryItem, setEditingGalleryItem] = useState(null);
+  const [showLiveCoverflow, setShowLiveCoverflow] = useState(false);
+  const [isUploadingGallery, setIsUploadingGallery] = useState(false);
+  const [isDraggingGallery, setIsDraggingGallery] = useState(false);
+  const galleryFileInputRef = useRef(null);
+  const modalGalleryFileInputRef = useRef(null);
+
+  const [galleryForm, setGalleryForm] = useState({
+    id: '',
+    title: '',
+    caption: '',
+    url: '',
+    assetId: '',
+    linkUrl: '',
+    sortOrder: 0,
+    published: true,
+  });
+
   const showToast = (msg) => {
     setToastMessage(msg);
     setTimeout(() => setToastMessage(null), 3500);
@@ -118,9 +148,14 @@ export function AdminDashboardPage() {
   const loadData = async () => {
     setLoading(true);
     try {
-      const [eList, pList] = await Promise.all([getExperiences(), getProjects()]);
+      const [eList, pList, gList] = await Promise.all([
+        getExperiences(),
+        getProjects(),
+        getMiniGallery(),
+      ]);
       setExperiences(eList || []);
       setProjects(pList || []);
+      setGalleryItems(gList || []);
     } catch (err) {
       console.error('Failed to load CMS data:', err);
     } finally {
@@ -159,7 +194,8 @@ export function AdminDashboardPage() {
         images: [],
         logos: [],
       });
-    } else {
+      setIsModalOpen(true);
+    } else if (activeTab === 'projects') {
       setEditingItem(null);
       setProjForm({
         id: `project-${Date.now()}`,
@@ -177,8 +213,10 @@ export function AdminDashboardPage() {
         sortOrder: projects.length,
         tags: ['Design', 'Web'],
       });
+      setIsModalOpen(true);
+    } else if (activeTab === 'gallery') {
+      handleOpenAddGalleryModal();
     }
-    setIsModalOpen(true);
   };
 
   // Open Edit Experience Modal
@@ -482,6 +520,197 @@ export function AdminDashboardPage() {
       return (a.sortOrder ?? 0) - (b.sortOrder ?? 0);
     });
 
+  // Mini Gallery CRUD & Helpers
+  const handleOpenAddGalleryModal = () => {
+    setEditingGalleryItem(null);
+    setGalleryForm({
+      id: `gallery-${Date.now()}`,
+      title: '',
+      caption: '',
+      url: '',
+      assetId: '',
+      linkUrl: '',
+      sortOrder: galleryItems.length,
+      published: true,
+    });
+    setIsGalleryModalOpen(true);
+  };
+
+  const handleOpenEditGalleryModal = (e, item) => {
+    if (e) e.stopPropagation();
+    setEditingGalleryItem(item);
+    setGalleryForm({
+      id: item.id || item._id,
+      title: item.title || '',
+      caption: item.caption || '',
+      url: item.url || '',
+      assetId: item.assetId || item.asset?._ref || '',
+      linkUrl: item.linkUrl || '',
+      sortOrder: item.sortOrder ?? 0,
+      published: item.published ?? true,
+      image: item.image,
+    });
+    setIsGalleryModalOpen(true);
+  };
+
+  const handleModalGalleryUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setIsUploadingGallery(true);
+    const res = await uploadImageToSanity(file);
+    setIsUploadingGallery(false);
+
+    if (res?.asset) {
+      setGalleryForm((prev) => ({
+        ...prev,
+        url: res.url,
+        assetId: res.asset._id,
+        title: prev.title || file.name.replace(/\.[^/.]+$/, '').replace(/[-_]/g, ' '),
+      }));
+      showToast('Gambar 16:9 berhasil diunggah!');
+    }
+    e.target.value = '';
+  };
+
+  const handleDirectGalleryUpload = async (fileList) => {
+    const files = Array.from(fileList || []).filter((f) => f.type.startsWith('image/'));
+    if (files.length === 0) return;
+
+    setIsUploadingGallery(true);
+    let count = 0;
+    for (const file of files) {
+      try {
+        const res = await uploadImageToSanity(file);
+        if (res?.asset) {
+          count++;
+          const titleFromFilename = file.name
+            .replace(/\.[^/.]+$/, '')
+            .replace(/[-_]/g, ' ')
+            .replace(/\b\w/g, (c) => c.toUpperCase());
+
+          await saveMiniGalleryItem({
+            id: `gallery-${Date.now()}-${count}`,
+            title: titleFromFilename,
+            caption: 'Visual Karya 16:9',
+            url: res.url,
+            assetId: res.asset._id,
+            sortOrder: galleryItems.length + count - 1,
+            published: true,
+          });
+        }
+      } catch (err) {
+        console.error('Direct gallery upload error:', err);
+      }
+    }
+
+    if (count > 0) {
+      showToast(`${count} gambar 16:9 berhasil ditambahkan ke Mini Galeri!`);
+      await loadData();
+    }
+    setIsUploadingGallery(false);
+  };
+
+  const handleGalleryDragOver = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!isDraggingGallery) setIsDraggingGallery(true);
+  };
+
+  const handleGalleryDragEnter = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDraggingGallery(true);
+  };
+
+  const handleGalleryDragLeave = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (e.currentTarget.contains(e.relatedTarget)) return;
+    setIsDraggingGallery(false);
+  };
+
+  const handleGalleryDrop = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDraggingGallery(false);
+    if (e.dataTransfer?.files?.length > 0) {
+      handleDirectGalleryUpload(e.dataTransfer.files);
+    }
+  };
+
+  const handleSaveGallerySubmit = async (e) => {
+    e.preventDefault();
+    if (!galleryForm.title) {
+      alert('Mohon isi Judul Gambar / Proyek.');
+      return;
+    }
+    if (!galleryForm.url && !galleryForm.assetId) {
+      alert('Mohon unggah file gambar (rasio 16:9 disarankan).');
+      return;
+    }
+
+    setIsSaving(true);
+    const res = await saveMiniGalleryItem(galleryForm);
+    setIsSaving(false);
+
+    if (res?.error) {
+      alert('Gagal menyimpan ke Sanity: ' + (res.error.message || 'Error'));
+      return;
+    }
+
+    showToast(`Gambar "${galleryForm.title}" berhasil disimpan ke Mini Galeri!`);
+    setIsGalleryModalOpen(false);
+    await loadData();
+  };
+
+  const handleDeleteGalleryItem = async (e, item) => {
+    e.stopPropagation();
+    if (window.confirm(`Hapus gambar "${item.title}" dari Mini Galeri?`)) {
+      const res = await deleteMiniGalleryItem(item.id || item._id);
+      if (res?.error) {
+        alert('Gagal menghapus: ' + res.error.message);
+        return;
+      }
+      showToast(`Gambar "${item.title}" berhasil dihapus.`);
+      await loadData();
+    }
+  };
+
+  const handleMoveGalleryItem = async (e, index, direction) => {
+    e.stopPropagation();
+    const targetIndex = direction === 'up' ? index - 1 : index + 1;
+    if (targetIndex < 0 || targetIndex >= galleryItems.length) return;
+
+    const newItems = [...galleryItems];
+    const temp = newItems[index];
+    newItems[index] = newItems[targetIndex];
+    newItems[targetIndex] = temp;
+
+    newItems.forEach((it, i) => {
+      it.sortOrder = i;
+    });
+
+    setGalleryItems(newItems);
+
+    await Promise.all([
+      saveMiniGalleryItem({ ...newItems[index], sortOrder: index }),
+      saveMiniGalleryItem({ ...newItems[targetIndex], sortOrder: targetIndex }),
+    ]);
+    showToast('Urutan carousel 16:9 diperbarui!');
+  };
+
+  const filteredGalleryItems = galleryItems
+    .filter((item) => {
+      const q = searchQuery.toLowerCase();
+      return (
+        !q ||
+        item.title?.toLowerCase().includes(q) ||
+        item.caption?.toLowerCase().includes(q)
+      );
+    })
+    .sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0));
+
   return (
     <div className="sp-fullscreen-app">
       {/* Toast Alert */}
@@ -528,11 +757,17 @@ export function AdminDashboardPage() {
 
             <button
               type="button"
-              className={`sp-sidebar-btn ${activeTab === 'media' ? 'active' : ''}`}
-              onClick={() => setActiveTab('media')}
+              className={`sp-sidebar-btn ${activeTab === 'gallery' ? 'active' : ''}`}
+              onClick={() => setActiveTab('gallery')}
             >
-              <ImageIcon size={18} />
-              <span>Media Galeri</span>
+              <Sparkles size={18} />
+              <span>Mini Galeri</span>
+              <span
+                className="sp-sidebar-badge"
+                style={{ background: '#10b981', color: '#ffffff', fontSize: '0.675rem', fontWeight: 700 }}
+              >
+                {galleryItems.length} (16:9)
+              </span>
             </button>
           </nav>
         </div>
@@ -593,7 +828,11 @@ export function AdminDashboardPage() {
             >
               <Plus size={16} strokeWidth={2.8} />
               <span>
-                {activeTab === 'experiences' ? 'Tambah Pengalaman' : 'Tambah Proyek'}
+                {activeTab === 'experiences'
+                  ? 'Tambah Pengalaman'
+                  : activeTab === 'projects'
+                  ? 'Tambah Proyek'
+                  : 'Tambah Gambar 16:9'}
               </span>
             </button>
 
@@ -622,17 +861,22 @@ export function AdminDashboardPage() {
                   ? 'Career & Track Record'
                   : activeTab === 'projects'
                   ? 'Projects & Case Studies'
-                  : 'Media Assets'}
+                  : 'Mini Galeri (16:9 Coverflow)'}
               </h1>
               <p className="sp-content-subtitle">
                 Total:{' '}
                 <strong>
                   {activeTab === 'experiences'
                     ? `${filteredExperiences.length} Riwayat Pengalaman`
-                    : `${filteredProjects.length} Proyek`}
+                    : activeTab === 'projects'
+                    ? `${filteredProjects.length} Proyek`
+                    : `${filteredGalleryItems.length} Gambar 16:9`}
                 </strong>
                 {activeTab === 'experiences' && (
                   <span> • Urutan [#0], [#1], [#2] otomatis tampil di Timeline Beranda Website</span>
+                )}
+                {activeTab === 'gallery' && (
+                  <span> • Bergeser otomatis 1 detik di Coverflow Carousel Beranda</span>
                 )}
               </p>
             </div>
@@ -1089,25 +1333,185 @@ export function AdminDashboardPage() {
             </div>
           )}
 
-          {/* Media Tab Placeholder */}
-          {activeTab === 'media' && (
-            <div
-              style={{
-                background: '#141512',
-                border: '1px solid rgba(255, 255, 255, 0.05)',
-                borderRadius: '20px',
-                padding: '4rem 2rem',
-                textAlign: 'center',
-              }}
-            >
-              <ImageIcon size={48} color="#bfc9ff" style={{ marginBottom: '1rem' }} />
-              <h3 style={{ fontSize: '1.25rem', marginBottom: '0.5rem' }}>
-                Sanity Media & Image Asset Pipeline
-              </h3>
-              <p style={{ color: '#8c8c82', maxWidth: '520px', margin: '0 auto' }}>
-                Semua file dokumentasi dan logo tersimpan di Content Delivery Network Sanity (CDN)
-                dengan kompresi WebP otomatis untuk kecepatan loading maksimal.
-              </p>
+          {/* ================================================================
+              MINI GALLERY: 16:9 COVERFLOW CAROUSEL MANAGEMENT
+              ================================================================ */}
+          {activeTab === 'gallery' && (
+            <div className="sp-gallery-management-wrap">
+              {/* Hero Banner & Live Preview Toggle */}
+              <div className="sp-gallery-hero-bar">
+                <div>
+                  <div className="sp-gallery-tag-pill">
+                    <Sparkles size={13} />
+                    <span>Rasio 16:9 • Auto-Rotate 1s • Manual Drag/Swipe</span>
+                  </div>
+                  <h2 style={{ fontSize: '1.25rem', margin: '0.4rem 0 0.2rem 0', fontWeight: 800 }}>
+                    Koleksi Mini Galeri Coverflow
+                  </h2>
+                  <p style={{ fontSize: '0.825rem', color: 'var(--sp-muted)', margin: 0 }}>
+                    Kelola foto karya &amp; proyek format 16:9 yang tampil pada 3D Coverflow di halaman beranda.
+                  </p>
+                </div>
+
+                <div style={{ display: 'flex', gap: '0.65rem', flexWrap: 'wrap' }}>
+                  <button
+                    type="button"
+                    className={`sp-btn-preview-coverflow ${showLiveCoverflow ? 'active' : ''}`}
+                    onClick={() => setShowLiveCoverflow((prev) => !prev)}
+                  >
+                    {showLiveCoverflow ? <EyeOff size={15} /> : <Eye size={15} />}
+                    <span>{showLiveCoverflow ? 'Tutup Pratinjau' : 'Lihat Pratinjau Live (1s)'}</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    className="sp-btn-add-gallery-item"
+                    onClick={handleOpenAddGalleryModal}
+                  >
+                    <Plus size={15} strokeWidth={2.8} />
+                    <span>+ Tambah Gambar 16:9</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* Embedded Live 3D Coverflow Preview inside Admin */}
+              {showLiveCoverflow && (
+                <div className="sp-gallery-live-preview-box">
+                  <div className="sp-live-preview-header">
+                    <span className="sp-live-preview-title">
+                      👁 Pratinjau Langsung Carousel Beranda (Bergeser otomatis 1 detik)
+                    </span>
+                    <button
+                      type="button"
+                      className="sp-btn-close-preview"
+                      onClick={() => setShowLiveCoverflow(false)}
+                      title="Tutup Pratinjau"
+                    >
+                      <X size={14} />
+                    </button>
+                  </div>
+                  <MiniGalleryCoverflow />
+                </div>
+              )}
+
+              {/* Fast Drag & Drop 16:9 Upload Dropzone */}
+              <div
+                className={`sp-gallery-dropzone-hero ${isDraggingGallery ? 'is-dragging' : ''}`}
+                onDragEnter={handleGalleryDragEnter}
+                onDragOver={handleGalleryDragOver}
+                onDragLeave={handleGalleryDragLeave}
+                onDrop={handleGalleryDrop}
+                onClick={() => galleryFileInputRef.current?.click()}
+              >
+                <input
+                  ref={galleryFileInputRef}
+                  type="file"
+                  multiple
+                  accept="image/*"
+                  onChange={(e) => {
+                    if (e.target.files?.length) {
+                      handleDirectGalleryUpload(e.target.files);
+                    }
+                    e.target.value = '';
+                  }}
+                  style={{ display: 'none' }}
+                  disabled={isUploadingGallery}
+                />
+                <div className="sp-dropzone-hero-icon-box">
+                  <Upload
+                    size={28}
+                    className={isDraggingGallery ? 'sp-bounce-anim' : ''}
+                    color={isDraggingGallery ? '#10b981' : 'var(--sp-accent)'}
+                  />
+                </div>
+                <div>
+                  <h4 style={{ margin: '0 0 0.25rem 0', fontSize: '0.95rem', fontWeight: 700 }}>
+                    {isUploadingGallery
+                      ? '⏳ Sedang mengunggah foto ke Sanity CDN...'
+                      : isDraggingGallery
+                      ? '📂 Lepaskan foto 16:9 di sini sekarang!'
+                      : 'Seret & Lepas Gambar 16:9 ke sini, atau Klik untuk Memilih'}
+                  </h4>
+                  <p style={{ margin: 0, fontSize: '0.775rem', color: 'var(--sp-muted)' }}>
+                    Format PNG, JPG, WebP (Rasio 16:9 disarankan) • Otomatis disimpan ke Sanity Image Assets
+                  </p>
+                </div>
+              </div>
+
+              {/* Grid of 16:9 Cards */}
+              <div className="sp-gallery-cards-grid">
+                {filteredGalleryItems.map((item, index) => (
+                  <div key={item.id || item._id || index} className="sp-gallery-card-16-9">
+                    {/* 16:9 Media Box */}
+                    <div className="sp-gallery-thumb-16-9">
+                      <img src={item.url} alt={item.title} />
+                      <span className="sp-gallery-ratio-pill">16 : 9</span>
+                      <span className="sp-gallery-order-pill">#{index + 1}</span>
+                      {item.isDefault && (
+                        <span className="sp-gallery-demo-pill">Default</span>
+                      )}
+                    </div>
+
+                    {/* Body */}
+                    <div className="sp-gallery-card-content">
+                      <div className="sp-gallery-info-main">
+                        <h4 className="sp-gallery-card-title">{item.title}</h4>
+                        {item.caption && (
+                          <p className="sp-gallery-card-caption">{item.caption}</p>
+                        )}
+                        {item.linkUrl && (
+                          <span className="sp-gallery-card-link">
+                            🔗 {item.linkUrl}
+                          </span>
+                        )}
+                      </div>
+
+                      {/* Footer Actions */}
+                      <div className="sp-gallery-card-actions">
+                        <div className="sp-gallery-order-btns">
+                          <button
+                            type="button"
+                            className="sp-gallery-action-btn"
+                            disabled={index === 0}
+                            onClick={(e) => handleMoveGalleryItem(e, index, 'up')}
+                            title="Geser ke urutan sebelumnya"
+                          >
+                            <ChevronUp size={15} />
+                          </button>
+                          <button
+                            type="button"
+                            className="sp-gallery-action-btn"
+                            disabled={index === galleryItems.length - 1}
+                            onClick={(e) => handleMoveGalleryItem(e, index, 'down')}
+                            title="Geser ke urutan berikutnya"
+                          >
+                            <ChevronDown size={15} />
+                          </button>
+                        </div>
+
+                        <div style={{ display: 'flex', gap: '0.35rem' }}>
+                          <button
+                            type="button"
+                            className="sp-gallery-action-btn edit"
+                            onClick={(e) => handleOpenEditGalleryModal(e, item)}
+                            title="Edit Gambar"
+                          >
+                            <Edit2 size={13} />
+                          </button>
+                          <button
+                            type="button"
+                            className="sp-gallery-action-btn delete"
+                            onClick={(e) => handleDeleteGalleryItem(e, item)}
+                            title="Hapus"
+                          >
+                            <Trash2 size={13} />
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
           )}
         </div>
@@ -1536,6 +1940,150 @@ export function AdminDashboardPage() {
                 </button>
                 <button type="submit" className="sp-btn-save-submit" disabled={isSaving}>
                   {isSaving ? 'Menyimpan...' : 'Simpan Proyek'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ====================================================================
+          MODAL DIALOG: MINI GALLERY ITEM (16:9)
+          ==================================================================== */}
+      {isGalleryModalOpen && (
+        <div className="sp-modal-overlay" onClick={() => setIsGalleryModalOpen(false)}>
+          <div className="sp-modal-container" onClick={(e) => e.stopPropagation()}>
+            <div className="sp-modal-head">
+              <h2>{editingGalleryItem ? 'Edit Gambar Mini Galeri' : 'Tambah Gambar Mini Galeri (16:9)'}</h2>
+              <button
+                type="button"
+                className="sp-modal-close-btn"
+                onClick={() => setIsGalleryModalOpen(false)}
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            <form className="sp-modal-form" onSubmit={handleSaveGallerySubmit}>
+              <div className="sp-modal-scroll-body">
+                {/* 16:9 Photo Preview / Upload Dropzone */}
+                <div className="sp-form-section">
+                  <h3 className="sp-section-heading">
+                    <Camera size={16} />
+                    <span>File Gambar (Rasio 16:9 Disarankan)</span>
+                  </h3>
+
+                  {galleryForm.url ? (
+                    <div className="sp-modal-16-9-preview">
+                      <img src={galleryForm.url} alt="Pratinjau 16:9" />
+                      <div className="sp-modal-16-9-overlay">
+                        <button
+                          type="button"
+                          className="sp-btn-replace-photo"
+                          onClick={() => modalGalleryFileInputRef.current?.click()}
+                        >
+                          <Upload size={14} />
+                          <span>Ganti Gambar 16:9</span>
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div
+                      className="sp-upload-dropzone"
+                      onClick={() => modalGalleryFileInputRef.current?.click()}
+                    >
+                      <Upload size={28} color="var(--sp-accent)" />
+                      <span style={{ fontSize: '0.875rem', fontWeight: 600 }}>
+                        {isUploadingGallery ? 'Mengunggah ke Sanity CDN...' : 'Klik untuk memilih gambar 16:9'}
+                      </span>
+                      <span style={{ fontSize: '0.75rem', color: 'var(--sp-muted)' }}>
+                        Resolusi optimal: 1920×1080 atau 1280×720 (PNG, JPG, WebP)
+                      </span>
+                    </div>
+                  )}
+
+                  <input
+                    ref={modalGalleryFileInputRef}
+                    type="file"
+                    accept="image/*"
+                    onChange={handleModalGalleryUpload}
+                    style={{ display: 'none' }}
+                  />
+                </div>
+
+                {/* Information Fields */}
+                <div className="sp-form-section">
+                  <div className="sp-field">
+                    <label className="sp-input-label">Judul Gambar / Proyek *</label>
+                    <input
+                      type="text"
+                      required
+                      placeholder="e.g. SIMRS RSUD Hasanuddin Mobile App"
+                      value={galleryForm.title}
+                      onChange={(e) => setGalleryForm({ ...galleryForm, title: e.target.value })}
+                      className="sp-input-field"
+                    />
+                  </div>
+
+                  <div className="sp-field">
+                    <label className="sp-input-label">Keterangan Singkat / Kategori (Opsional)</label>
+                    <input
+                      type="text"
+                      placeholder="e.g. UI/UX Design • Double Diamond Concept"
+                      value={galleryForm.caption}
+                      onChange={(e) => setGalleryForm({ ...galleryForm, caption: e.target.value })}
+                      className="sp-input-field"
+                    />
+                  </div>
+
+                  <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '1rem' }}>
+                    <div className="sp-field">
+                      <label className="sp-input-label">Tautan / Link Proyek (Opsional)</label>
+                      <input
+                        type="text"
+                        placeholder="e.g. /work/perdosfit atau https://..."
+                        value={galleryForm.linkUrl}
+                        onChange={(e) => setGalleryForm({ ...galleryForm, linkUrl: e.target.value })}
+                        className="sp-input-field"
+                      />
+                    </div>
+
+                    <div className="sp-field">
+                      <label className="sp-input-label">Urutan Tampil (Sort)</label>
+                      <input
+                        type="number"
+                        value={galleryForm.sortOrder}
+                        onChange={(e) =>
+                          setGalleryForm({ ...galleryForm, sortOrder: parseInt(e.target.value, 10) || 0 })
+                        }
+                        className="sp-input-field"
+                      />
+                    </div>
+                  </div>
+
+                  <div style={{ marginTop: '0.5rem' }}>
+                    <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', fontSize: '0.85rem' }}>
+                      <input
+                        type="checkbox"
+                        checked={galleryForm.published}
+                        onChange={(e) => setGalleryForm({ ...galleryForm, published: e.target.checked })}
+                      />
+                      <span>Tampilkan di Mini Gallery Beranda</span>
+                    </label>
+                  </div>
+                </div>
+              </div>
+
+              <div className="sp-modal-foot">
+                <button
+                  type="button"
+                  className="sp-btn-cancel"
+                  onClick={() => setIsGalleryModalOpen(false)}
+                >
+                  Batal
+                </button>
+                <button type="submit" className="sp-btn-save-submit" disabled={isSaving}>
+                  {isSaving ? 'Menyimpan...' : 'Simpan ke Mini Galeri'}
                 </button>
               </div>
             </form>

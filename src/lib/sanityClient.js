@@ -487,3 +487,158 @@ export async function deleteProject(id) {
   }
 }
 
+/**
+ * Fetch Mini Gallery items from Sanity Lake with 16:9 aspect ratio resolution
+ */
+export async function getMiniGallery() {
+  try {
+    if (isSanityConfigured()) {
+      const query = `*[_type == "miniGallery"] | order(sortOrder asc, _createdAt desc) {
+        _id,
+        title,
+        caption,
+        image,
+        linkUrl,
+        sortOrder,
+        published,
+        _createdAt
+      }`;
+      const data = await sanityClient.fetch(query);
+      if (Array.isArray(data) && data.length > 0) {
+        const normalized = data.map((item, index) => {
+          const imgUrl = urlFor(item.image) || item.image?.url || '';
+          return {
+            id: item._id,
+            _id: item._id,
+            title: item.title || `Project Slide #${index + 1}`,
+            caption: item.caption || '',
+            url: imgUrl,
+            image: item.image,
+            linkUrl: item.linkUrl || '',
+            sortOrder: Number(item.sortOrder ?? index),
+            published: item.published ?? true,
+          };
+        });
+
+        try {
+          localStorage.setItem('salporto_minigallery', JSON.stringify(normalized));
+        } catch (_) {}
+
+        return normalized;
+      }
+    }
+  } catch (err) {
+    console.warn('Sanity getMiniGallery error, falling back:', err);
+  }
+
+  // Fallback to localStorage or mock items
+  try {
+    const cached = localStorage.getItem('salporto_minigallery');
+    if (cached) {
+      const parsed = JSON.parse(cached);
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        return parsed;
+      }
+    }
+  } catch (_) {}
+
+  // High quality default initial items so the carousel is never empty before user uploads
+  return [
+    {
+      id: 'default-cover-1',
+      _id: 'default-cover-1',
+      title: 'SIMRS RSUD Hasanuddin Web App',
+      caption: 'UI/UX Redesign & Healthcare Management Dashboard',
+      url: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&w=1600&q=80',
+      linkUrl: '#',
+      sortOrder: 0,
+      published: true,
+      isDefault: true,
+    },
+    {
+      id: 'default-cover-2',
+      _id: 'default-cover-2',
+      title: 'PerdosFit — Gym Management Concept',
+      caption: 'Double Diamond Methodology & Interactive Prototype',
+      url: 'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?auto=format&fit=crop&w=1600&q=80',
+      linkUrl: '/work/perdosfit',
+      sortOrder: 1,
+      published: true,
+      isDefault: true,
+    },
+    {
+      id: 'default-cover-3',
+      _id: 'default-cover-3',
+      title: 'Diskominfo Makassar — Kelurahan Cantik',
+      caption: 'Community Statistical Web System & Visual Identity',
+      url: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=1600&q=80',
+      linkUrl: '/work/kelurahan-cantik',
+      sortOrder: 2,
+      published: true,
+      isDefault: true,
+    },
+    {
+      id: 'default-cover-4',
+      _id: 'default-cover-4',
+      title: 'UMKM Lakessi Brand Identity',
+      caption: 'Creative Packaging, Typography & Brand Guidelines',
+      url: 'https://images.unsplash.com/photo-1507238691740-187a5b1d37b8?auto=format&fit=crop&w=1600&q=80',
+      linkUrl: '#',
+      sortOrder: 3,
+      published: true,
+      isDefault: true,
+    },
+  ];
+}
+
+/**
+ * Save Mini Gallery item to Sanity Lake
+ */
+export async function saveMiniGalleryItem(item) {
+  try {
+    const docId = item.id || item._id || `gallery-${Date.now()}`;
+    const doc = {
+      _id: docId,
+      _type: 'miniGallery',
+      title: item.title,
+      caption: item.caption || '',
+      linkUrl: item.linkUrl || '',
+      sortOrder: Number(item.sortOrder ?? 0),
+      published: Boolean(item.published ?? true),
+    };
+
+    if (item.assetId || item.asset?._ref || item.image?.asset?._ref) {
+      const assetRef = item.assetId || item.asset?._ref || item.image?.asset?._ref;
+      doc.image = {
+        _type: 'image',
+        asset: {
+          _type: 'reference',
+          _ref: assetRef,
+        },
+      };
+    } else if (item.image) {
+      doc.image = item.image;
+    }
+
+    const result = await sanityWriteClient.createOrReplace(doc);
+    return { data: result, error: null };
+  } catch (err) {
+    console.error('saveMiniGalleryItem error:', err);
+    return { data: null, error: err };
+  }
+}
+
+/**
+ * Delete Mini Gallery item from Sanity Lake
+ */
+export async function deleteMiniGalleryItem(id) {
+  try {
+    const res = await sanityWriteClient.delete(id);
+    return { data: res, error: null };
+  } catch (err) {
+    console.error('deleteMiniGalleryItem error:', err);
+    return { data: null, error: err };
+  }
+}
+
+

@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/Button';
 import { HeroVisual3D } from '@/components/hero/HeroVisual3D';
 import { BiographyBento } from '@/components/biography/BiographyBento';
 import { ExperienceTimeline } from '@/components/experience/ExperienceTimeline';
+import { MiniGalleryCoverflow } from '@/components/gallery/MiniGalleryCoverflow';
 import { mockProjects } from '@/data/mockData';
 import { getProjects } from '@/lib/sanityClient';
 import './HomePage.css';
@@ -59,47 +60,9 @@ export function HomePage() {
           {/* Executive Biography Bento Card with Interactive 3D Keyboard */}
           <BiographyBento />
 
-          {/* Capabilities Grid */}
-          <div className="capabilities-wrap">
-            <div className="capabilities-header-row" data-reveal="fade-up">
-              <span className="section-label">Core Pillars</span>
-              <h3 className="section-title">What I Bring to the Table</h3>
-            </div>
-
-            <div className="capabilities-grid">
-              <div className="capability-card" data-reveal="fade-up" data-reveal-delay="100">
-                <span className="capability-num">01 / Focus</span>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
-                  <Layers size={18} color="var(--accent-strong)" />
-                  <h4 className="capability-title">UI/UX Design</h4>
-                </div>
-                <p className="capability-desc">
-                  Double Diamond methodology, user interviews, wireframing, component design systems, and rapid prototyping in Figma.
-                </p>
-              </div>
-
-              <div className="capability-card" data-reveal="fade-up" data-reveal-delay="200">
-                <span className="capability-num">02 / Focus</span>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
-                  <Code size={18} color="var(--accent-strong)" />
-                  <h4 className="capability-title">Front-End Dev</h4>
-                </div>
-                <p className="capability-desc">
-                  Building accessible, performant, and responsive web applications with React, Vite, semantic standards, and fluid CSS.
-                </p>
-              </div>
-
-              <div className="capability-card" data-reveal="fade-up" data-reveal-delay="300">
-                <span className="capability-num">03 / Focus</span>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
-                  <Palette size={18} color="var(--accent-strong)" />
-                  <h4 className="capability-title">Graphic Design</h4>
-                </div>
-                <p className="capability-desc">
-                  Visual brand identities, promotional collateral, packaging systems, and editorial typography that communicate clearly.
-                </p>
-              </div>
-            </div>
+          {/* MINI GALLERY: 3D COVERFLOW (16:9 PROJECT SHOWCASE) */}
+          <div className="mini-gallery-wrap" data-reveal="fade-up">
+            <MiniGalleryCoverflow />
           </div>
         </div>
       </section>
