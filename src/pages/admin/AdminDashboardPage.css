@@ -1163,6 +1163,117 @@
   border-color: var(--sp-accent);
 }
 
+/* Active / Selected Tools Preview Bar */
+.sp-selected-tools-container {
+  background: var(--sp-sidebar);
+  border: 1px solid var(--sp-border);
+  border-radius: 14px;
+  padding: 0.85rem 1rem;
+  margin-bottom: 0.85rem;
+}
+
+.sp-selected-tools-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.65rem;
+}
+
+.sp-selected-tools-title {
+  font-size: 0.775rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--sp-accent);
+}
+
+.sp-clear-tools-btn {
+  background: transparent;
+  border: none;
+  font-size: 0.75rem;
+  color: var(--sp-muted);
+  cursor: pointer;
+  padding: 2px 6px;
+  border-radius: 6px;
+  transition: all 0.15s ease;
+}
+
+.sp-clear-tools-btn:hover {
+  color: #ef4444;
+  background: rgba(239, 68, 68, 0.1);
+}
+
+.sp-selected-tools-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.sp-selected-tool-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.35rem 0.55rem 0.35rem 0.65rem;
+  background: var(--sp-accent);
+  color: var(--sp-accent-text);
+  border-radius: 9999px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  box-shadow: 0 2px 8px rgba(126, 149, 252, 0.25);
+  animation: sp-badge-pop 0.2s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@keyframes sp-badge-pop {
+  from { opacity: 0; transform: scale(0.85); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+.sp-selected-tool-logo {
+  width: 18px;
+  height: 18px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.sp-selected-tool-logo img,
+.sp-selected-tool-logo svg {
+  width: 18px;
+  height: 18px;
+  object-fit: contain;
+}
+
+.sp-selected-tool-name {
+  line-height: 1;
+}
+
+.sp-remove-tool-pill-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.22);
+  border: none;
+  color: inherit;
+  cursor: pointer;
+  padding: 0;
+  transition: all 0.15s ease;
+}
+
+.sp-remove-tool-pill-btn:hover {
+  background: rgba(0, 0, 0, 0.45);
+  transform: scale(1.1);
+}
+
+.sp-selected-tools-empty {
+  font-size: 0.775rem;
+  color: var(--sp-muted);
+  font-style: italic;
+  padding: 0.25rem 0;
+}
+
 /* Tool Chips */
 .sp-tools-presets {
   display: flex;
@@ -1198,7 +1309,7 @@
 .sp-upload-dropzone {
   border: 2px dashed var(--sp-border);
   border-radius: 16px;
-  padding: 1.5rem;
+  padding: 1.75rem 1.5rem;
   text-align: center;
   background: var(--sp-card);
   display: flex;
@@ -1207,12 +1318,29 @@
   justify-content: center;
   gap: 0.65rem;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.2s cubic-bezier(0.22, 1, 0.36, 1);
+  user-select: none;
 }
 
 .sp-upload-dropzone:hover {
   border-color: var(--sp-accent);
-  background: rgba(126, 149, 252, 0.04);
+  background: rgba(126, 149, 252, 0.05);
+}
+
+.sp-upload-dropzone.is-dragging {
+  border-color: #10b981 !important;
+  background: rgba(16, 185, 129, 0.08) !important;
+  transform: scale(1.015);
+  box-shadow: 0 0 25px rgba(16, 185, 129, 0.25);
+}
+
+.sp-dropzone-icon.is-bouncing {
+  animation: sp-bounce-drop 0.6s infinite alternate ease-in-out;
+}
+
+@keyframes sp-bounce-drop {
+  from { transform: translateY(0); }
+  to { transform: translateY(-7px); }
 }
 
 .sp-photos-grid-preview {

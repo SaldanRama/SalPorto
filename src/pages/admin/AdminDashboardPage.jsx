@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import {
   Briefcase,
@@ -72,7 +72,9 @@ export function AdminDashboardPage() {
   const [editingItem, setEditingItem] = useState(null);
   const [isSaving, setIsSaving] = useState(false);
   const [uploadingImage, setUploadingImage] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
   const [customToolInput, setCustomToolInput] = useState('');
+  const fileInputRef = useRef(null);
 
   // Experience Form State
   const [expForm, setExpForm] = useState({
@@ -275,8 +277,8 @@ export function AdminDashboardPage() {
   };
 
   // Image upload handler (uploads directly to Sanity CDN pipeline)
-  const handleUploadDocPhotos = async (e) => {
-    const files = Array.from(e.target.files || []);
+  const processPhotoFiles = async (fileList) => {
+    const files = Array.from(fileList || []).filter((f) => f.type.startsWith('image/'));
     if (files.length === 0) return;
 
     setUploadingImage(true);
@@ -284,15 +286,19 @@ export function AdminDashboardPage() {
     const uploadedPhotos = [];
 
     for (const file of files) {
-      const res = await uploadImageToSanity(file);
-      if (res.asset) {
-        count++;
-        uploadedPhotos.push({
-          url: res.url,
-          _id: res.asset._id,
-          title: file.name.replace(/\.[^/.]+$/, ''),
-          caption: '',
-        });
+      try {
+        const res = await uploadImageToSanity(file);
+        if (res?.asset) {
+          count++;
+          uploadedPhotos.push({
+            url: res.url,
+            _id: res.asset._id,
+            title: file.name.replace(/\.[^/.]+$/, ''),
+            caption: '',
+          });
+        }
+      } catch (err) {
+        console.error('Gagal mengunggah foto:', file.name, err);
       }
     }
 
@@ -305,7 +311,41 @@ export function AdminDashboardPage() {
     }
 
     setUploadingImage(false);
+  };
+
+  const handleUploadDocPhotos = (e) => {
+    if (e.target.files && e.target.files.length > 0) {
+      processPhotoFiles(e.target.files);
+    }
     e.target.value = '';
+  };
+
+  const handleDragOver = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!isDragging) setIsDragging(true);
+  };
+
+  const handleDragEnter = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (e.currentTarget.contains(e.relatedTarget)) return;
+    setIsDragging(false);
+  };
+
+  const handleDrop = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+    if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+      processPhotoFiles(e.dataTransfer.files);
+    }
   };
 
   const handleRemoveDocPhoto = (index) => {
@@ -1240,10 +1280,53 @@ export function AdminDashboardPage() {
                     <Tag size={16} />
                     <span>3. Tools & Software yang Digunakan</span>
                   </h3>
-                  <p style={{ fontSize: '0.8rem', color: '#8c8c82', margin: '0 0 0.5rem 0' }}>
-                    Klik tool untuk memilih atau menghapus, atau tambahkan tool custom di bawah.
+                  <p style={{ fontSize: '0.8rem', color: 'var(--sp-muted)', margin: '0 0 0.65rem 0' }}>
+                    Pilih tool dari daftar preset atau ketik nama software secara custom di bawah. Semua tool yang terpilih akan tampil pada preview dan kartu portofolio.
                   </p>
 
+                  {/* PREVIEW CONTAINER FOR ALL SELECTED TOOLS (PRESET & CUSTOM) */}
+                  <div className="sp-selected-tools-container">
+                    <div className="sp-selected-tools-header">
+                      <span className="sp-selected-tools-title">
+                        Tools Terpilih ({expForm.tools?.length || 0})
+                      </span>
+                      {expForm.tools && expForm.tools.length > 0 && (
+                        <button
+                          type="button"
+                          className="sp-clear-tools-btn"
+                          onClick={() => setExpForm((prev) => ({ ...prev, tools: [] }))}
+                          title="Hapus semua tool"
+                        >
+                          Hapus Semua
+                        </button>
+                      )}
+                    </div>
+
+                    {expForm.tools && expForm.tools.length > 0 ? (
+                      <div className="sp-selected-tools-list">
+                        {expForm.tools.map((tool) => (
+                          <div key={tool} className="sp-selected-tool-badge">
+                            <span className="sp-selected-tool-logo">{getToolLogo(tool)}</span>
+                            <span className="sp-selected-tool-name">{tool}</span>
+                            <button
+                              type="button"
+                              className="sp-remove-tool-pill-btn"
+                              onClick={() => handleToggleTool(tool)}
+                              title={`Hapus ${tool}`}
+                            >
+                              <X size={12} />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="sp-selected-tools-empty">
+                        <span>Belum ada tool yang dipilih. Pilih dari preset di bawah atau ketik tool baru.</span>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* PRESET CHIPS */}
                   <div className="sp-tools-presets">
                     {PRESET_TOOLS.map((tool) => {
                       const isSelected = expForm.tools?.includes(tool);
@@ -1262,10 +1345,11 @@ export function AdminDashboardPage() {
                     })}
                   </div>
 
-                  <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.5rem' }}>
+                  {/* MANUAL TOOL INPUT */}
+                  <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.65rem' }}>
                     <input
                       type="text"
-                      placeholder="Tambah software/tool lain (e.g. Cinema 4D, DaVinci)..."
+                      placeholder="Tambah software/tool lain (e.g. Cinema 4D, DaVinci, Blender)..."
                       value={customToolInput}
                       onChange={(e) => setCustomToolInput(e.target.value)}
                       onKeyDown={(e) => {
@@ -1282,7 +1366,8 @@ export function AdminDashboardPage() {
                       className="sp-btn-add-item"
                       onClick={handleAddCustomTool}
                     >
-                      <span>+ Tambah Tool</span>
+                      <Plus size={14} />
+                      <span>Tambah Tool</span>
                     </button>
                   </div>
                 </div>
@@ -1293,12 +1378,20 @@ export function AdminDashboardPage() {
                     <Camera size={16} />
                     <span>4. Foto Dokumentasi Kegiatan (Photo Stack & Lightbox)</span>
                   </h3>
-                  <p style={{ fontSize: '0.8rem', color: '#8c8c82', margin: '0 0 0.5rem 0' }}>
+                  <p style={{ fontSize: '0.8rem', color: 'var(--sp-muted)', margin: '0 0 0.5rem 0' }}>
                     Unggah 3+ foto untuk efek tumpukan kartu interaktif dan tampilan modal resolusi tinggi di website.
                   </p>
 
-                  <label className="sp-upload-dropzone">
+                  <div
+                    className={`sp-upload-dropzone ${isDragging ? 'is-dragging' : ''}`}
+                    onDragEnter={handleDragEnter}
+                    onDragOver={handleDragOver}
+                    onDragLeave={handleDragLeave}
+                    onDrop={handleDrop}
+                    onClick={() => fileInputRef.current?.click()}
+                  >
                     <input
+                      ref={fileInputRef}
                       type="file"
                       multiple
                       accept="image/*"
@@ -1306,16 +1399,22 @@ export function AdminDashboardPage() {
                       style={{ display: 'none' }}
                       disabled={uploadingImage}
                     />
-                    <Upload size={24} color="#bfc9ff" />
-                    <span style={{ fontSize: '0.85rem', fontWeight: 600 }}>
+                    <Upload
+                      size={28}
+                      className={`sp-dropzone-icon ${isDragging ? 'is-bouncing' : ''}`}
+                      color={isDragging ? '#10b981' : 'var(--sp-accent)'}
+                    />
+                    <span style={{ fontSize: '0.875rem', fontWeight: 600, color: isDragging ? '#10b981' : 'var(--sp-text)' }}>
                       {uploadingImage
                         ? 'Mengunggah foto ke Sanity CDN...'
+                        : isDragging
+                        ? 'Lepaskan foto di sini sekarang!'
                         : 'Klik untuk memilih atau seret foto dokumentasi ke sini'}
                     </span>
-                    <span style={{ fontSize: '0.75rem', color: '#8c8c82' }}>
-                      Mendukung PNG, JPG, WebP (Otomatis disimpan di Sanity Image Assets)
+                    <span style={{ fontSize: '0.75rem', color: 'var(--sp-muted)' }}>
+                      Mendukung PNG, JPG, JPEG, WebP (Otomatis disimpan di Sanity Image Assets)
                     </span>
-                  </label>
+                  </div>
 
                   {/* Grid Preview Foto yang Sudah Ada / Terunggah */}
                   {Array.isArray(expForm.images) && expForm.images.length > 0 && (
