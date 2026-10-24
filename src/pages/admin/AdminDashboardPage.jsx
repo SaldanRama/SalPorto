@@ -21,7 +21,10 @@ import {
   ListTodo,
   Camera,
   Building,
+  LayoutGrid,
+  List,
 } from 'lucide-react';
+import { getToolLogo } from '@/components/experience/ExperienceTools';
 import {
   getExperiences,
   saveExperience,
@@ -60,6 +63,7 @@ export function AdminDashboardPage() {
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState('default');
+  const [viewMode, setViewMode] = useState('grid');
   const [toastMessage, setToastMessage] = useState(null);
   const [openMenuId, setOpenMenuId] = useState(null);
 
@@ -602,6 +606,25 @@ export function AdminDashboardPage() {
                 <option value="default">Urutan Tampilan (Sort Order)</option>
                 <option value="name">Nama Jabatan (A — Z)</option>
               </select>
+
+              <div className="sp-view-toggle-pill">
+                <button
+                  type="button"
+                  className={`sp-view-toggle-btn ${viewMode === 'grid' ? 'active' : ''}`}
+                  onClick={() => setViewMode('grid')}
+                  title="Tampilan Kartu (Grid View)"
+                >
+                  <LayoutGrid size={15} />
+                </button>
+                <button
+                  type="button"
+                  className={`sp-view-toggle-btn ${viewMode === 'list' ? 'active' : ''}`}
+                  onClick={() => setViewMode('list')}
+                  title="Tampilan Daftar / Tabel (List View)"
+                >
+                  <List size={15} />
+                </button>
+              </div>
             </div>
           </div>
 
@@ -698,6 +721,21 @@ export function AdminDashboardPage() {
                           ))}
                         </ul>
                       )}
+
+                      {/* Tool Chips Preview with Logos */}
+                      {Array.isArray(exp.tools) && exp.tools.length > 0 && (
+                        <div className="sp-card-tools-strip">
+                          {exp.tools.slice(0, 3).map((tool, i) => (
+                            <span key={i} className="sp-mini-tool-chip" title={tool}>
+                              <span className="sp-mini-tool-logo">{getToolLogo(tool)}</span>
+                              <span>{tool}</span>
+                            </span>
+                          ))}
+                          {exp.tools.length > 3 && (
+                            <span className="sp-mini-tool-more">+{exp.tools.length - 3}</span>
+                          )}
+                        </div>
+                      )}
                     </div>
 
                     {/* Footer */}
@@ -724,9 +762,129 @@ export function AdminDashboardPage() {
           )}
 
           {/* ================================================================
-              PROJECTS GRID
+              EXPERIENCES: LIST VIEW TABLE
               ================================================================ */}
-          {activeTab === 'projects' && (
+          {activeTab === 'experiences' && viewMode === 'list' && (
+            <div className="sp-list-table-container">
+              <table className="sp-list-table">
+                <thead>
+                  <tr>
+                    <th style={{ width: '80px' }}>Urutan</th>
+                    <th>Pengalaman / Jabatan</th>
+                    <th>Instansi</th>
+                    <th>Periode</th>
+                    <th>Tipe</th>
+                    <th>Tools</th>
+                    <th>Dokumentasi</th>
+                    <th style={{ width: '100px', textAlign: 'right' }}>Aksi</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredExperiences.map((exp) => {
+                    const logos = resolveExperienceLogo(exp);
+                    const firstLogo = Array.isArray(logos) ? logos[0] : logos;
+                    const isTopThree = (exp.sortOrder ?? exp.sort_order ?? 99) < 3;
+                    const orderNum = exp.sortOrder ?? exp.sort_order ?? 0;
+                    const photosCount = Array.isArray(exp.images) ? exp.images.length : 0;
+
+                    return (
+                      <tr key={exp.id || exp._id} onClick={(e) => handleOpenEditExp(e, exp)}>
+                        <td>
+                          {isTopThree ? (
+                            <span className="sp-pill-home-badge">⭐ #{orderNum}</span>
+                          ) : (
+                            <span className="sp-pill-order-badge">#{orderNum}</span>
+                          )}
+                        </td>
+                        <td>
+                          <div className="sp-list-role-cell">
+                            <div className="sp-list-logo-box">
+                              {firstLogo ? (
+                                <img src={firstLogo} alt={exp.organization} />
+                              ) : (
+                                <span>{(exp.organization || 'E')[0].toUpperCase()}</span>
+                              )}
+                            </div>
+                            <div>
+                              <div className="sp-list-role-title">{exp.role}</div>
+                              {exp.isCurrent && (
+                                <span className="sp-list-active-tag">🟢 Aktif</span>
+                              )}
+                            </div>
+                          </div>
+                        </td>
+                        <td>
+                          <span className="sp-list-org-text">{exp.organization}</span>
+                        </td>
+                        <td>
+                          <span className="sp-list-period-text">{exp.period || '—'}</span>
+                        </td>
+                        <td>
+                          <span className="sp-list-type-badge">{exp.type}</span>
+                        </td>
+                        <td>
+                          <div className="sp-card-tools-strip">
+                            {(exp.tools || []).slice(0, 3).map((tool, i) => (
+                              <span key={i} className="sp-mini-tool-chip" title={tool}>
+                                <span className="sp-mini-tool-logo">{getToolLogo(tool)}</span>
+                                <span>{tool}</span>
+                              </span>
+                            ))}
+                            {(exp.tools || []).length > 3 && (
+                              <span className="sp-mini-tool-more">+{exp.tools.length - 3}</span>
+                            )}
+                          </div>
+                        </td>
+                        <td>
+                          {photosCount > 0 ? (
+                            <span className="sp-photos-count-badge">
+                              <Camera size={13} />
+                              <span>{photosCount} Foto</span>
+                            </span>
+                          ) : (
+                            <span style={{ fontSize: '0.75rem', color: 'var(--sp-subtle)' }}>—</span>
+                          )}
+                        </td>
+                        <td style={{ textAlign: 'right' }}>
+                          <div className="sp-list-actions-cell" onClick={(e) => e.stopPropagation()}>
+                            <button
+                              type="button"
+                              className="sp-list-btn"
+                              onClick={(e) => handleOpenEditExp(e, exp)}
+                              title="Edit Pengalaman"
+                            >
+                              <Edit2 size={14} />
+                            </button>
+                            <button
+                              type="button"
+                              className="sp-list-btn star"
+                              onClick={(e) => handleMakeTopFeatured(e, exp)}
+                              title="Jadikan #0 di Beranda"
+                            >
+                              <Star size={14} />
+                            </button>
+                            <button
+                              type="button"
+                              className="sp-list-btn delete"
+                              onClick={(e) => handleDeleteExp(e, exp)}
+                              title="Hapus"
+                            >
+                              <Trash2 size={14} />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          )}
+
+          {/* ================================================================
+              PROJECTS: GRID & LIST VIEW
+              ================================================================ */}
+          {activeTab === 'projects' && viewMode === 'grid' && (
             <div className="sp-cards-grid">
               {filteredProjects.map((proj) => {
                 const coverUrl = proj.coverImage || proj.cover_image;
@@ -1010,7 +1168,9 @@ export function AdminDashboardPage() {
                           className={`sp-tool-chip ${isSelected ? 'selected' : ''}`}
                           onClick={() => handleToggleTool(tool)}
                         >
-                          {tool} {isSelected && '✓'}
+                          <span className="sp-tool-chip-logo">{getToolLogo(tool)}</span>
+                          <span>{tool}</span>
+                          {isSelected && <span>✓</span>}
                         </button>
                       );
                     })}

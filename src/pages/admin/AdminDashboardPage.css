@@ -429,6 +429,40 @@
   gap: 0.85rem;
 }
 
+.sp-view-toggle-pill {
+  display: flex;
+  align-items: center;
+  background: var(--sp-card);
+  border: 1px solid var(--sp-border);
+  border-radius: 12px;
+  padding: 3px;
+  gap: 2px;
+}
+
+.sp-view-toggle-btn {
+  background: transparent;
+  border: none;
+  color: var(--sp-muted);
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.sp-view-toggle-btn:hover {
+  color: var(--sp-text);
+}
+
+.sp-view-toggle-btn.active {
+  background: var(--sp-accent);
+  color: var(--sp-accent-text);
+  box-shadow: 0 2px 8px rgba(126, 149, 252, 0.25);
+}
+
 .sp-select-minimal {
   background: var(--sp-card);
   border: 1px solid var(--sp-border);
@@ -444,6 +478,240 @@
 
 .sp-select-minimal:hover {
   border-color: var(--sp-border-hover);
+}
+
+/* ==========================================================================
+   LIST VIEW TABLE STYLES
+   ========================================================================== */
+.sp-list-table-container {
+  width: 100%;
+  background: var(--sp-card);
+  border: 1px solid var(--sp-border);
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: var(--sp-shadow-card);
+}
+
+.sp-list-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  font-size: 0.875rem;
+}
+
+.sp-list-table th {
+  padding: 1rem 1.25rem;
+  background: var(--sp-sidebar);
+  color: var(--sp-muted);
+  font-size: 0.775rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-bottom: 1px solid var(--sp-border);
+}
+
+.sp-list-table tr {
+  border-bottom: 1px solid var(--sp-border);
+  transition: background-color 0.15s ease;
+  cursor: pointer;
+}
+
+.sp-list-table tr:last-child {
+  border-bottom: none;
+}
+
+.sp-list-table tr:hover {
+  background: var(--sp-card-hover);
+}
+
+.sp-list-table td {
+  padding: 1rem 1.25rem;
+  vertical-align: middle;
+}
+
+.sp-list-role-cell {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+}
+
+.sp-list-logo-box {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--sp-circle-bg);
+  border: 1px solid var(--sp-border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px;
+  flex-shrink: 0;
+  overflow: hidden;
+  box-sizing: border-box;
+}
+
+.sp-list-logo-box img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.sp-list-role-title {
+  font-weight: 700;
+  color: var(--sp-text);
+  font-size: 0.95rem;
+  line-height: 1.3;
+}
+
+.sp-list-active-tag {
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: #10b981;
+  margin-top: 2px;
+  display: inline-block;
+}
+
+.sp-list-org-text {
+  color: var(--sp-text-sub);
+  font-weight: 500;
+}
+
+.sp-list-period-text {
+  color: var(--sp-muted);
+  font-size: 0.8rem;
+}
+
+.sp-list-type-badge {
+  font-size: 0.75rem;
+  color: var(--sp-muted);
+  background: var(--sp-chip-bg);
+  border: 1px solid var(--sp-border);
+  padding: 0.25rem 0.65rem;
+  border-radius: 9999px;
+  display: inline-block;
+}
+
+.sp-list-actions-cell {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.35rem;
+}
+
+.sp-list-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: transparent;
+  border: none;
+  color: var(--sp-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.sp-list-btn:hover {
+  background: rgba(120, 120, 120, 0.12);
+  color: var(--sp-text);
+}
+
+.sp-list-btn.star:hover {
+  color: #10b981;
+  background: rgba(16, 185, 129, 0.12);
+}
+
+.sp-list-btn.delete:hover {
+  color: #ef4444;
+  background: rgba(239, 68, 68, 0.12);
+}
+
+/* Tool Chips & Logo in Modal & Cards */
+.sp-tool-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.4rem 0.85rem;
+  border-radius: 9999px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  background: var(--sp-chip-bg);
+  border: 1px solid var(--sp-chip-border);
+  color: var(--sp-text);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.sp-tool-chip:hover {
+  border-color: var(--sp-accent);
+}
+
+.sp-tool-chip.selected {
+  background: var(--sp-accent);
+  color: var(--sp-accent-text);
+  font-weight: 700;
+  border-color: var(--sp-accent);
+}
+
+.sp-tool-chip-logo {
+  width: 18px;
+  height: 18px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.sp-tool-chip-logo img,
+.sp-tool-chip-logo svg {
+  width: 18px;
+  height: 18px;
+  object-fit: contain;
+  display: block;
+  border-radius: 3px;
+}
+
+.sp-card-tools-strip {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  flex-wrap: wrap;
+  margin-top: 0.35rem;
+}
+
+.sp-mini-tool-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.2rem 0.55rem;
+  border-radius: 9999px;
+  background: var(--sp-chip-bg);
+  border: 1px solid var(--sp-border);
+  font-size: 0.725rem;
+  color: var(--sp-muted);
+}
+
+.sp-mini-tool-logo {
+  width: 14px;
+  height: 14px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.sp-mini-tool-logo img,
+.sp-mini-tool-logo svg {
+  width: 14px;
+  height: 14px;
+  object-fit: contain;
+}
+
+.sp-mini-tool-more {
+  font-size: 0.725rem;
+  color: var(--sp-muted);
+  font-weight: 600;
+  padding: 0.2rem 0.45rem;
 }
 
 /* ==========================================================================
