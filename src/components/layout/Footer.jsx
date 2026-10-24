@@ -2,6 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowUpRight } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
+import { ScrollWordReveal } from '@/components/ui/ScrollWordReveal';
 import './Footer.css';
 
 export function Footer() {
@@ -13,9 +14,12 @@ export function Footer() {
         <div className="footer-top">
           {/* Main Statement */}
           <div className="footer-statement" data-reveal="fade-up">
-            <h2 className="footer-heading">
-              Let’s craft something <span className="font-serif-italic">meaningful</span> together.
-            </h2>
+            <ScrollWordReveal
+              as="h2"
+              className="footer-heading"
+              text="Let’s craft something meaningful together."
+              italicWords={['meaningful']}
+            />
             <p className="footer-desc">
               Whether you have a specific project inquiry, an internship opportunity, or just want to discuss design and code, my inbox is open.
             </p>

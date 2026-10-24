@@ -1,6 +1,7 @@
 import React from 'react';
 import { ArrowUpRight, Compass, Code, Sparkles, BookOpen } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
+import { ScrollWordReveal } from '@/components/ui/ScrollWordReveal';
 import { BiographyBento } from '@/components/biography/BiographyBento';
 
 export function AboutPage() {
@@ -10,9 +11,13 @@ export function AboutPage() {
         {/* Title */}
         <div style={{ marginBottom: '3.5rem' }}>
           <span className="section-label">Biography & Credentials</span>
-          <h1 className="font-serif" style={{ fontSize: 'var(--text-h1)', marginBottom: '1.5rem' }}>
-            Bridging design rationale with <span className="font-serif-italic">technical execution</span>.
-          </h1>
+          <ScrollWordReveal
+            as="h1"
+            className="font-serif"
+            style={{ fontSize: 'var(--text-h1)', marginBottom: '1.5rem' }}
+            text="Bridging design rationale with technical execution."
+            italicWords={['technical', 'execution']}
+          />
           <p style={{ fontSize: '1.2rem', color: 'var(--muted)', lineHeight: 1.7, maxWidth: '800px' }}>
             I’m Saldan Rama, an Information Systems graduate and creative technologist based in Makassar, Indonesia. My work centers on designing intuitive interfaces, engineering clean web experiences, and shaping coherent visual identities.
           </p>

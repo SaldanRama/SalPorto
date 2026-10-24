@@ -1,0 +1,42 @@
+/* ==========================================================================
+   SCROLL WORD REVEAL ANIMATION STYLES
+   Smooth progressive illumination and lift per word on viewport scroll
+   ========================================================================== */
+
+.scroll-word-reveal-headline {
+  display: block;
+  font-family: var(--font-serif);
+  color: var(--text);
+  line-height: 1.08;
+  letter-spacing: -0.02em;
+  word-break: normal;
+}
+
+.scroll-word-item {
+  display: inline-block;
+  will-change: opacity, transform;
+  transition: opacity 120ms linear, transform 120ms ease-out, color 200ms ease;
+  color: var(--text);
+  opacity: 0.18;
+}
+
+.scroll-word-item em {
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-weight: 400;
+  color: var(--text);
+}
+
+.scroll-word-item--active {
+  opacity: 1 !important;
+  transform: translateY(0) !important;
+}
+
+/* Reduced motion preference */
+@media (prefers-reduced-motion: reduce) {
+  .scroll-word-item {
+    opacity: 1 !important;
+    transform: none !important;
+    transition: none !important;
+  }
+}
