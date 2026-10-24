@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { ArrowUpRight, Sparkles } from 'lucide-react';
 import { mockProjects } from '@/data/mockData';
-import { getProjects } from '@/lib/supabaseClient';
+import { getProjects } from '@/lib/sanityClient';
 import './HomePage.css';
 
 export function WorkPage() {

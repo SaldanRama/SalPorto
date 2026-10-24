@@ -6,7 +6,7 @@ import { HeroVisual3D } from '@/components/hero/HeroVisual3D';
 import { BiographyBento } from '@/components/biography/BiographyBento';
 import { ExperienceTimeline } from '@/components/experience/ExperienceTimeline';
 import { mockProjects } from '@/data/mockData';
-import { getProjects } from '@/lib/supabaseClient';
+import { getProjects } from '@/lib/sanityClient';
 import './HomePage.css';
 
 export function HomePage() {

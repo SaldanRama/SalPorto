@@ -8,12 +8,55 @@ import { AboutPage } from '@/pages/AboutPage';
 import { ExperiencePage } from '@/pages/ExperiencePage';
 import { ContactPage } from '@/pages/ContactPage';
 import { NotFoundPage } from '@/pages/NotFoundPage';
-import { AdminDashboardPage } from '@/pages/admin/AdminDashboardPage';
+import { Suspense, lazy } from 'react';
+
+const AdminDashboardPage = lazy(() =>
+  import('@/pages/admin/AdminDashboardPage').then((m) => ({ default: m.AdminDashboardPage }))
+);
+const StudioPage = lazy(() => import('@/pages/admin/StudioPage'));
+
+const AdminFallback = () => (
+  <div
+    style={{
+      minHeight: '100vh',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      background: '#101112',
+      color: '#8e96a4',
+      fontFamily: 'sans-serif',
+      fontSize: '0.95rem',
+      letterSpacing: '0.02em',
+    }}
+  >
+    <span>Loading Sanity Studio...</span>
+  </div>
+);
 
 export const router = createBrowserRouter([
   {
+    path: '/admin/*',
+    element: (
+      <Suspense fallback={<AdminFallback />}>
+        <StudioPage />
+      </Suspense>
+    ),
+  },
+  {
     path: '/admin',
-    element: <AdminDashboardPage />,
+    element: (
+      <Suspense fallback={<AdminFallback />}>
+        <StudioPage />
+      </Suspense>
+    ),
+  },
+  {
+    path: '/admin-legacy',
+    element: (
+      <Suspense fallback={<AdminFallback />}>
+        <AdminDashboardPage />
+      </Suspense>
+    ),
   },
   {
     path: '/',

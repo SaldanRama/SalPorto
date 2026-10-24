@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { ArrowLeft, ArrowUpRight, Sparkles } from 'lucide-react';
 import { mockProjects } from '@/data/mockData';
-import { getProjects } from '@/lib/supabaseClient';
+import { getProjects, getProjectBySlug } from '@/lib/sanityClient';
 import { Button } from '@/components/ui/Button';
 
 export function ProjectDetailPage() {
@@ -11,10 +11,9 @@ export function ProjectDetailPage() {
 
   useEffect(() => {
     let isMounted = true;
-    getProjects().then((list) => {
-      if (isMounted && list) {
-        const found = list.find((p) => p.slug === slug);
-        if (found) setProject(found);
+    getProjectBySlug(slug).then((found) => {
+      if (isMounted && found) {
+        setProject(found);
       }
     });
     return () => {

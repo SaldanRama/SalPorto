@@ -11,7 +11,7 @@ import {
   ImagePlus,
 } from 'lucide-react';
 import { mockExperiences } from '@/data/mockData';
-import { getExperiences } from '@/lib/supabaseClient';
+import { getExperiences } from '@/lib/sanityClient';
 import { Button } from '@/components/ui/Button';
 import { ExperienceTools } from '@/components/experience/ExperienceTools';
 import './ExperiencePage.css';

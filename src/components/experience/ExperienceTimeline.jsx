@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/Button';
 import { StackedImageGallery } from './StackedImageGallery';
 import { ExperienceTools } from './ExperienceTools';
 import { mockExperiences } from '@/data/mockData';
-import { getExperiences } from '@/lib/supabaseClient';
+import { getExperiences } from '@/lib/sanityClient';
 import './ExperienceTimeline.css';
 
 /**
