@@ -34,6 +34,7 @@ import {
   projectId,
   dataset,
 } from '@/lib/sanityClient';
+import { ThemeToggle } from '@/components/ui/ThemeToggle';
 import './AdminDashboardPage.css';
 
 // Popular Tools Preset for 1-Click Selection
@@ -552,6 +553,9 @@ export function AdminDashboardPage() {
               </span>
             </button>
 
+            {/* Light / Dark Mode Toggle */}
+            <ThemeToggle />
+
             <a
               href="/"
               target="_blank"
@@ -842,7 +846,7 @@ export function AdminDashboardPage() {
               </button>
             </div>
 
-            <form onSubmit={handleSaveExpSubmit}>
+            <form className="sp-modal-form" onSubmit={handleSaveExpSubmit}>
               <div className="sp-modal-scroll-body">
                 {/* SECTION 1: INFORMASI UTAMA */}
                 <div className="sp-form-section">
@@ -1122,7 +1126,7 @@ export function AdminDashboardPage() {
               </button>
             </div>
 
-            <form onSubmit={handleSaveProjSubmit}>
+            <form className="sp-modal-form" onSubmit={handleSaveProjSubmit}>
               <div className="sp-modal-scroll-body">
                 <div className="sp-form-section">
                   <div className="sp-field">

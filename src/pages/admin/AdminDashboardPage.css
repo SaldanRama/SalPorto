@@ -1,42 +1,104 @@
 /* ==========================================================================
-   SalPorto Modern Fullscreen CMS Dashboard
-   Aesthetic: Minimalist, Airy, Editorial Dark Theme (Matches SalPorto Website)
-   No cramped borders, edge-to-edge layout, generous breathing room.
+   SalPorto Fullscreen CMS Dashboard
+   Supports: Dark Theme (Default) & Light Theme
+   Scrollable modal with pinned header & footer, responsive edge-to-edge layout
    ========================================================================== */
 
 @import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&display=swap');
 
-/* Reset & Fullscreen Container */
+/* ==========================================================================
+   THEME TOKENS
+   ========================================================================== */
 .sp-fullscreen-app {
-  width: 100vw;
-  min-height: 100vh;
-  margin: 0;
-  padding: 0;
-  background-color: #0d0e0c;
-  color: #f4f2ec;
-  font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  display: flex;
-  overflow-x: hidden;
-  box-sizing: border-box;
+  /* Dark Theme Default */
+  --sp-bg: #0d0e0c;
+  --sp-sidebar: #111210;
+  --sp-card: #141512;
+  --sp-card-hover: #181916;
+  --sp-border: rgba(255, 255, 255, 0.06);
+  --sp-border-hover: rgba(191, 201, 255, 0.35);
+  --sp-text: #f4f2ec;
+  --sp-text-sub: #b0b0a8;
+  --sp-muted: #8c8c82;
+  --sp-subtle: #555550;
+  --sp-input-bg: #090a08;
+  --sp-input-border: rgba(255, 255, 255, 0.08);
+  --sp-modal-bg: #141512;
+  --sp-modal-head: #10110e;
+  --sp-accent: #bfc9ff;
+  --sp-accent-strong: #d9dfff;
+  --sp-accent-text: #0d0e0c;
+  --sp-chip-bg: rgba(255, 255, 255, 0.04);
+  --sp-chip-border: rgba(255, 255, 255, 0.08);
+  --sp-topbar-bg: rgba(13, 14, 12, 0.85);
+  --sp-shadow-card: 0 12px 30px -10px rgba(0, 0, 0, 0.6);
+  --sp-shadow-modal: 0 30px 80px rgba(0, 0, 0, 0.85);
+  --sp-overlay: rgba(0, 0, 0, 0.8);
+  --sp-circle-bg: #ffffff;
+}
+
+/* Light Theme Overrides */
+[data-theme='light'] .sp-fullscreen-app,
+.sp-fullscreen-app[data-theme='light'] {
+  --sp-bg: #F7F6F1;
+  --sp-sidebar: #EFECE4;
+  --sp-card: #FFFFFF;
+  --sp-card-hover: #FCFBF7;
+  --sp-border: #E2DFD7;
+  --sp-border-hover: #8D9DF2;
+  --sp-text: #171717;
+  --sp-text-sub: #4A4A45;
+  --sp-muted: #6B6B65;
+  --sp-subtle: #999990;
+  --sp-input-bg: #FFFFFF;
+  --sp-input-border: #D8D4CA;
+  --sp-modal-bg: #FFFFFF;
+  --sp-modal-head: #F3F1EA;
+  --sp-accent: #4F5BE6;
+  --sp-accent-strong: #3D48D1;
+  --sp-accent-text: #FFFFFF;
+  --sp-chip-bg: #F0EEE8;
+  --sp-chip-border: #DFDCD4;
+  --sp-topbar-bg: rgba(247, 246, 241, 0.88);
+  --sp-shadow-card: 0 8px 24px -4px rgba(0, 0, 0, 0.05);
+  --sp-shadow-modal: 0 25px 70px rgba(0, 0, 0, 0.18);
+  --sp-overlay: rgba(0, 0, 0, 0.5);
+  --sp-circle-bg: #F7F6F1;
 }
 
 /* ==========================================================================
-   LEFT SIDEBAR (FULL HEIGHT, CLEAN, FLUSH TO LEFT EDGE)
+   FULLSCREEN ROOT
+   ========================================================================== */
+.sp-fullscreen-app {
+  width: 100vw;
+  height: 100vh;
+  margin: 0;
+  padding: 0;
+  background-color: var(--sp-bg);
+  color: var(--sp-text);
+  font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  display: flex;
+  overflow: hidden;
+  box-sizing: border-box;
+  transition: background-color 0.25s ease, color 0.25s ease;
+}
+
+/* ==========================================================================
+   LEFT SIDEBAR
    ========================================================================== */
 .sp-fullscreen-sidebar {
   width: 260px;
   min-width: 260px;
   height: 100vh;
-  position: sticky;
-  top: 0;
-  background: #111210;
-  border-right: 1px solid rgba(255, 255, 255, 0.05);
+  background: var(--sp-sidebar);
+  border-right: 1px solid var(--sp-border);
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  padding: 2rem 1.25rem 1.5rem 1.25rem;
+  padding: 1.75rem 1.25rem 1.5rem 1.25rem;
   box-sizing: border-box;
   z-index: 30;
+  transition: background-color 0.25s ease, border-color 0.25s ease;
 }
 
 .sp-sidebar-brand {
@@ -44,7 +106,7 @@
   align-items: center;
   gap: 0.85rem;
   text-decoration: none;
-  color: #f4f2ec;
+  color: var(--sp-text);
   padding: 0 0.5rem;
   margin-bottom: 2.25rem;
 }
@@ -60,7 +122,7 @@
   color: #0d0e0c;
   font-weight: 800;
   font-size: 1.2rem;
-  box-shadow: 0 4px 16px rgba(191, 201, 255, 0.25);
+  box-shadow: 0 4px 16px rgba(126, 149, 252, 0.3);
 }
 
 .sp-sidebar-brand-text h2 {
@@ -68,12 +130,12 @@
   font-weight: 700;
   margin: 0;
   letter-spacing: -0.01em;
-  color: #f4f2ec;
+  color: var(--sp-text);
 }
 
 .sp-sidebar-brand-text span {
   font-size: 0.725rem;
-  color: #8c8c82;
+  color: var(--sp-muted);
   text-transform: uppercase;
   letter-spacing: 0.06em;
   font-weight: 600;
@@ -94,7 +156,7 @@
   border-radius: 14px;
   border: none;
   background: transparent;
-  color: #8c8c82;
+  color: var(--sp-muted);
   font-size: 0.9rem;
   font-weight: 500;
   cursor: pointer;
@@ -104,19 +166,19 @@
 }
 
 .sp-sidebar-btn:hover {
-  background: rgba(255, 255, 255, 0.03);
-  color: #f4f2ec;
+  background: rgba(120, 120, 120, 0.08);
+  color: var(--sp-text);
 }
 
 .sp-sidebar-btn.active {
-  background: #bfc9ff;
-  color: #0d0e0c;
+  background: var(--sp-accent);
+  color: var(--sp-accent-text);
   font-weight: 700;
-  box-shadow: 0 4px 16px rgba(191, 201, 255, 0.3);
+  box-shadow: 0 4px 16px rgba(126, 149, 252, 0.3);
 }
 
 .sp-sidebar-btn.active svg {
-  color: #0d0e0c;
+  color: var(--sp-accent-text);
 }
 
 .sp-sidebar-badge {
@@ -129,8 +191,8 @@
 }
 
 .sp-sidebar-btn:not(.active) .sp-sidebar-badge {
-  background: rgba(255, 255, 255, 0.05);
-  color: #8c8c82;
+  background: rgba(120, 120, 120, 0.12);
+  color: var(--sp-muted);
 }
 
 /* Sidebar Bottom Box */
@@ -141,8 +203,8 @@
 }
 
 .sp-lake-status-pill {
-  background: rgba(255, 255, 255, 0.02);
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(120, 120, 120, 0.06);
+  border: 1px solid var(--sp-border);
   border-radius: 14px;
   padding: 0.85rem 1rem;
   display: flex;
@@ -156,15 +218,15 @@
   gap: 0.5rem;
   font-size: 0.775rem;
   font-weight: 600;
-  color: #80c5a3;
+  color: #10b981;
 }
 
 .sp-pulse-dot {
   width: 7px;
   height: 7px;
   border-radius: 50%;
-  background: #80c5a3;
-  box-shadow: 0 0 8px #80c5a3;
+  background: #10b981;
+  box-shadow: 0 0 8px #10b981;
   animation: sp-pulse 2s infinite ease-in-out;
 }
 
@@ -176,12 +238,12 @@
 
 .sp-lake-info {
   font-size: 0.725rem;
-  color: #777770;
+  color: var(--sp-muted);
   line-height: 1.4;
 }
 
 .sp-lake-info strong {
-  color: #b0b0a8;
+  color: var(--sp-text);
 }
 
 .sp-studio-link-btn {
@@ -190,8 +252,8 @@
   justify-content: center;
   gap: 0.5rem;
   background: transparent;
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  color: #8c8c82;
+  border: 1px solid var(--sp-border);
+  color: var(--sp-muted);
   padding: 0.65rem;
   border-radius: 12px;
   font-size: 0.775rem;
@@ -202,20 +264,24 @@
 }
 
 .sp-studio-link-btn:hover {
-  border-color: #bfc9ff;
-  color: #bfc9ff;
-  background: rgba(191, 201, 255, 0.04);
+  border-color: var(--sp-accent);
+  color: var(--sp-accent);
+  background: rgba(126, 149, 252, 0.08);
 }
 
 /* ==========================================================================
-   MAIN VIEWPORT (SPACIOUS, MINIMALIST, BREATHING ROOM)
+   MAIN VIEWPORT (FULL HEIGHT, SCROLLABLE)
    ========================================================================== */
 .sp-viewport-main {
   flex: 1;
   min-width: 0;
+  height: 100vh;
   display: flex;
   flex-direction: column;
-  background: #0d0e0c;
+  background: var(--sp-bg);
+  overflow-y: auto;
+  overflow-x: hidden;
+  box-sizing: border-box;
 }
 
 /* Sticky Topbar */
@@ -223,14 +289,15 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 1.25rem clamp(2rem, 3.5vw, 4rem);
-  background: rgba(13, 14, 12, 0.85);
+  padding: 1.15rem clamp(2rem, 3.5vw, 4rem);
+  background: var(--sp-topbar-bg);
   backdrop-filter: blur(14px);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+  border-bottom: 1px solid var(--sp-border);
   position: sticky;
   top: 0;
   z-index: 20;
   gap: 1.5rem;
+  flex-shrink: 0;
 }
 
 .sp-search-capsule {
@@ -239,28 +306,27 @@
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: var(--sp-card);
+  border: 1px solid var(--sp-border);
   padding: 0.55rem 1.15rem;
   border-radius: 9999px;
   transition: all 0.2s ease;
 }
 
 .sp-search-capsule:focus-within {
-  border-color: #bfc9ff;
-  box-shadow: 0 0 0 2px rgba(191, 201, 255, 0.12);
-  background: rgba(255, 255, 255, 0.05);
+  border-color: var(--sp-accent);
+  box-shadow: 0 0 0 2px rgba(126, 149, 252, 0.2);
 }
 
 .sp-search-capsule svg {
-  color: #666660;
+  color: var(--sp-muted);
   flex-shrink: 0;
 }
 
 .sp-search-input-field {
   background: transparent;
   border: none;
-  color: #f4f2ec;
+  color: var(--sp-text);
   font-size: 0.875rem;
   width: 100%;
   outline: none;
@@ -268,7 +334,7 @@
 }
 
 .sp-search-input-field::placeholder {
-  color: #555550;
+  color: var(--sp-subtle);
 }
 
 .sp-topbar-right-actions {
@@ -281,22 +347,21 @@
   display: inline-flex;
   align-items: center;
   gap: 0.55rem;
-  background: #bfc9ff;
-  color: #0d0e0c;
+  background: var(--sp-accent);
+  color: var(--sp-accent-text);
   border: none;
   border-radius: 9999px;
   padding: 0.65rem 1.4rem;
   font-size: 0.875rem;
   font-weight: 700;
   cursor: pointer;
-  box-shadow: 0 4px 16px rgba(191, 201, 255, 0.25);
+  box-shadow: 0 4px 16px rgba(126, 149, 252, 0.25);
   transition: all 0.2s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .sp-btn-primary-create:hover {
-  background: #d9dfff;
+  background: var(--sp-accent-strong);
   transform: translateY(-1px);
-  box-shadow: 0 6px 20px rgba(191, 201, 255, 0.4);
 }
 
 .sp-site-external-btn {
@@ -305,9 +370,9 @@
   gap: 0.45rem;
   padding: 0.55rem 1rem;
   border-radius: 9999px;
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  color: #a8a8a0;
+  background: var(--sp-card);
+  border: 1px solid var(--sp-border);
+  color: var(--sp-muted);
   font-size: 0.825rem;
   font-weight: 500;
   text-decoration: none;
@@ -315,13 +380,12 @@
 }
 
 .sp-site-external-btn:hover {
-  border-color: #bfc9ff;
-  color: #bfc9ff;
-  background: rgba(191, 201, 255, 0.04);
+  border-color: var(--sp-accent);
+  color: var(--sp-text);
 }
 
 /* ==========================================================================
-   WORKSPACE CONTENT (AIRY, MINIMALIST, HIGH BREATHABILITY)
+   WORKSPACE CONTENT (SCROLLABLE, AIRY, BREATHABLE)
    ========================================================================== */
 .sp-fullscreen-content {
   padding: 2.5rem clamp(2rem, 3.5vw, 4rem) 5rem clamp(2rem, 3.5vw, 4rem);
@@ -346,20 +410,19 @@
   font-weight: 700;
   margin: 0 0 0.35rem 0;
   letter-spacing: -0.015em;
-  color: #f4f2ec;
+  color: var(--sp-text);
 }
 
 .sp-content-subtitle {
   font-size: 0.9rem;
-  color: #777770;
+  color: var(--sp-muted);
   margin: 0;
 }
 
 .sp-content-subtitle strong {
-  color: #bfc9ff;
+  color: var(--sp-accent);
 }
 
-/* View Controls */
 .sp-controls-group {
   display: flex;
   align-items: center;
@@ -367,9 +430,9 @@
 }
 
 .sp-select-minimal {
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  color: #f4f2ec;
+  background: var(--sp-card);
+  border: 1px solid var(--sp-border);
+  color: var(--sp-text);
   font-family: inherit;
   font-size: 0.825rem;
   padding: 0.5rem 1rem;
@@ -380,11 +443,11 @@
 }
 
 .sp-select-minimal:hover {
-  border-color: rgba(255, 255, 255, 0.12);
+  border-color: var(--sp-border-hover);
 }
 
 /* ==========================================================================
-   CARDS GRID (MINIMALIST & SPACIOUS)
+   CARDS GRID
    ========================================================================== */
 .sp-cards-grid {
   display: grid;
@@ -393,8 +456,8 @@
 }
 
 .sp-card-item {
-  background: #141512;
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  background: var(--sp-card);
+  border: 1px solid var(--sp-border);
   border-radius: 20px;
   padding: 1.6rem;
   display: flex;
@@ -404,13 +467,13 @@
   transition: all 0.22s cubic-bezier(0.22, 1, 0.36, 1);
   position: relative;
   cursor: pointer;
+  box-shadow: var(--sp-shadow-card);
 }
 
 .sp-card-item:hover {
   transform: translateY(-3px);
-  border-color: rgba(191, 201, 255, 0.3);
-  box-shadow: 0 12px 30px -10px rgba(0, 0, 0, 0.6);
-  background: #171815;
+  border-color: var(--sp-border-hover);
+  background: var(--sp-card-hover);
 }
 
 /* Card Header */
@@ -424,14 +487,14 @@
   width: 54px;
   height: 54px;
   border-radius: 50%;
-  background: #ffffff;
+  background: var(--sp-circle-bg);
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 6px;
   box-sizing: border-box;
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
+  border: 1px solid var(--sp-border);
   overflow: hidden;
 }
 
@@ -442,11 +505,11 @@
 }
 
 .sp-logo-circle.text-fallback {
-  background: rgba(255, 255, 255, 0.05);
-  color: #bfc9ff;
+  background: rgba(126, 149, 252, 0.12);
+  color: var(--sp-accent);
   font-weight: 700;
   font-size: 1.25rem;
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--sp-border);
 }
 
 .sp-card-menu-btn {
@@ -455,7 +518,7 @@
   border-radius: 8px;
   background: transparent;
   border: none;
-  color: #666660;
+  color: var(--sp-muted);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -464,23 +527,23 @@
 }
 
 .sp-card-menu-btn:hover {
-  background: rgba(255, 255, 255, 0.05);
-  color: #f4f2ec;
+  background: rgba(120, 120, 120, 0.12);
+  color: var(--sp-text);
 }
 
 .sp-card-dropdown {
   position: absolute;
   top: 40px;
   right: 0;
-  background: #181916;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: var(--sp-modal-bg);
+  border: 1px solid var(--sp-border);
   border-radius: 14px;
   padding: 6px;
   display: flex;
   flex-direction: column;
   gap: 2px;
   min-width: 160px;
-  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.7);
+  box-shadow: var(--sp-shadow-modal);
   z-index: 40;
 }
 
@@ -492,7 +555,7 @@
   background: transparent;
   border: none;
   border-radius: 8px;
-  color: #f4f2ec;
+  color: var(--sp-text);
   font-size: 0.825rem;
   font-family: inherit;
   font-weight: 500;
@@ -502,12 +565,12 @@
 }
 
 .sp-dropdown-action:hover {
-  background: rgba(191, 201, 255, 0.1);
-  color: #bfc9ff;
+  background: rgba(126, 149, 252, 0.1);
+  color: var(--sp-accent);
 }
 
 .sp-dropdown-action.danger:hover {
-  background: rgba(239, 68, 68, 0.15);
+  background: rgba(239, 68, 68, 0.12);
   color: #ef4444;
 }
 
@@ -521,24 +584,23 @@
 .sp-card-role-title {
   font-size: 1.125rem;
   font-weight: 700;
-  color: #f4f2ec;
+  color: var(--sp-text);
   margin: 0;
   line-height: 1.35;
 }
 
 .sp-card-org-name {
   font-size: 0.875rem;
-  color: #9d9d94;
+  color: var(--sp-text-sub);
   margin: 0;
 }
 
 .sp-card-period-date {
   font-size: 0.8rem;
-  color: #666660;
+  color: var(--sp-muted);
   margin: 0;
 }
 
-/* Jobdesk Preview Bullets in Card */
 .sp-card-jobdesk-preview {
   margin-top: 0.35rem;
   display: flex;
@@ -550,7 +612,7 @@
 
 .sp-card-jobdesk-preview li {
   font-size: 0.8rem;
-  color: #8c8c82;
+  color: var(--sp-muted);
   display: flex;
   align-items: flex-start;
   gap: 0.45rem;
@@ -559,7 +621,7 @@
 
 .sp-card-jobdesk-preview li::before {
   content: '•';
-  color: #bfc9ff;
+  color: var(--sp-accent);
   font-size: 0.9rem;
 }
 
@@ -570,7 +632,7 @@
   justify-content: space-between;
   gap: 0.5rem;
   padding-top: 0.85rem;
-  border-top: 1px solid rgba(255, 255, 255, 0.04);
+  border-top: 1px solid var(--sp-border);
   flex-wrap: wrap;
 }
 
@@ -579,9 +641,9 @@
   border-radius: 9999px;
   font-size: 0.725rem;
   font-weight: 700;
-  background: rgba(128, 197, 163, 0.12);
-  color: #80c5a3;
-  border: 1px solid rgba(128, 197, 163, 0.25);
+  background: rgba(16, 185, 129, 0.12);
+  color: #10b981;
+  border: 1px solid rgba(16, 185, 129, 0.25);
 }
 
 .sp-pill-order-badge {
@@ -589,31 +651,31 @@
   border-radius: 9999px;
   font-size: 0.725rem;
   font-weight: 500;
-  background: rgba(255, 255, 255, 0.03);
-  color: #777770;
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  background: rgba(120, 120, 120, 0.08);
+  color: var(--sp-muted);
+  border: 1px solid var(--sp-border);
 }
 
 .sp-photos-count-badge {
   font-size: 0.75rem;
-  color: #8c8c82;
+  color: var(--sp-muted);
   display: flex;
   align-items: center;
   gap: 0.35rem;
 }
 
 /* ==========================================================================
-   MODAL DIALOG (SPACIOUS, COMPLETE RICH FIELDS)
+   MODAL DIALOG (FIXED SCROLL & PINNED FOOTER)
    ========================================================================== */
 .sp-modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.8);
-  backdrop-filter: blur(10px);
+  background: var(--sp-overlay);
+  backdrop-filter: blur(8px);
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 2rem;
+  padding: clamp(1rem, 3vw, 2.5rem);
   z-index: 100;
   animation: sp-fade 0.2s ease;
 }
@@ -626,36 +688,39 @@
 .sp-modal-container {
   width: 100%;
   max-width: 820px;
+  height: 88vh; /* Fixed height so scroll container works! */
   max-height: 88vh;
-  background: #141512;
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: var(--sp-modal-bg);
+  border: 1px solid var(--sp-border);
   border-radius: 24px;
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.85);
+  box-shadow: var(--sp-shadow-modal);
+  box-sizing: border-box;
 }
 
 .sp-modal-head {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 1.5rem 2rem;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-  background: #111210;
+  padding: 1.35rem 2rem;
+  border-bottom: 1px solid var(--sp-border);
+  background: var(--sp-modal-head);
+  flex-shrink: 0;
 }
 
 .sp-modal-head h2 {
   font-size: 1.35rem;
   font-weight: 700;
   margin: 0;
-  color: #f4f2ec;
+  color: var(--sp-text);
 }
 
 .sp-modal-close-btn {
   background: transparent;
   border: none;
-  color: #8c8c82;
+  color: var(--sp-muted);
   width: 34px;
   height: 34px;
   border-radius: 10px;
@@ -667,25 +732,54 @@
 }
 
 .sp-modal-close-btn:hover {
-  background: rgba(255, 255, 255, 0.06);
-  color: #f4f2ec;
+  background: rgba(120, 120, 120, 0.12);
+  color: var(--sp-text);
 }
 
+/* Form container that allows scrolling child */
+.sp-modal-form {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0; /* CRITICAL for nested flex overflow scrolling! */
+  overflow: hidden;
+  height: calc(100% - 65px);
+}
+
+/* Scrollable body with custom scrollbar */
 .sp-modal-scroll-body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto !important;
+  overscroll-behavior: contain;
   padding: 2rem;
-  overflow-y: auto;
   display: flex;
   flex-direction: column;
   gap: 2rem;
+  box-sizing: border-box;
 }
 
-/* Sections inside modal */
+.sp-modal-scroll-body::-webkit-scrollbar {
+  width: 8px;
+}
+.sp-modal-scroll-body::-webkit-scrollbar-track {
+  background: transparent;
+}
+.sp-modal-scroll-body::-webkit-scrollbar-thumb {
+  background: rgba(120, 120, 120, 0.25);
+  border-radius: 9999px;
+}
+.sp-modal-scroll-body::-webkit-scrollbar-thumb:hover {
+  background: rgba(120, 120, 120, 0.45);
+}
+
+/* Form Sections */
 .sp-form-section {
   display: flex;
   flex-direction: column;
   gap: 1.15rem;
   padding-bottom: 1.75rem;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+  border-bottom: 1px solid var(--sp-border);
 }
 
 .sp-form-section:last-child {
@@ -696,7 +790,7 @@
 .sp-section-heading {
   font-size: 0.95rem;
   font-weight: 700;
-  color: #bfc9ff;
+  color: var(--sp-accent);
   display: flex;
   align-items: center;
   gap: 0.5rem;
@@ -704,11 +798,10 @@
   letter-spacing: -0.01em;
 }
 
-/* Form Fields */
 .sp-input-label {
   font-size: 0.825rem;
   font-weight: 600;
-  color: #b0b0a8;
+  color: var(--sp-text-sub);
   margin-bottom: 0.35rem;
   display: flex;
   align-items: center;
@@ -719,11 +812,11 @@
 .sp-select-field,
 .sp-textarea-field {
   width: 100%;
-  background: #0d0e0c;
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: var(--sp-input-bg);
+  border: 1px solid var(--sp-input-border);
   border-radius: 12px;
   padding: 0.75rem 1rem;
-  color: #f4f2ec;
+  color: var(--sp-text);
   font-family: inherit;
   font-size: 0.9rem;
   outline: none;
@@ -734,10 +827,10 @@
 .sp-input-field:focus,
 .sp-select-field:focus,
 .sp-textarea-field:focus {
-  border-color: #bfc9ff;
+  border-color: var(--sp-accent);
 }
 
-/* Jobdesk Dynamic List Rows */
+/* Dynamic Jobdesk Rows */
 .sp-jobdesk-rows {
   display: flex;
   flex-direction: column;
@@ -754,7 +847,7 @@
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background: #bfc9ff;
+  background: var(--sp-accent);
   flex-shrink: 0;
 }
 
@@ -765,7 +858,7 @@
 .sp-row-delete-btn {
   background: transparent;
   border: none;
-  color: #666660;
+  color: var(--sp-muted);
   width: 32px;
   height: 32px;
   border-radius: 8px;
@@ -777,7 +870,7 @@
 }
 
 .sp-row-delete-btn:hover {
-  background: rgba(239, 68, 68, 0.15);
+  background: rgba(239, 68, 68, 0.12);
   color: #ef4444;
 }
 
@@ -786,9 +879,9 @@
   display: inline-flex;
   align-items: center;
   gap: 0.45rem;
-  background: rgba(191, 201, 255, 0.08);
-  color: #bfc9ff;
-  border: 1px dashed rgba(191, 201, 255, 0.25);
+  background: rgba(126, 149, 252, 0.08);
+  color: var(--sp-accent);
+  border: 1px dashed var(--sp-border-hover);
   padding: 0.55rem 1rem;
   border-radius: 10px;
   font-size: 0.825rem;
@@ -798,8 +891,8 @@
 }
 
 .sp-btn-add-item:hover {
-  background: rgba(191, 201, 255, 0.15);
-  border-color: #bfc9ff;
+  background: rgba(126, 149, 252, 0.16);
+  border-color: var(--sp-accent);
 }
 
 /* Tool Chips */
@@ -814,32 +907,32 @@
   border-radius: 9999px;
   font-size: 0.775rem;
   font-weight: 500;
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  color: #a8a8a0;
+  background: var(--sp-chip-bg);
+  border: 1px solid var(--sp-chip-border);
+  color: var(--sp-text-sub);
   cursor: pointer;
   transition: all 0.15s ease;
 }
 
 .sp-tool-chip:hover {
-  border-color: #bfc9ff;
-  color: #f4f2ec;
+  border-color: var(--sp-accent);
+  color: var(--sp-text);
 }
 
 .sp-tool-chip.selected {
-  background: #bfc9ff;
-  color: #0d0e0c;
+  background: var(--sp-accent);
+  color: var(--sp-accent-text);
   font-weight: 700;
-  border-color: #bfc9ff;
+  border-color: var(--sp-accent);
 }
 
-/* Documentation Photos Upload & Grid */
+/* Documentation Photos Upload Dropzone & Grid */
 .sp-upload-dropzone {
-  border: 2px dashed rgba(255, 255, 255, 0.1);
+  border: 2px dashed var(--sp-border);
   border-radius: 16px;
   padding: 1.5rem;
   text-align: center;
-  background: rgba(255, 255, 255, 0.02);
+  background: var(--sp-card);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -850,8 +943,8 @@
 }
 
 .sp-upload-dropzone:hover {
-  border-color: #bfc9ff;
-  background: rgba(191, 201, 255, 0.03);
+  border-color: var(--sp-accent);
+  background: rgba(126, 149, 252, 0.04);
 }
 
 .sp-photos-grid-preview {
@@ -866,8 +959,8 @@
   height: 95px;
   border-radius: 12px;
   overflow: hidden;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  background: #0d0e0c;
+  border: 1px solid var(--sp-border);
+  background: var(--sp-card);
 }
 
 .sp-photo-card-thumb img {
@@ -883,7 +976,7 @@
   width: 24px;
   height: 24px;
   border-radius: 50%;
-  background: rgba(0, 0, 0, 0.7);
+  background: rgba(0, 0, 0, 0.75);
   color: #ffffff;
   border: none;
   display: flex;
@@ -897,21 +990,22 @@
   background: #ef4444;
 }
 
-/* Modal Footer */
+/* Modal Pinned Footer */
 .sp-modal-foot {
   display: flex;
   align-items: center;
   justify-content: flex-end;
   gap: 0.85rem;
   padding: 1.25rem 2rem;
-  border-top: 1px solid rgba(255, 255, 255, 0.05);
-  background: #111210;
+  border-top: 1px solid var(--sp-border);
+  background: var(--sp-modal-head);
+  flex-shrink: 0;
 }
 
 .sp-btn-cancel {
   background: transparent;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  color: #a8a8a0;
+  border: 1px solid var(--sp-border);
+  color: var(--sp-muted);
   padding: 0.65rem 1.35rem;
   border-radius: 12px;
   font-weight: 600;
@@ -921,25 +1015,25 @@
 }
 
 .sp-btn-cancel:hover {
-  color: #f4f2ec;
-  border-color: rgba(255, 255, 255, 0.25);
+  color: var(--sp-text);
+  border-color: var(--sp-border-hover);
 }
 
 .sp-btn-save-submit {
-  background: #bfc9ff;
+  background: var(--sp-accent);
   border: none;
-  color: #0d0e0c;
+  color: var(--sp-accent-text);
   padding: 0.65rem 1.6rem;
   border-radius: 12px;
   font-weight: 700;
   font-size: 0.875rem;
   cursor: pointer;
-  box-shadow: 0 4px 14px rgba(191, 201, 255, 0.3);
+  box-shadow: 0 4px 14px rgba(126, 149, 252, 0.3);
   transition: all 0.2s ease;
 }
 
 .sp-btn-save-submit:hover {
-  background: #d9dfff;
+  background: var(--sp-accent-strong);
   transform: translateY(-1px);
 }
 
@@ -948,9 +1042,9 @@
   position: fixed;
   top: 24px;
   right: 28px;
-  background: #181916;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  color: #f4f2ec;
+  background: var(--sp-card);
+  border: 1px solid var(--sp-border);
+  color: var(--sp-text);
   padding: 0.85rem 1.4rem;
   border-radius: 14px;
   font-size: 0.875rem;
@@ -958,7 +1052,7 @@
   display: flex;
   align-items: center;
   gap: 0.65rem;
-  box-shadow: 0 12px 35px rgba(0, 0, 0, 0.7);
+  box-shadow: var(--sp-shadow-modal);
   z-index: 200;
   animation: sp-toast-anim 0.3s cubic-bezier(0.22, 1, 0.36, 1);
 }
@@ -972,6 +1066,8 @@
 @media (max-width: 992px) {
   .sp-fullscreen-app {
     flex-direction: column;
+    height: auto;
+    overflow-y: auto;
   }
   .sp-fullscreen-sidebar {
     width: 100%;
@@ -979,7 +1075,11 @@
     height: auto;
     position: relative;
     border-right: none;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    border-bottom: 1px solid var(--sp-border);
+  }
+  .sp-viewport-main {
+    height: auto;
+    overflow-y: visible;
   }
   .sp-fullscreen-content {
     padding: 1.75rem;
