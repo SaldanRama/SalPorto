@@ -1,0 +1,224 @@
+/* ==========================================================================
+   SalPorto CMS Studio - Custom Editorial Theme & Enhancements
+   Harmonized with SalPorto Portfolio Design System
+   ========================================================================== */
+
+/* Top Navigation Bar: Quick Links & Live Status */
+.salporto-admin-topbar {
+  height: 48px;
+  width: 100vw;
+  background-color: #111210;
+  border-bottom: 1px solid #282a24;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 20px;
+  font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  box-sizing: border-box;
+  z-index: 100;
+  position: relative;
+}
+
+.salporto-admin-left {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.salporto-back-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: #1a1b18;
+  color: #f4f2ec;
+  border: 1px solid #34352f;
+  padding: 6px 14px;
+  border-radius: 9999px;
+  font-size: 13px;
+  font-weight: 500;
+  text-decoration: none;
+  transition: all 0.2s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.salporto-back-btn:hover {
+  background: #232520;
+  border-color: #bfc9ff;
+  color: #bfc9ff;
+  transform: translateX(-2px);
+}
+
+.salporto-status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(52, 118, 91, 0.15);
+  border: 1px solid rgba(128, 197, 163, 0.25);
+  color: #80c5a3;
+  padding: 4px 12px;
+  border-radius: 9999px;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+}
+
+.salporto-status-dot {
+  width: 7px;
+  height: 7px;
+  background-color: #80c5a3;
+  border-radius: 50%;
+  box-shadow: 0 0 8px #80c5a3;
+  animation: salporto-pulse 2s infinite ease-in-out;
+}
+
+@keyframes salporto-pulse {
+  0% { transform: scale(0.95); opacity: 0.8; }
+  50% { transform: scale(1.3); opacity: 1; }
+  100% { transform: scale(0.95); opacity: 0.8; }
+}
+
+.salporto-admin-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.salporto-preview-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: #b0b0a8;
+  font-size: 12.5px;
+  font-weight: 500;
+  text-decoration: none;
+  padding: 6px 12px;
+  border-radius: 8px;
+  border: 1px solid transparent;
+  transition: all 0.2s ease;
+}
+
+.salporto-preview-link:hover {
+  color: #f4f2ec;
+  background: #1a1b18;
+  border-color: #34352f;
+}
+
+/* Studio Canvas Container */
+.salporto-studio-wrapper {
+  height: calc(100vh - 48px);
+  width: 100vw;
+  overflow: hidden;
+  position: relative;
+  font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+}
+
+/* ==========================================================================
+   SANITY STUDIO UI CUSTOMIZATION OVERRIDES
+   ========================================================================== */
+
+/* 1. Tombol "+ Tambah Dokumen Baru" (Create New Document) yang Jelas & Menonjol */
+.salporto-studio-wrapper button[aria-label="Create new document"],
+.salporto-studio-wrapper [data-testid="pane-header-action-create"] {
+  background: linear-gradient(135deg, #bfc9ff 0%, #90a5ff 100%) !important;
+  color: #111210 !important;
+  border: 1px solid rgba(255, 255, 255, 0.25) !important;
+  border-radius: 9999px !important;
+  padding: 7px 16px !important;
+  min-height: 34px !important;
+  font-family: 'DM Sans', sans-serif !important;
+  font-weight: 700 !important;
+  font-size: 13px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 6px !important;
+  cursor: pointer !important;
+  box-shadow: 0 4px 14px rgba(191, 201, 255, 0.45) !important;
+  transition: all 0.25s cubic-bezier(0.22, 1, 0.36, 1) !important;
+}
+
+.salporto-studio-wrapper button[aria-label="Create new document"]:hover,
+.salporto-studio-wrapper [data-testid="pane-header-action-create"]:hover {
+  transform: translateY(-2px) scale(1.05) !important;
+  box-shadow: 0 6px 22px rgba(191, 201, 255, 0.7) !important;
+  background: linear-gradient(135deg, #d9dfff 0%, #a4b6ff 100%) !important;
+}
+
+/* Teks label jelas di samping ikon tambah */
+.salporto-studio-wrapper button[aria-label="Create new document"]::after {
+  content: "Tambah Baru";
+  font-size: 12.5px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: #111210 !important;
+}
+
+.salporto-studio-wrapper button[aria-label="Create new document"] svg {
+  width: 15px !important;
+  height: 15px !important;
+  stroke-width: 2.6 !important;
+  color: #111210 !important;
+}
+
+/* 2. Tombol "+ Create" di Navbar Atas Sanity */
+.salporto-studio-wrapper header button[aria-label="Create new document"],
+.salporto-studio-wrapper header button[data-testid="action-create"] {
+  background: #bfc9ff !important;
+  color: #111210 !important;
+  font-weight: 700 !important;
+  font-size: 13px !important;
+  border-radius: 9999px !important;
+  padding: 6px 14px !important;
+  box-shadow: 0 2px 10px rgba(191, 201, 255, 0.35) !important;
+  border: none !important;
+}
+
+/* 3. Field Groups / Tabs Navigasi Form */
+.salporto-studio-wrapper [role="tablist"] {
+  display: flex !important;
+  gap: 8px !important;
+  padding: 6px 4px 12px 4px !important;
+  margin-bottom: 16px !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+}
+
+.salporto-studio-wrapper [role="tab"] {
+  border-radius: 9999px !important;
+  padding: 7px 16px !important;
+  font-size: 13px !important;
+  font-weight: 500 !important;
+  font-family: 'DM Sans', sans-serif !important;
+  transition: all 0.2s cubic-bezier(0.22, 1, 0.36, 1) !important;
+  cursor: pointer !important;
+}
+
+.salporto-studio-wrapper [role="tab"][aria-selected="true"] {
+  background-color: #bfc9ff !important;
+  color: #111210 !important;
+  font-weight: 700 !important;
+  box-shadow: 0 3px 12px rgba(191, 201, 255, 0.35) !important;
+}
+
+/* 4. Active List Item & Hover Polish */
+.salporto-studio-wrapper [data-testid="pane-content"] [data-selected="true"] {
+  border-left: 3px solid #bfc9ff !important;
+  background-color: rgba(191, 201, 255, 0.08) !important;
+}
+
+/* 5. Sleek Minimalist Scrollbars */
+.salporto-studio-wrapper ::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.salporto-studio-wrapper ::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.salporto-studio-wrapper ::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 9999px;
+}
+
+.salporto-studio-wrapper ::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
