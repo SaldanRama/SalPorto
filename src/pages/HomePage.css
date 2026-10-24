@@ -62,7 +62,7 @@
   border-top: 1px solid var(--line);
   border-bottom: 1px solid var(--line);
   padding-top: clamp(4.5rem, 8vw, 7.5rem);
-  padding-bottom: clamp(4.5rem, 8vw, 7.5rem);
+  padding-bottom: clamp(1.75rem, 3vw, 2.5rem);
   position: relative;
 }
 
@@ -157,10 +157,12 @@
 
 /* Mini Gallery 16:9 Coverflow Wrap inside Manifesto */
 .mini-gallery-wrap {
-  margin-top: clamp(2rem, 3.5vw, 3rem);
-  padding-top: clamp(1.5rem, 2.5vw, 2.25rem);
+  margin-top: clamp(1.75rem, 3vw, 2.5rem);
+  padding-top: clamp(1.25rem, 2vw, 1.75rem);
   border-top: 1px solid var(--line);
   position: relative;
+  padding-bottom: 0;
+  margin-bottom: 0;
 }
 
 /* Capabilities Grid inside Manifesto */

@@ -6,7 +6,7 @@
 
 .section-experience {
   background-color: var(--bg);
-  padding-top: clamp(4.5rem, 8vw, 7.5rem);
+  padding-top: clamp(3rem, 5vw, 4.5rem);
   padding-bottom: clamp(5rem, 9vw, 8rem);
   position: relative;
   border-top: 1px solid var(--line);

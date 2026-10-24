@@ -96,9 +96,9 @@ export function MiniGalleryCoverflow() {
       tabIndex={0}
       aria-label="Mini Gallery Coverflow"
     >
-      {/* Pure Headline Only: "Mini Gallery" */}
+      {/* Pure Headline Only: "Mini Gallery" matching Experience headline */}
       <div className="coverflow-minimal-head">
-        <h3 className="coverflow-minimal-title">Mini Gallery</h3>
+        <h2 className="coverflow-minimal-title font-serif">Mini Gallery</h2>
       </div>
 
       {/* 3D Coverflow Stage - Centered, Pure 16:9 Images */}
@@ -118,36 +118,45 @@ export function MiniGalleryCoverflow() {
             if (diff > total / 2) diff -= total;
             if (diff < -total / 2) diff += total;
 
+            const absDiff = Math.abs(diff);
             const isActive = diff === 0;
-            const isVisible = Math.abs(diff) <= 2;
+            // Allow up to 3 cards on each side to fill the horizontal screen space
+            const isVisible = absDiff <= 3;
 
-            // 3D Transform calculations based on Coverflow geometry
+            // 3D Transform calculations: fan out side cards horizontally
             let transform = '';
-            let zIndex = 10 - Math.abs(diff);
+            let zIndex = 20 - absDiff * 3;
             let opacity = 1;
             let filter = 'brightness(1)';
 
             if (isActive) {
               transform = 'translateX(-50%) translateY(-50%) translateZ(0px) rotateY(0deg) scale(1)';
-              zIndex = 15;
+              zIndex = 25;
               opacity = 1;
               filter = 'brightness(1)';
-            } else if (diff > 0) {
-              // Right side cards
-              const offsetPercent = -50 + diff * 32;
-              const zBack = -Math.abs(diff) * 110;
-              const scaleVal = Math.max(0.72, 1 - Math.abs(diff) * 0.14);
-              transform = `translateX(${offsetPercent}%) translateY(-50%) translateZ(${zBack}px) rotateY(-36deg) scale(${scaleVal})`;
-              opacity = isVisible ? Math.max(0.35, 0.9 - Math.abs(diff) * 0.3) : 0;
-              filter = 'brightness(0.6)';
             } else {
-              // Left side cards
-              const offsetPercent = -50 + diff * 32;
-              const zBack = -Math.abs(diff) * 110;
-              const scaleVal = Math.max(0.72, 1 - Math.abs(diff) * 0.14);
-              transform = `translateX(${offsetPercent}%) translateY(-50%) translateZ(${zBack}px) rotateY(36deg) scale(${scaleVal})`;
-              opacity = isVisible ? Math.max(0.35, 0.9 - Math.abs(diff) * 0.3) : 0;
-              filter = 'brightness(0.6)';
+              const sign = diff > 0 ? 1 : -1;
+
+              // Generous horizontal spacing so background cards fill the sideways space
+              let stepOffset = 0;
+              if (absDiff === 1) {
+                stepOffset = 70; // 1st card steps out generously from behind preview card
+              } else if (absDiff === 2) {
+                stepOffset = 135; // 2nd card fans out further towards the sides
+              } else if (absDiff === 3) {
+                stepOffset = 195; // 3rd card fills outer horizontal space
+              } else {
+                stepOffset = 195 + (absDiff - 3) * 55;
+              }
+
+              const offsetPercent = -50 + sign * stepOffset;
+              const zBack = -absDiff * 95;
+              const rotateDeg = sign * (-28 - Math.min(absDiff, 3) * 6);
+              const scaleVal = Math.max(0.65, 1 - absDiff * 0.12);
+
+              transform = `translateX(${offsetPercent}%) translateY(-50%) translateZ(${zBack}px) rotateY(${rotateDeg}deg) scale(${scaleVal})`;
+              opacity = isVisible ? Math.max(0.25, 0.95 - absDiff * 0.24) : 0;
+              filter = `brightness(${Math.max(0.35, 0.8 - absDiff * 0.18)})`;
             }
 
             return (

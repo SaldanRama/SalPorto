@@ -4,48 +4,52 @@
 
 .coverflow-minimal-wrap {
   width: 100%;
-  max-width: 1100px;
+  max-width: 1400px;
   margin: 0 auto;
-  padding: 0.5rem 0 1.5rem;
+  padding: 0;
   user-select: none;
+  overflow: hidden;
 }
 
 .coverflow-minimal-head {
   text-align: center;
-  margin-bottom: 1.5rem;
+  margin-bottom: clamp(1.25rem, 2.5vw, 1.85rem);
 }
 
 .coverflow-minimal-title {
-  font-size: clamp(1.4rem, 2.5vw, 1.95rem);
-  font-weight: 700;
-  letter-spacing: -0.025em;
+  font-family: var(--font-serif);
+  font-size: var(--text-h2);
+  line-height: 1.08;
+  font-weight: 400;
+  letter-spacing: -0.01em;
   color: var(--text);
   margin: 0;
-  line-height: 1.2;
 }
 
-/* 3D Stage Box (Compact, Balanced Height) */
+/* 3D Stage Box (Snug & Tight Height, Zero Dead Space Beneath) */
 .coverflow-stage-box {
   position: relative;
   width: 100%;
-  height: 250px;
+  height: 200px;
   display: flex;
   align-items: center;
   justify-content: center;
-  perspective: 1100px;
+  perspective: 1200px;
   overflow: visible;
   touch-action: pan-y;
+  -webkit-mask-image: linear-gradient(to right, transparent 0%, black 5%, black 95%, transparent 100%);
+  mask-image: linear-gradient(to right, transparent 0%, black 5%, black 95%, transparent 100%);
 }
 
 @media (min-width: 640px) {
   .coverflow-stage-box {
-    height: 300px;
+    height: 250px;
   }
 }
 
 @media (min-width: 1024px) {
   .coverflow-stage-box {
-    height: 350px;
+    height: 300px;
   }
 }
 
@@ -64,14 +68,14 @@
   position: absolute;
   top: 50%;
   left: 50%;
-  width: 76%;
-  max-width: 540px;
+  width: 72%;
+  max-width: 500px;
   aspect-ratio: 16 / 9;
-  border-radius: 16px;
+  border-radius: 14px;
   overflow: hidden;
   background: #0d0e11;
   border: 1px solid rgba(255, 255, 255, 0.08);
-  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.45);
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.42);
   cursor: pointer;
   transform-origin: center center;
   transition: transform 0.65s cubic-bezier(0.22, 1, 0.36, 1),
@@ -82,11 +86,23 @@
   will-change: transform, opacity;
 }
 
+[data-theme='light'] .coverflow-card-pure {
+  background: #ffffff;
+  border: 1px solid var(--line);
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.1);
+}
+
 .coverflow-card-pure.active {
-  border-color: rgba(99, 102, 241, 0.35);
-  box-shadow: 0 18px 45px rgba(0, 0, 0, 0.6),
-              0 0 25px rgba(99, 102, 241, 0.18);
+  border-color: rgba(99, 102, 241, 0.4);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.6),
+              0 0 22px rgba(99, 102, 241, 0.2);
   cursor: default;
+}
+
+[data-theme='light'] .coverflow-card-pure.active {
+  border-color: rgba(79, 70, 229, 0.45);
+  box-shadow: 0 14px 35px rgba(0, 0, 0, 0.16),
+              0 0 20px rgba(99, 102, 241, 0.15);
 }
 
 .coverflow-card-pure:hover:not(.active) {
