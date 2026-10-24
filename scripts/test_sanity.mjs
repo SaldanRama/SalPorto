@@ -7,14 +7,18 @@ const client = createClient({
   useCdn: false,
 });
 
-async function run() {
-  try {
-    const docs = await client.fetch('*');
-    console.log('Total documents in Sanity:', docs.length);
-    console.log('Doc types:', docs.map(d => ({ id: d._id, type: d._type, title: d.title || d.role })));
-  } catch (err) {
-    console.error('Fetch error:', err.message);
-  }
+async function main() {
+  const exps = await client.fetch('*[_type == "experience"] | order(sortOrder asc)');
+  console.log(`\n=== Total Experiences di Sanity: ${exps.length} ===`);
+  exps.forEach((e, idx) => {
+    console.log(`${idx + 1}. [Order ${e.sortOrder}] ${e.role} @ ${e.organization} (${e.images?.length || 0} foto, ${e.tools?.length || 0} tools)`);
+  });
+
+  const projs = await client.fetch('*[_type == "project"] | order(sortOrder asc)');
+  console.log(`\n=== Total Projects di Sanity: ${projs.length} ===`);
+  projs.forEach((p, idx) => {
+    console.log(`${idx + 1}. ${p.title} (${p.category}) - ${p.year}`);
+  });
 }
 
-run();
+main().catch(console.error);

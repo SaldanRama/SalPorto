@@ -22,12 +22,12 @@ export const isSanityConfigured = () => {
   return Boolean(projectId && dataset && projectId !== 'your-project-id');
 };
 
-// Initialize Read Client (with CDN enabled for fast edge delivery)
+// Initialize Read Client (real-time live content)
 export const sanityClient = createClient({
   projectId,
   dataset,
   apiVersion,
-  useCdn: true,
+  useCdn: false,
 });
 
 // Initialize Image URL Builder
