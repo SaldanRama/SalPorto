@@ -264,24 +264,73 @@ function getExperienceTools(exp) {
 
 /**
  * Helper Sub-component for rendering the text content
- * (Job Title, Institution, Period in Months, and Jobdesk List)
+ * (Job Title, Institution with Logos, Period, Editorial Contribution Highlights, and Stack)
  */
 function ExperienceContentBody({ exp, index }) {
   const displayTools = getExperienceTools(exp);
 
+  // Parse logos if available
+  const logos = React.useMemo(() => {
+    const raw = getExperienceLogo(exp);
+    if (!raw) return [];
+    if (Array.isArray(raw)) return raw.filter(Boolean);
+    if (typeof raw === 'string') {
+      const trimmed = raw.trim();
+      if (trimmed.startsWith('[') && trimmed.endsWith(']')) {
+        try {
+          const parsed = JSON.parse(trimmed);
+          if (Array.isArray(parsed)) return parsed.filter(Boolean);
+        } catch (_) {}
+      }
+      if (trimmed.includes(',')) {
+        return trimmed.split(',').map((s) => s.trim()).filter(Boolean);
+      }
+      return [trimmed];
+    }
+    return [];
+  }, [exp]);
+
+  // Safely parse jobdesk into array whether it's an array or string from database
+  const parsedJobdesk = React.useMemo(() => {
+    if (Array.isArray(exp?.jobdesk) && exp.jobdesk.length > 0) {
+      return exp.jobdesk.filter(Boolean);
+    }
+    if (typeof exp?.jobdesk === 'string' && exp.jobdesk.trim() !== '') {
+      const trimmed = exp.jobdesk.trim();
+      if (trimmed.startsWith('[') && trimmed.endsWith(']')) {
+        try {
+          const parsed = JSON.parse(trimmed);
+          if (Array.isArray(parsed) && parsed.length > 0) return parsed.filter(Boolean);
+        } catch (_) {}
+      }
+      return trimmed
+        .split('\n')
+        .map((s) => s.replace(/^[•\-\*\d\.\)\s]+/, '').trim())
+        .filter(Boolean);
+    }
+    return [];
+  }, [exp?.jobdesk]);
+
   return (
     <div className="experience-body-inner">
-      {/* 1. Header Meta (Badge & Index) */}
+      {/* 1. Header Meta Bar (Category Badge, Period & Live Status) */}
       <div className="experience-top-meta">
-        <span className="experience-badge">
-          <Building2 size={13} />
-          <span>{exp.type || 'Experience'}</span>
-        </span>
+        <div className="meta-left-pills">
+          <span className="experience-badge">
+            <Building2 size={13} className="badge-icon" />
+            <span>{exp.type || 'Experience'}</span>
+          </span>
+
+          <span className="experience-period-pill">
+            <Calendar size={13} className="period-icon" />
+            <span>{exp.period}</span>
+          </span>
+        </div>
 
         {exp.isCurrent && (
           <span className="experience-status-badge">
             <span className="status-dot"></span>
-            <span>Aktif / Current</span>
+            <span>Current Role</span>
           </span>
         )}
       </div>
@@ -291,39 +340,67 @@ function ExperienceContentBody({ exp, index }) {
         {exp.role}
       </h3>
 
-      {/* 3. Nama Instansi (Institution / Company) */}
-      <div className="experience-instansi">
+      {/* 3. Nama Instansi & Logo Badges */}
+      <div className="experience-instansi-row">
         <span className="experience-instansi-name">{exp.organization}</span>
+        {logos.length > 0 && (
+          <div className="instansi-logos-list">
+            {logos.map((logoUrl, lIdx) => (
+              <span key={lIdx} className="instansi-logo-item" title={exp.organization}>
+                <img src={logoUrl} alt="Logo" />
+              </span>
+            ))}
+          </div>
+        )}
       </div>
 
-      {/* 4. Jangka Waktu Bulan (Duration / Period) */}
-      <div className="experience-period">
-        <Calendar size={14} className="period-icon" />
-        <span className="period-text">{exp.period}</span>
-      </div>
+      <div className="experience-divider" aria-hidden="true"></div>
 
-      {/* 5. List Jobdesk Yang Dilakukan */}
+      {/* 4. Core Contributions & Narrative (Editorial Style - Clean & Modern) */}
       <div className="experience-jobdesk-wrap">
-        <span className="jobdesk-header-label">Tanggung Jawab &amp; Kontribusi Utama:</span>
-        <ul className="experience-jobdesk-list">
-          {exp.jobdesk && exp.jobdesk.length > 0 ? (
-            exp.jobdesk.map((item, idx) => (
-              <li key={idx} className="jobdesk-item">
-                <CheckCircle2 size={16} className="jobdesk-check-icon" />
-                <span className="jobdesk-text">{item}</span>
-              </li>
+        <div className="jobdesk-header-row">
+          <div className="jobdesk-header-title">
+            <Sparkles size={14} className="header-sparkle-icon" />
+            <span>Core Contributions &amp; Scope</span>
+          </div>
+          {parsedJobdesk.length > 0 && (
+            <span className="jobdesk-count-indicator">{parsedJobdesk.length} Key Focus Areas</span>
+          )}
+        </div>
+
+        <div className="experience-jobdesk-list">
+          {parsedJobdesk.length > 0 ? (
+            parsedJobdesk.map((item, idx) => (
+              <div key={idx} className="jobdesk-item-row">
+                <div className="jobdesk-index-col">
+                  <span className="jobdesk-num-pill">{String(idx + 1).padStart(2, '0')}</span>
+                </div>
+                <div className="jobdesk-content-col">
+                  <p className="jobdesk-paragraph">{item}</p>
+                </div>
+              </div>
             ))
           ) : (
-            <li className="jobdesk-item">
-              <span className="jobdesk-text">{exp.description}</span>
-            </li>
+            <div className="jobdesk-item-row">
+              <div className="jobdesk-index-col">
+                <span className="jobdesk-num-pill">01</span>
+              </div>
+              <div className="jobdesk-content-col">
+                <p className="jobdesk-paragraph">{exp.description || 'Contributing to organizational initiatives and high-quality deliverables.'}</p>
+              </div>
+            </div>
           )}
-        </ul>
+        </div>
       </div>
 
-      {/* 6. Tools & Teknologi yang Digunakan */}
+      {/* 5. Tools & Creative Stack Ribbon */}
       {displayTools.length > 0 && (
-        <ExperienceTools tools={displayTools} />
+        <div className="experience-card-stack-footer">
+          <div className="stack-footer-header">
+            <span className="stack-footer-label">Tools &amp; Workflow Stack</span>
+          </div>
+          <ExperienceTools tools={displayTools} showLabel={false} />
+        </div>
       )}
     </div>
   );

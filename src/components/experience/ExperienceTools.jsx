@@ -106,12 +106,12 @@ export function getToolLogo(toolName) {
  * ExperienceTools Component
  * Renders an aesthetic strip of tool badges with their logos underneath experience details.
  */
-export function ExperienceTools({ tools = [] }) {
+export function ExperienceTools({ tools = [], showLabel = true, label = 'Tools & Teknologi:' }) {
   if (!tools || tools.length === 0) return null;
 
   return (
-    <div className="experience-tools-strip">
-      <span className="experience-tools-label">Tools &amp; Teknologi:</span>
+    <div className={`experience-tools-strip ${!showLabel ? 'experience-tools-strip--bare' : ''}`}>
+      {showLabel && <span className="experience-tools-label">{label}</span>}
       <div className="experience-tools-list">
         {tools.map((tool, idx) => (
           <div key={idx} className="experience-tool-chip">

@@ -11,6 +11,12 @@
   gap: 0.65rem;
 }
 
+.experience-tools-strip--bare {
+  margin-top: 0;
+  padding-top: 0;
+  border-top: none;
+}
+
 .experience-tools-label {
   font-size: 0.75rem;
   font-weight: 600;
