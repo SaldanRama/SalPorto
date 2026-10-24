@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowUpRight, ArrowRight, ArrowDown, Sparkles, Layers, Code, Palette } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
-import { ScrollWordReveal } from '@/components/ui/ScrollWordReveal';
 import { HeroVisual3D } from '@/components/hero/HeroVisual3D';
 import { BiographyBento } from '@/components/biography/BiographyBento';
 import { ExperienceTimeline } from '@/components/experience/ExperienceTimeline';
@@ -53,15 +52,8 @@ export function HomePage() {
       {/* SECTION 2: BIOGRAPHY BENTO & CORE PILLARS */}
       <section id="about-manifesto" className="section-manifesto" aria-label="About & Biography">
         <div className="container">
-          {/* Main Ethos / Vision Statement Headline with Scroll Word Reveal */}
-          <div style={{ maxWidth: '920px', marginBottom: '2.5rem' }} data-reveal="fade-up">
-            <span className="section-label">01 / Ethos &amp; Vision</span>
-            <ScrollWordReveal
-              as="h2"
-              className="manifesto-headline"
-              text="Designing digital products with substance, clarity, and intent."
-              italicWords={['substance']}
-            />
+          <div style={{ marginBottom: '2rem' }} data-reveal="fade-up">
+            <span className="section-label">01 / Profile &amp; Track Record</span>
           </div>
 
           {/* Executive Biography Bento Card with Interactive 3D Keyboard */}
