@@ -62,45 +62,6 @@ const PRESET_TOOLS = [
   'Microsoft Excel',
 ];
 
-const PRESET_LOGOS = [
-  {
-    id: 'pusakabugis-dual',
-    label: 'PusakaBugis + Kemenbud (2 Logo)',
-    value: ['/images/PusakaBugisLogo.png', '/images/KemenbudLogo.png'],
-    icons: ['/images/PusakaBugisLogo.png', '/images/KemenbudLogo.png'],
-  },
-  {
-    id: 'unhas',
-    label: 'Universitas Hasanuddin',
-    value: '/images/UnhasLogo.png',
-    icons: ['/images/UnhasLogo.png'],
-  },
-  {
-    id: 'diskominfo',
-    label: 'Diskominfo Makassar',
-    value: '/images/KominfoLogo.png',
-    icons: ['/images/KominfoLogo.png'],
-  },
-  {
-    id: 'bpjs',
-    label: 'BPJS Kesehatan',
-    value: '/images/BpjsLogo.png',
-    icons: ['/images/BpjsLogo.png'],
-  },
-  {
-    id: 'pusakabugis-single',
-    label: 'PusakaBugis.id Saja',
-    value: '/images/PusakaBugisLogo.png',
-    icons: ['/images/PusakaBugisLogo.png'],
-  },
-  {
-    id: 'kemenbud-single',
-    label: 'Kemenbud Saja',
-    value: '/images/KemenbudLogo.png',
-    icons: ['/images/KemenbudLogo.png'],
-  },
-];
-
 export function AdminDashboardPage() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [activeTab, setActiveTab] = useState('experiences'); // Default focus on experiences
@@ -130,6 +91,7 @@ export function AdminDashboardPage() {
   const [editingExp, setEditingExp] = useState(null);
   const [expForm, setExpForm] = useState(getEmptyExpForm());
   const [expUploadLoading, setExpUploadLoading] = useState(false);
+  const [isExpDragOver, setIsExpDragOver] = useState(false);
   const [customToolInput, setCustomToolInput] = useState('');
 
   // Media Tab State
@@ -425,36 +387,76 @@ export function AdminDashboardPage() {
     setCustomToolInput('');
   };
 
-  // Upload photo into experience images array
-  const handleExpPhotoUpload = async (e) => {
-    const files = Array.from(e.target.files || []);
-    if (files.length === 0) return;
+  // Upload photo into experience images array (supports file input & drag and drop)
+  const processExpPhotoFiles = async (fileList) => {
+    const rawFiles = Array.from(fileList || []);
+    const imageFiles = rawFiles.filter(
+      (f) => (f.type && f.type.startsWith('image/')) || /\.(jpg|jpeg|png|webp|svg|gif|avif)$/i.test(f.name)
+    );
+
+    if (imageFiles.length === 0) {
+      if (rawFiles.length > 0) {
+        alert('Mohon pilih atau drop file gambar yang valid (PNG, JPG, WebP, dll).');
+      }
+      return;
+    }
 
     setExpUploadLoading(true);
     let successCount = 0;
-    for (const file of files) {
+    const newImages = [];
+
+    for (const file of imageFiles) {
       const { url, error } = await uploadImageToStorage(file, 'experiences');
       if (url) {
         successCount++;
-        setExpForm((prev) => ({
-          ...prev,
-          images: [
-            ...(prev.images || []),
-            {
-              url,
-              title: '',
-              caption: '',
-            },
-          ],
-        }));
+        newImages.push({
+          url,
+          title: '',
+          caption: '',
+        });
       } else {
-        alert(`Gagal upload ${file.name}: ${error?.message || 'Error Supabase Storage'}`);
+        alert(`Gagal upload ${file.name}: ${error?.message || 'Periksa koneksi Supabase Storage'}`);
       }
     }
-    setExpUploadLoading(false);
-    if (successCount > 0) {
+
+    if (newImages.length > 0) {
+      setExpForm((prev) => ({
+        ...prev,
+        images: [...(prev.images || []), ...newImages],
+      }));
       showToast(`${successCount} foto dokumentasi berhasil diunggah ke Supabase!`);
     }
+
+    setExpUploadLoading(false);
+  };
+
+  const handleExpPhotoUpload = (e) => {
+    if (e.target.files) {
+      processExpPhotoFiles(e.target.files);
+      e.target.value = '';
+    }
+  };
+
+  const handleExpDrop = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsExpDragOver(false);
+    if (e.dataTransfer && e.dataTransfer.files) {
+      processExpPhotoFiles(e.dataTransfer.files);
+    }
+  };
+
+  const handleExpDragOver = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!isExpDragOver) setIsExpDragOver(true);
+  };
+
+  const handleExpDragLeave = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (e.currentTarget.contains(e.relatedTarget)) return;
+    setIsExpDragOver(false);
   };
 
   // --- MEDIA TAB DIRECT UPLOAD ---
@@ -1288,6 +1290,7 @@ WHERE id = 'bpjs-kesehatan' AND (tools IS NULL OR jsonb_array_length(tools) = 0)
                     >
                       <option value="Academic">Academic</option>
                       <option value="Internship">Internship</option>
+                      <option value="Kontrak / Contract">Kontrak / Contract</option>
                       <option value="Community / Project">Community / Project</option>
                       <option value="Full-time">Full-time</option>
                       <option value="Freelance">Freelance</option>
@@ -1323,40 +1326,6 @@ WHERE id = 'bpjs-kesehatan' AND (tools IS NULL OR jsonb_array_length(tools) = 0)
                       />
                       <span>Sedang Aktif Berjalan (Current Role)</span>
                     </label>
-                  </div>
-                </div>
-
-                {/* Logo Instansi Selection */}
-                <div className="admin-field" style={{ marginTop: '0.65rem', paddingTop: '1rem', borderTop: '1px dashed var(--line)' }}>
-                  <label>Logo Instansi / Organisasi (Badge Logo di Atas Tumpukan Foto)</label>
-                  <p className="section-desc-hint" style={{ marginTop: 0, marginBottom: '0.65rem' }}>
-                    Pilih logo yang sesuai untuk ditampilkan di pojok kiri atas kartu foto (termasuk 2 Logo PusakaBugis + Kemenbud):
-                  </p>
-                  
-                  <div className="modal-logo-presets-grid">
-                    {PRESET_LOGOS.map((p) => {
-                      const isSelected =
-                        JSON.stringify(expForm.logo) === JSON.stringify(p.value) ||
-                        expForm.logo === p.value;
-                      return (
-                        <button
-                          key={p.id}
-                          type="button"
-                          onClick={() => setExpForm({ ...expForm, logo: p.value })}
-                          className={`modal-logo-preset-btn ${isSelected ? 'active' : ''}`}
-                        >
-                          <div className="preset-btn-logos">
-                            {p.icons.map((ic, i) => (
-                              <span key={i} className="preset-logo-pill">
-                                <img src={ic} alt={p.label} />
-                              </span>
-                            ))}
-                          </div>
-                          <span>{p.label}</span>
-                          {isSelected && <Check size={14} className="chip-check-icon" />}
-                        </button>
-                      );
-                    })}
                   </div>
                 </div>
               </div>
@@ -1489,52 +1458,101 @@ WHERE id = 'bpjs-kesehatan' AND (tools IS NULL OR jsonb_array_length(tools) = 0)
                 <div className="modal-section-title-row">
                   <span className="section-badge-num">4</span>
                   <div>
-                    <h4>Dokumentasi Foto Pengalaman (Untuk Tumpukan 3 Foto)</h4>
+                    <h4>Dokumentasi Foto Pengalaman (Galeri 3 Foto Bertumpuk)</h4>
                     <p className="section-desc-hint">
-                      Foto otomatis diunggah ke Supabase Storage dan ditampilkan sebagai galeri tumpuk interaktif tanpa label teks nama file.
+                      Tarik &amp; lepas (drag &amp; drop) foto langsung ke area di bawah untuk mengunggah otomatis ke Supabase Storage.
                     </p>
                   </div>
                 </div>
 
-                <div className="upload-control-row">
-                  <label className="admin-btn admin-btn-secondary upload-btn-label">
-                    <UploadCloud size={16} />
-                    <span>
-                      {expUploadLoading ? 'Sedang Mengunggah Foto ke Supabase...' : '+ Unggah Foto Dokumentasi'}
-                    </span>
-                    <input
-                      type="file"
-                      multiple
-                      accept="image/*"
-                      onChange={handleExpPhotoUpload}
-                      disabled={expUploadLoading}
-                      style={{ display: 'none' }}
-                    />
-                  </label>
+                {/* Direct Dropzone Area */}
+                <div
+                  className={`modal-exp-dropzone ${isExpDragOver ? 'drag-active' : ''} ${
+                    expUploadLoading ? 'uploading' : ''
+                  }`}
+                  onDragOver={handleExpDragOver}
+                  onDragEnter={handleExpDragOver}
+                  onDragLeave={handleExpDragLeave}
+                  onDrop={handleExpDrop}
+                >
+                  <input
+                    type="file"
+                    id="exp-photo-file-input"
+                    multiple
+                    accept="image/*"
+                    onChange={handleExpPhotoUpload}
+                    disabled={expUploadLoading}
+                    style={{ display: 'none' }}
+                  />
+
+                  {expUploadLoading ? (
+                    <div className="dropzone-status-content">
+                      <RefreshCw size={28} className="dropzone-spinner" />
+                      <div className="dropzone-text-group">
+                        <strong className="dropzone-primary-text">
+                          Sedang Mengunggah Foto ke Supabase Storage...
+                        </strong>
+                        <span className="dropzone-sub-text">
+                          Foto sedang diproses dan disimpan ke bucket penyimpanan cloud.
+                        </span>
+                      </div>
+                    </div>
+                  ) : (
+                    <label htmlFor="exp-photo-file-input" className="dropzone-label-area">
+                      <div className="dropzone-icon-bubble">
+                        {isExpDragOver ? <ImagePlus size={28} /> : <UploadCloud size={28} />}
+                      </div>
+                      <div className="dropzone-text-group">
+                        <strong className="dropzone-primary-text">
+                          {isExpDragOver ? 'Lepaskan Foto di Sini!' : 'Drop Foto Dokumentasi di Sini'}
+                        </strong>
+                        <span className="dropzone-sub-text">
+                          Tarik &amp; lepas file foto dari komputermu, atau <span className="browse-highlight">klik untuk pilih foto</span>
+                        </span>
+                        <span className="dropzone-formats-hint">
+                          Mendukung PNG, JPG, JPEG, WebP • Bisa drop banyak foto sekaligus
+                        </span>
+                      </div>
+                    </label>
+                  )}
                 </div>
 
                 {/* Thumbnails of current images */}
                 {expForm.images && expForm.images.length > 0 && (
-                  <div className="form-image-preview-grid">
-                    {expForm.images.map((img, i) => (
-                      <div key={i} className="preview-thumb-box">
-                        <img src={img.url} alt={`Foto ${i + 1}`} />
-                        <span className="preview-thumb-number">Foto {i + 1}</span>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setExpForm((prev) => ({
-                              ...prev,
-                              images: prev.images.filter((_, idx) => idx !== i),
-                            }));
-                          }}
-                          className="preview-remove-icon"
-                          title="Hapus foto ini"
-                        >
-                          <X size={13} />
-                        </button>
-                      </div>
-                    ))}
+                  <div className="uploaded-photos-wrap">
+                    <div className="uploaded-photos-header">
+                      <span className="uploaded-count-badge">
+                        <CheckCircle2 size={13} />
+                        <span>{expForm.images.length} Foto Dokumentasi Terpasang</span>
+                      </span>
+                      {expForm.images.length >= 3 && (
+                        <span className="optimal-photos-note">
+                          ✨ Optimal untuk tampilan kartu 3 foto bertumpuk
+                        </span>
+                      )}
+                    </div>
+
+                    <div className="form-image-preview-grid">
+                      {expForm.images.map((img, i) => (
+                        <div key={i} className="preview-thumb-box">
+                          <img src={img.url} alt={`Foto ${i + 1}`} />
+                          <span className="preview-thumb-number">Foto {i + 1}</span>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setExpForm((prev) => ({
+                                ...prev,
+                                images: prev.images.filter((_, idx) => idx !== i),
+                              }));
+                            }}
+                            className="preview-remove-icon"
+                            title="Hapus foto ini"
+                          >
+                            <X size={13} />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 )}
               </div>
