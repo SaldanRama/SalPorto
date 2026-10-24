@@ -313,7 +313,7 @@ function ExperienceContentBody({ exp, index }) {
 
   return (
     <div className="experience-body-inner">
-      {/* 1. Header Meta Bar (Category Badge, Period & Live Status) */}
+      {/* 1. Header Meta Bar (Category Badge on Left, Period in High Contrast on Right) */}
       <div className="experience-top-meta">
         <div className="meta-left-pills">
           <span className="experience-badge">
@@ -321,16 +321,18 @@ function ExperienceContentBody({ exp, index }) {
             <span>{exp.type || 'Experience'}</span>
           </span>
 
-          <span className="experience-period-pill">
-            <Calendar size={13} className="period-icon" />
-            <span>{exp.period}</span>
-          </span>
+          {exp.isCurrent && (
+            <span className="experience-status-badge">
+              <span className="status-dot"></span>
+              <span>Current Role</span>
+            </span>
+          )}
         </div>
 
-        {exp.isCurrent && (
-          <span className="experience-status-badge">
-            <span className="status-dot"></span>
-            <span>Current Role</span>
+        {/* Bulan tetap di ujung kanan card tanpa border hanya text berwarna kontras */}
+        {exp.period && (
+          <span className="experience-period-contrast">
+            {exp.period}
           </span>
         )}
       </div>
@@ -356,15 +358,14 @@ function ExperienceContentBody({ exp, index }) {
 
       <div className="experience-divider" aria-hidden="true"></div>
 
-      {/* 4. Core Contributions & Narrative (Editorial Style - Clean & Modern) */}
+      {/* 4. Core Contributions & Scope (Dot Bullets, No Sparkles) */}
       <div className="experience-jobdesk-wrap">
         <div className="jobdesk-header-row">
-          <div className="jobdesk-header-title">
-            <Sparkles size={14} className="header-sparkle-icon" />
-            <span>Core Contributions &amp; Scope</span>
-          </div>
+          <span className="jobdesk-header-title">
+            Core Contributions &amp; Scope
+          </span>
           {parsedJobdesk.length > 0 && (
-            <span className="jobdesk-count-indicator">{parsedJobdesk.length} Key Focus Areas</span>
+            <span className="jobdesk-count-indicator">{parsedJobdesk.length} Focus Areas</span>
           )}
         </div>
 
@@ -372,8 +373,8 @@ function ExperienceContentBody({ exp, index }) {
           {parsedJobdesk.length > 0 ? (
             parsedJobdesk.map((item, idx) => (
               <div key={idx} className="jobdesk-item-row">
-                <div className="jobdesk-index-col">
-                  <span className="jobdesk-num-pill">{String(idx + 1).padStart(2, '0')}</span>
+                <div className="jobdesk-dot-col">
+                  <span className="jobdesk-dot-bullet" aria-hidden="true"></span>
                 </div>
                 <div className="jobdesk-content-col">
                   <p className="jobdesk-paragraph">{item}</p>
@@ -382,8 +383,8 @@ function ExperienceContentBody({ exp, index }) {
             ))
           ) : (
             <div className="jobdesk-item-row">
-              <div className="jobdesk-index-col">
-                <span className="jobdesk-num-pill">01</span>
+              <div className="jobdesk-dot-col">
+                <span className="jobdesk-dot-bullet" aria-hidden="true"></span>
               </div>
               <div className="jobdesk-content-col">
                 <p className="jobdesk-paragraph">{exp.description || 'Contributing to organizational initiatives and high-quality deliverables.'}</p>
