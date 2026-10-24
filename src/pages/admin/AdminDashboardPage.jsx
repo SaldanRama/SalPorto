@@ -631,7 +631,7 @@ export function AdminDashboardPage() {
           {/* ================================================================
               EXPERIENCES GRID (SPACIOUS, AIRY, MINIMALIST)
               ================================================================ */}
-          {activeTab === 'experiences' && (
+          {activeTab === 'experiences' && viewMode === 'grid' && (
             <div className="sp-cards-grid">
               {filteredExperiences.map((exp) => {
                 const logos = resolveExperienceLogo(exp);
@@ -960,6 +960,92 @@ export function AdminDashboardPage() {
                   </div>
                 );
               })}
+            </div>
+          )}
+
+          {/* ================================================================
+              PROJECTS: LIST VIEW TABLE
+              ================================================================ */}
+          {activeTab === 'projects' && viewMode === 'list' && (
+            <div className="sp-list-table-container">
+              <table className="sp-list-table">
+                <thead>
+                  <tr>
+                    <th style={{ width: '80px' }}>Urutan</th>
+                    <th>Judul Proyek</th>
+                    <th>Kategori</th>
+                    <th>Tahun</th>
+                    <th>Tipe Proyek</th>
+                    <th>Status</th>
+                    <th style={{ width: '100px', textAlign: 'right' }}>Aksi</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredProjects.map((proj) => {
+                    const coverUrl = proj.coverImage || proj.cover_image;
+                    return (
+                      <tr key={proj.id || proj._id} onClick={(e) => handleOpenEditProj(e, proj)}>
+                        <td>
+                          <span className="sp-pill-order-badge">#{proj.sortOrder ?? 0}</span>
+                        </td>
+                        <td>
+                          <div className="sp-list-role-cell">
+                            <div className="sp-list-logo-box">
+                              {coverUrl ? (
+                                <img src={coverUrl} alt={proj.title} />
+                              ) : (
+                                <FolderGit2 size={18} />
+                              )}
+                            </div>
+                            <div>
+                              <div className="sp-list-role-title">{proj.title}</div>
+                              <span style={{ fontSize: '0.75rem', color: 'var(--sp-muted)' }}>
+                                {proj.role}
+                              </span>
+                            </div>
+                          </div>
+                        </td>
+                        <td>
+                          <span className="sp-list-type-badge">
+                            {proj.categoryLabel || proj.category}
+                          </span>
+                        </td>
+                        <td>
+                          <span className="sp-list-period-text">{proj.year}</span>
+                        </td>
+                        <td>
+                          <span className="sp-list-org-text">{proj.projectType}</span>
+                        </td>
+                        <td>
+                          <span className="sp-pill-home-badge">
+                            {proj.published ? '🟢 Live' : 'Draft'}
+                          </span>
+                        </td>
+                        <td style={{ textAlign: 'right' }}>
+                          <div className="sp-list-actions-cell" onClick={(e) => e.stopPropagation()}>
+                            <button
+                              type="button"
+                              className="sp-list-btn"
+                              onClick={(e) => handleOpenEditProj(e, proj)}
+                              title="Edit Proyek"
+                            >
+                              <Edit2 size={14} />
+                            </button>
+                            <button
+                              type="button"
+                              className="sp-list-btn delete"
+                              onClick={(e) => handleDeleteProj(e, proj)}
+                              title="Hapus"
+                            >
+                              <Trash2 size={14} />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
             </div>
           )}
 
