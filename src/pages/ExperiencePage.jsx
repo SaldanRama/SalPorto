@@ -205,7 +205,7 @@ export function ExperiencePage() {
                             border: '1px solid var(--line)',
                           }}
                         >
-                          <img src={l} alt="Logo" style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }} />
+                          <img src={l} alt="Logo" loading="lazy" decoding="async" style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }} />
                         </span>
                       ))}
                     </div>

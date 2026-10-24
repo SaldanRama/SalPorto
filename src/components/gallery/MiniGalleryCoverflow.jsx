@@ -182,7 +182,9 @@ export function MiniGalleryCoverflow() {
                     src={item.url}
                     alt={item.title || `Gallery image ${index + 1}`}
                     className="coverflow-pure-img"
-                    loading="lazy"
+                    loading={isActive || absDiff <= 1 ? 'eager' : 'lazy'}
+                    decoding="async"
+                    fetchPriority={isActive ? 'high' : 'low'}
                     draggable={false}
                   />
                 </div>

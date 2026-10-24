@@ -57,37 +57,37 @@ const userTools = [
   {
     name: 'Figma',
     role: 'UI/UX Design',
-    iconSrc: '/images/FigmaKeycaps.png',
+    iconSrc: '/images/FigmaKeycaps.webp',
   },
   {
     name: 'Photoshop',
     role: 'Graphic & Retouch',
-    iconSrc: '/images/PhotoshopKeycaps.png',
+    iconSrc: '/images/PhotoshopKeycaps.webp',
   },
   {
     name: 'Affinity',
     role: 'Vector Systems',
-    iconSrc: '/images/AffinityKeycaps.png',
+    iconSrc: '/images/AffinityKeycaps.webp',
   },
   {
     name: 'Canva',
     role: 'Brand & Content',
-    iconSrc: '/images/CanvaKeycaps.png',
+    iconSrc: '/images/CanvaKeycaps.webp',
   },
   {
     name: 'CapCut',
     role: 'Motion & Video',
-    iconSrc: '/images/CapcutKeycaps.png',
+    iconSrc: '/images/CapcutKeycaps.webp',
   },
   {
     name: 'VS Code',
     role: 'Front-End Dev',
-    iconSrc: '/images/VSCODEKeycaps.png',
+    iconSrc: '/images/VSCODEKeycaps.webp',
   },
   {
     name: 'Notion',
     role: 'Productivity & Notes',
-    iconSrc: '/images/NotionKeycaps.png',
+    iconSrc: '/images/NotionKeycaps.webp',
   },
 ];
 
@@ -191,11 +191,13 @@ export function BiographyBento() {
             {/* Normal / Base Photo */}
             <img
               ref={baseRef}
-              src="/images/sal.png"
+              src="/images/sal.webp"
               alt="Saldan Rama"
               className="sal-photo-layer sal-photo-base"
+              fetchpriority="high"
+              decoding="async"
               onError={(e) => {
-                e.currentTarget.src = '/images/portrait.png';
+                e.currentTarget.src = '/images/sal.png';
               }}
               draggable="false"
             />
@@ -203,11 +205,12 @@ export function BiographyBento() {
             {/* Ultraman reveal layer */}
             <img
               ref={spiderRef}
-              src="/images/salUltraman.png"
+              src="/images/salUltraman.webp"
               alt="Saldan Rama Ultraman"
               className="sal-photo-layer sal-photo-spiderman"
+              decoding="async"
               onError={(e) => {
-                e.currentTarget.src = '/images/salUltaman.png';
+                e.currentTarget.src = '/images/salUltraman.png';
               }}
               draggable="false"
             />
@@ -320,6 +323,11 @@ export function BiographyBento() {
                   src={tool.iconSrc}
                   alt={`${tool.name} Keycap`}
                   className="resume-keycap-img"
+                  loading="lazy"
+                  decoding="async"
+                  onError={(e) => {
+                    e.currentTarget.src = tool.iconSrc.replace('.webp', '.png');
+                  }}
                   draggable="false"
                 />
               </button>

@@ -34,26 +34,70 @@ export const sanityClient = createClient({
 const builder = imageUrlBuilder(sanityClient);
 
 /**
- * Convert Sanity image object or asset reference to a CDN URL string
+ * Convert Sanity image object or asset reference to an optimized CDN URL string
+ * Automatically serves modern formats (WebP/AVIF), resizes appropriately, and compresses.
  * @param {any} source
+ * @param {{ width?: number, quality?: number, height?: number }} [options]
  * @returns {string|null}
  */
-export function urlFor(source) {
+export function urlFor(source, options = {}) {
   if (!source) return null;
+
+  const width = options.width || 1200;
+  const quality = options.quality || 80;
 
   // If source is already a direct string URL or path
   if (typeof source === 'string') {
+    // If it's a Sanity CDN URL string, append edge optimization parameters
+    if (source.includes('cdn.sanity.io/images/')) {
+      try {
+        const urlObj = new URL(source);
+        urlObj.searchParams.set('auto', 'format');
+        if (width && !urlObj.searchParams.has('w')) {
+          urlObj.searchParams.set('w', String(width));
+        }
+        if (!urlObj.searchParams.has('q')) {
+          urlObj.searchParams.set('q', String(quality));
+        }
+        return urlObj.toString();
+      } catch (_) {
+        return source;
+      }
+    }
+    // If Unsplash, optimize dimensions & compression
+    if (source.includes('images.unsplash.com')) {
+      try {
+        const urlObj = new URL(source);
+        urlObj.searchParams.set('auto', 'format');
+        urlObj.searchParams.set('fit', 'crop');
+        const currentW = parseInt(urlObj.searchParams.get('w') || '0', 10);
+        if (!currentW || currentW > width) {
+          urlObj.searchParams.set('w', String(width));
+        }
+        urlObj.searchParams.set('q', String(quality));
+        return urlObj.toString();
+      } catch (_) {
+        return source;
+      }
+    }
     return source;
   }
 
   // If source has an explicit url property
   if (source.url && typeof source.url === 'string') {
-    return source.url;
+    return urlFor(source.url, options);
   }
 
   // If it's a valid Sanity image object or asset ref
   try {
-    return builder.image(source).auto('format').fit('max').url();
+    let imgBuilder = builder.image(source).auto('format').quality(quality).fit('max');
+    if (width) {
+      imgBuilder = imgBuilder.width(width);
+    }
+    if (options.height) {
+      imgBuilder = imgBuilder.height(options.height);
+    }
+    return imgBuilder.url();
   } catch (err) {
     console.warn('Could not build Sanity image URL:', err);
     return null;
@@ -106,16 +150,16 @@ export function resolveExperienceLogo(e) {
     role.includes('pusaka') ||
     id.includes('pusaka')
   ) {
-    return ['/images/PusakaBugisLogo.png', '/images/KemenbudLogo.png'];
+    return ['/images/PusakaBugisLogo.webp', '/images/KemenbudLogo.webp'];
   }
   if (org.includes('unhas') || org.includes('laboratorium') || id.includes('lab')) {
-    return '/images/UnhasLogo.png';
+    return '/images/UnhasLogo.webp';
   }
   if (org.includes('diskominfo') || id.includes('diskominfo')) {
-    return '/images/KominfoLogo.png';
+    return '/images/KominfoLogo.webp';
   }
   if (org.includes('bpjs') || id.includes('bpjs')) {
-    return '/images/BpjsLogo.png';
+    return '/images/BpjsLogo.webp';
   }
 
   return '';
@@ -147,7 +191,7 @@ export async function getProjects() {
 
       if (data && data.length > 0) {
         const normalized = data.map((p) => {
-          const coverUrl = urlFor(p.coverImage) || p.coverImage || '';
+          const coverUrl = urlFor(p.coverImage, { width: 900, quality: 78 }) || p.coverImage || '';
           return {
             id: p._id,
             slug: p.slug?.current || p.slug || p._id,
@@ -215,7 +259,7 @@ export async function getProjectBySlug(slug) {
 
       const doc = await sanityClient.fetch(query, { slug });
       if (doc) {
-        const coverUrl = urlFor(doc.coverImage) || doc.coverImage || '';
+        const coverUrl = urlFor(doc.coverImage, { width: 1400, quality: 82 }) || doc.coverImage || '';
         return {
           id: doc._id,
           slug: doc.slug?.current || doc.slug || doc._id,
@@ -275,7 +319,7 @@ export async function getExperiences() {
           const resolvedImages = Array.isArray(e.images)
             ? e.images.map((imgItem) => {
                 const photoFile = imgItem.image || imgItem;
-                const photoUrl = urlFor(photoFile) || imgItem.url || '';
+                const photoUrl = urlFor(photoFile, { width: 800, quality: 78 }) || imgItem.url || '';
                 return {
                   url: photoUrl,
                   title: imgItem.title || '',
@@ -347,12 +391,72 @@ export const sanityWriteClient = createClient({
 });
 
 /**
- * Upload an image file (File or Blob) to Sanity Assets pipeline
+ * Client-side image resize & compression before uploading to cloud
+ * Resizes large camera photos (e.g. > 1920px) to max 1920px WebP
+ */
+export async function compressImageBeforeUpload(file, maxWidth = 1920, maxHeight = 1080, quality = 0.85) {
+  if (typeof window === 'undefined' || !file || !(file instanceof Blob)) return file;
+  if (!file.type || !file.type.startsWith('image/')) return file;
+  if (file.type === 'image/svg+xml' || file.type === 'image/gif') return file;
+  if (file.size < 350 * 1024) return file; // Already lightweight
+
+  return new Promise((resolve) => {
+    try {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const img = new Image();
+        img.onload = () => {
+          let width = img.width;
+          let height = img.height;
+
+          if (width > maxWidth || height > maxHeight) {
+            const ratio = Math.min(maxWidth / width, maxHeight / height);
+            width = Math.round(width * ratio);
+            height = Math.round(height * ratio);
+          }
+
+          const canvas = document.createElement('canvas');
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, width, height);
+
+          canvas.toBlob(
+            (blob) => {
+              if (blob && blob.size < file.size) {
+                const newName = (file.name || 'image').replace(/\.[^.]+$/, '.webp');
+                const compressedFile = new File([blob], newName, {
+                  type: 'image/webp',
+                  lastModified: Date.now(),
+                });
+                resolve(compressedFile);
+              } else {
+                resolve(file);
+              }
+            },
+            'image/webp',
+            quality
+          );
+        };
+        img.onerror = () => resolve(file);
+        img.src = e.target.result;
+      };
+      reader.onerror = () => resolve(file);
+      reader.readAsDataURL(file);
+    } catch (_) {
+      resolve(file);
+    }
+  });
+}
+
+/**
+ * Upload an image file (File or Blob) to Sanity Assets pipeline with pre-compression
  */
 export async function uploadImageToSanity(file, filename) {
   try {
-    const asset = await sanityWriteClient.assets.upload('image', file, {
-      filename: filename || file.name,
+    const fileToUpload = await compressImageBeforeUpload(file);
+    const asset = await sanityWriteClient.assets.upload('image', fileToUpload, {
+      filename: filename || fileToUpload.name || file.name,
     });
     return {
       asset,
@@ -506,7 +610,7 @@ export async function getMiniGallery() {
       const data = await sanityClient.fetch(query);
       if (Array.isArray(data) && data.length > 0) {
         const normalized = data.map((item, index) => {
-          const imgUrl = urlFor(item.image) || item.image?.url || '';
+          const imgUrl = urlFor(item.image, { width: 960, quality: 78 }) || item.image?.url || '';
           return {
             id: item._id,
             _id: item._id,
@@ -549,7 +653,7 @@ export async function getMiniGallery() {
       _id: 'default-cover-1',
       title: 'SIMRS RSUD Hasanuddin Web App',
       caption: 'UI/UX Redesign & Healthcare Management Dashboard',
-      url: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&w=1600&q=80',
+      url: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&w=900&q=75',
       linkUrl: '#',
       sortOrder: 0,
       published: true,
@@ -560,7 +664,7 @@ export async function getMiniGallery() {
       _id: 'default-cover-2',
       title: 'PerdosFit — Gym Management Concept',
       caption: 'Double Diamond Methodology & Interactive Prototype',
-      url: 'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?auto=format&fit=crop&w=1600&q=80',
+      url: 'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?auto=format&fit=crop&w=900&q=75',
       linkUrl: '/work/perdosfit',
       sortOrder: 1,
       published: true,
@@ -571,7 +675,7 @@ export async function getMiniGallery() {
       _id: 'default-cover-3',
       title: 'Diskominfo Makassar — Kelurahan Cantik',
       caption: 'Community Statistical Web System & Visual Identity',
-      url: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=1600&q=80',
+      url: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=900&q=75',
       linkUrl: '/work/kelurahan-cantik',
       sortOrder: 2,
       published: true,
@@ -582,7 +686,7 @@ export async function getMiniGallery() {
       _id: 'default-cover-4',
       title: 'UMKM Lakessi Brand Identity',
       caption: 'Creative Packaging, Typography & Brand Guidelines',
-      url: 'https://images.unsplash.com/photo-1507238691740-187a5b1d37b8?auto=format&fit=crop&w=1600&q=80',
+      url: 'https://images.unsplash.com/photo-1507238691740-187a5b1d37b8?auto=format&fit=crop&w=900&q=75',
       linkUrl: '#',
       sortOrder: 3,
       published: true,

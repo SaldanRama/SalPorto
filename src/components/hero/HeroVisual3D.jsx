@@ -44,42 +44,42 @@ export function HeroVisual3D() {
       id: 'photoshop',
       name: 'Photoshop',
       role: 'Retouch & Edit',
-      iconSrc: '/images/PhotoshopLogo.png',
+      iconSrc: '/images/PhotoshopLogo.webp',
       baseAngle: 0,
     },
     {
       id: 'affinity',
       name: 'Affinity',
       role: 'Vector Systems',
-      iconSrc: '/images/AffinityLogo.png',
+      iconSrc: '/images/AffinityLogo.webp',
       baseAngle: (2 * Math.PI) / 6,
     },
     {
       id: 'canva',
       name: 'Canva',
       role: 'Brand Assets',
-      iconSrc: '/images/CanvaLogo.png',
+      iconSrc: '/images/CanvaLogo.webp',
       baseAngle: (4 * Math.PI) / 6,
     },
     {
       id: 'capcut',
       name: 'CapCut',
       role: 'Motion & Reels',
-      iconSrc: '/images/CapcutLogo.png',
+      iconSrc: '/images/CapcutLogo.webp',
       baseAngle: (6 * Math.PI) / 6,
     },
     {
       id: 'vscode',
       name: 'VS Code',
       role: 'Code & Web Dev',
-      iconSrc: '/images/VSCODELogo.png',
+      iconSrc: '/images/VSCODELogo.webp',
       baseAngle: (8 * Math.PI) / 6,
     },
     {
       id: 'figma',
       name: 'Figma',
       role: 'UI/UX Prototypes',
-      iconSrc: '/images/FigmaLogo.png',
+      iconSrc: '/images/FigmaLogo.webp',
       baseAngle: (10 * Math.PI) / 6,
     },
   ];
@@ -242,9 +242,11 @@ export function HeroVisual3D() {
             {/* Base Graduation Suit Portrait */}
             <img
               ref={basePortraitRef}
-              src="/images/portrait.png"
+              src="/images/portrait.webp"
               alt="Saldan Rama"
               className="hero-portrait-img hero-portrait-base"
+              fetchpriority="high"
+              decoding="async"
               onError={() => setImageError(true)}
               draggable="false"
             />
@@ -252,9 +254,10 @@ export function HeroVisual3D() {
             {/* Spider-Man Reveal Costume */}
             <img
               ref={spiderPortraitRef}
-              src="/images/portraitSpider.png"
+              src="/images/portraitSpider.webp"
               alt="Saldan Rama Spider-Man"
               className="hero-portrait-img hero-portrait-spider"
+              decoding="async"
               draggable="false"
             />
           </div>

@@ -114,6 +114,7 @@ export function StackedImageGallery({ images = [], altTitle = 'Dokumentasi Penga
                   alt={item.title || `${altTitle} - Foto ${index + 1}`}
                   className="stacked-card-img"
                   loading="lazy"
+                  decoding="async"
                 />
                 
                 {logoList.length > 0 && offset === 0 && (
@@ -121,7 +122,7 @@ export function StackedImageGallery({ images = [], altTitle = 'Dokumentasi Penga
                     <div className="stacked-card-logos-wrap">
                       {logoList.map((logoUrl, lIdx) => (
                         <div key={lIdx} className="stacked-card-logo" title={altTitle}>
-                          <img src={logoUrl} alt={`Logo ${lIdx + 1}`} />
+                          <img src={logoUrl} alt={`Logo ${lIdx + 1}`} loading="lazy" decoding="async" />
                         </div>
                       ))}
                     </div>

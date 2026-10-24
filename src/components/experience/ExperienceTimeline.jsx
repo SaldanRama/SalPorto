@@ -225,16 +225,16 @@ export function getExperienceLogo(exp) {
   const id = (exp?.id || '').toLowerCase();
 
   if (org.includes('pusaka') || org.includes('kemenbud') || role.includes('pusaka') || id.includes('pusaka')) {
-    return ['/images/PusakaBugisLogo.png', '/images/KemenbudLogo.png'];
+    return ['/images/PusakaBugisLogo.webp', '/images/KemenbudLogo.webp'];
   }
   if (org.includes('unhas') || org.includes('laboratorium') || id.includes('lab')) {
-    return '/images/UnhasLogo.png';
+    return '/images/UnhasLogo.webp';
   }
   if (org.includes('diskominfo') || id.includes('diskominfo')) {
-    return '/images/KominfoLogo.png';
+    return '/images/KominfoLogo.webp';
   }
   if (org.includes('bpjs') || id.includes('bpjs')) {
-    return '/images/BpjsLogo.png';
+    return '/images/BpjsLogo.webp';
   }
 
   return null;
@@ -349,7 +349,7 @@ function ExperienceContentBody({ exp, index }) {
           <div className="instansi-logos-list">
             {logos.map((logoUrl, lIdx) => (
               <span key={lIdx} className="instansi-logo-item" title={exp.organization}>
-                <img src={logoUrl} alt="Logo" />
+                <img src={logoUrl} alt="Logo" loading="lazy" decoding="async" />
               </span>
             ))}
           </div>

@@ -10,25 +10,25 @@ export function getToolLogo(toolName) {
 
   // 1. Matched with existing local files in /images/
   if (name.includes('figma')) {
-    return <img src="/images/FigmaLogo.png" alt="Figma" className="tool-pill-logo" />;
+    return <img src="/images/FigmaLogo.webp" alt="Figma" className="tool-pill-logo" loading="lazy" decoding="async" />;
   }
   if (name.includes('vscode') || name.includes('vs code') || name.includes('visual studio code')) {
-    return <img src="/images/VSCODELogo.png" alt="VS Code" className="tool-pill-logo" />;
+    return <img src="/images/VSCODELogo.webp" alt="VS Code" className="tool-pill-logo" loading="lazy" decoding="async" />;
   }
   if (name.includes('photoshop')) {
-    return <img src="/images/PhotoshopLogo.png" alt="Photoshop" className="tool-pill-logo" />;
+    return <img src="/images/PhotoshopLogo.webp" alt="Photoshop" className="tool-pill-logo" loading="lazy" decoding="async" />;
   }
   if (name.includes('affinity')) {
-    return <img src="/images/AffinityLogo.png" alt="Affinity" className="tool-pill-logo" />;
+    return <img src="/images/AffinityLogo.webp" alt="Affinity" className="tool-pill-logo" loading="lazy" decoding="async" />;
   }
   if (name.includes('canva')) {
-    return <img src="/images/CanvaLogo.png" alt="Canva" className="tool-pill-logo" />;
+    return <img src="/images/CanvaLogo.webp" alt="Canva" className="tool-pill-logo" loading="lazy" decoding="async" />;
   }
   if (name.includes('capcut')) {
-    return <img src="/images/CapcutLogo.png" alt="Capcut" className="tool-pill-logo" />;
+    return <img src="/images/CapcutLogo.webp" alt="Capcut" className="tool-pill-logo" loading="lazy" decoding="async" />;
   }
   if (name.includes('notion')) {
-    return <img src="/images/NotionKeycaps.png" alt="Notion" className="tool-pill-logo" />;
+    return <img src="/images/NotionKeycaps.webp" alt="Notion" className="tool-pill-logo" loading="lazy" decoding="async" />;
   }
 
   // 2. High-fidelity SVGs for modern Web Development & Data Stack
