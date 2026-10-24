@@ -62,6 +62,45 @@ const PRESET_TOOLS = [
   'Microsoft Excel',
 ];
 
+const PRESET_LOGOS = [
+  {
+    id: 'pusakabugis-dual',
+    label: 'PusakaBugis + Kemenbud (2 Logo)',
+    value: ['/images/PusakaBugisLogo.png', '/images/KemenbudLogo.png'],
+    icons: ['/images/PusakaBugisLogo.png', '/images/KemenbudLogo.png'],
+  },
+  {
+    id: 'unhas',
+    label: 'Universitas Hasanuddin',
+    value: '/images/UnhasLogo.png',
+    icons: ['/images/UnhasLogo.png'],
+  },
+  {
+    id: 'diskominfo',
+    label: 'Diskominfo Makassar',
+    value: '/images/KominfoLogo.png',
+    icons: ['/images/KominfoLogo.png'],
+  },
+  {
+    id: 'bpjs',
+    label: 'BPJS Kesehatan',
+    value: '/images/BpjsLogo.png',
+    icons: ['/images/BpjsLogo.png'],
+  },
+  {
+    id: 'pusakabugis-single',
+    label: 'PusakaBugis.id Saja',
+    value: '/images/PusakaBugisLogo.png',
+    icons: ['/images/PusakaBugisLogo.png'],
+  },
+  {
+    id: 'kemenbud-single',
+    label: 'Kemenbud Saja',
+    value: '/images/KemenbudLogo.png',
+    icons: ['/images/KemenbudLogo.png'],
+  },
+];
+
 export function AdminDashboardPage() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [activeTab, setActiveTab] = useState('experiences'); // Default focus on experiences
@@ -298,6 +337,7 @@ export function AdminDashboardPage() {
       ...exp,
       isCurrent: exp.is_current !== undefined ? exp.is_current : (exp.isCurrent ?? false),
       sortOrder: exp.sort_order !== undefined ? exp.sort_order : (exp.sortOrder ?? 0),
+      logo: exp.logo || '',
       jobdesk: Array.isArray(exp.jobdesk) && exp.jobdesk.length > 0 ? exp.jobdesk : [''],
       tools: Array.isArray(exp.tools) ? exp.tools : [],
       images: Array.isArray(exp.images) ? exp.images : [],
@@ -321,6 +361,7 @@ export function AdminDashboardPage() {
       tools: Array.isArray(expForm.tools) ? expForm.tools : [],
       sort_order: parseInt(expForm.sortOrder ?? expForm.sort_order ?? 0, 10),
       is_current: expForm.isCurrent ?? expForm.is_current ?? false,
+      logo: expForm.logo || '',
     };
 
     const res = await saveExperience(toSave);
@@ -713,6 +754,22 @@ export function AdminDashboardPage() {
                       <div className="exp-card-org">
                         <Building2 size={15} />
                         <span>{exp.organization}</span>
+                        {(() => {
+                          const logos = Array.isArray(exp.logo)
+                            ? exp.logo
+                            : (typeof exp.logo === 'string' && exp.logo.startsWith('[')
+                                ? JSON.parse(exp.logo)
+                                : [exp.logo].filter(Boolean));
+                          return logos.length > 0 ? (
+                            <div className="card-org-logos-wrap">
+                              {logos.map((l, lIdx) => (
+                                <span key={lIdx} className="card-org-logo-pill" title="Logo Terpasang">
+                                  <img src={l} alt="Logo" />
+                                </span>
+                              ))}
+                            </div>
+                          ) : null;
+                        })()}
                       </div>
                       <div className="exp-card-period">
                         <Calendar size={14} />
@@ -1266,6 +1323,40 @@ WHERE id = 'bpjs-kesehatan' AND (tools IS NULL OR jsonb_array_length(tools) = 0)
                       />
                       <span>Sedang Aktif Berjalan (Current Role)</span>
                     </label>
+                  </div>
+                </div>
+
+                {/* Logo Instansi Selection */}
+                <div className="admin-field" style={{ marginTop: '0.65rem', paddingTop: '1rem', borderTop: '1px dashed var(--line)' }}>
+                  <label>Logo Instansi / Organisasi (Badge Logo di Atas Tumpukan Foto)</label>
+                  <p className="section-desc-hint" style={{ marginTop: 0, marginBottom: '0.65rem' }}>
+                    Pilih logo yang sesuai untuk ditampilkan di pojok kiri atas kartu foto (termasuk 2 Logo PusakaBugis + Kemenbud):
+                  </p>
+                  
+                  <div className="modal-logo-presets-grid">
+                    {PRESET_LOGOS.map((p) => {
+                      const isSelected =
+                        JSON.stringify(expForm.logo) === JSON.stringify(p.value) ||
+                        expForm.logo === p.value;
+                      return (
+                        <button
+                          key={p.id}
+                          type="button"
+                          onClick={() => setExpForm({ ...expForm, logo: p.value })}
+                          className={`modal-logo-preset-btn ${isSelected ? 'active' : ''}`}
+                        >
+                          <div className="preset-btn-logos">
+                            {p.icons.map((ic, i) => (
+                              <span key={i} className="preset-logo-pill">
+                                <img src={ic} alt={p.label} />
+                              </span>
+                            ))}
+                          </div>
+                          <span>{p.label}</span>
+                          {isSelected && <Check size={14} className="chip-check-icon" />}
+                        </button>
+                      );
+                    })}
                   </div>
                 </div>
               </div>

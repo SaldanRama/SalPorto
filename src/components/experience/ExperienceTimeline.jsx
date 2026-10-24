@@ -134,7 +134,7 @@ export function ExperienceTimeline() {
                         <StackedImageGallery
                           images={exp.images}
                           altTitle={exp.role}
-                          companyLogo={exp.logo}
+                          companyLogo={getExperienceLogo(exp)}
                         />
                       </div>
                     ) : (
@@ -169,7 +169,7 @@ export function ExperienceTimeline() {
                         <StackedImageGallery
                           images={exp.images}
                           altTitle={exp.role}
-                          companyLogo={exp.logo}
+                          companyLogo={getExperienceLogo(exp)}
                         />
                       </div>
                     )}
@@ -193,6 +193,45 @@ export function ExperienceTimeline() {
       </div>
     </section>
   );
+}
+
+export function getExperienceLogo(exp) {
+  if (exp?.logo) {
+    if (Array.isArray(exp.logo) && exp.logo.length > 0) return exp.logo;
+    if (typeof exp.logo === 'string' && exp.logo.trim() !== '') {
+      const trimmed = exp.logo.trim();
+      if (trimmed.startsWith('[') && trimmed.endsWith(']')) {
+        try {
+          const parsed = JSON.parse(trimmed);
+          if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+        } catch (_) {}
+      }
+      if (trimmed.includes(',')) {
+        return trimmed.split(',').map((s) => s.trim()).filter(Boolean);
+      }
+      return trimmed;
+    }
+  }
+
+  // Automatic matching based on organization name & role
+  const org = (exp?.organization || '').toLowerCase();
+  const role = (exp?.role || '').toLowerCase();
+  const id = (exp?.id || '').toLowerCase();
+
+  if (org.includes('pusaka') || org.includes('kemenbud') || role.includes('pusaka') || id.includes('pusaka')) {
+    return ['/images/PusakaBugisLogo.png', '/images/KemenbudLogo.png'];
+  }
+  if (org.includes('unhas') || org.includes('laboratorium') || id.includes('lab')) {
+    return '/images/UnhasLogo.png';
+  }
+  if (org.includes('diskominfo') || id.includes('diskominfo')) {
+    return '/images/KominfoLogo.png';
+  }
+  if (org.includes('bpjs') || id.includes('bpjs')) {
+    return '/images/BpjsLogo.png';
+  }
+
+  return null;
 }
 
 function getExperienceTools(exp) {

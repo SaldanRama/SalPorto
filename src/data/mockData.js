@@ -158,6 +158,26 @@ export const mockExperiences = [
       'Facilitated health-facility data validation, digital archiving, document organization, and administrative operational workflows.'
   },
   {
+    id: 'pusakabugis',
+    role: 'Creative & Media Producer Specialist',
+    organization: 'PusakaBugis.id (Kemenbud)',
+    period: 'Agustus 2024 — Sekarang',
+    type: 'Community / Project',
+    isCurrent: true,
+    logo: ['/images/PusakaBugisLogo.png', '/images/KemenbudLogo.png'],
+    jobdesk: [
+      'Developed the projects visual identity and creative direction to strengthen public recognition of PusakaBugis.id and encourage engagement with Bugis cultural heritage.',
+      'Managed creative media, publications, and documentation throughout the project, including the production of visual content for digital communications.',
+      'Planned publication schedules and developed content formats aligned with the projects communication needs and objectives.',
+      'Created graphic design materials using Affinity Designer as the primary design tool, with Canva as a supporting tool for visual content production.',
+      'Edited video content using CapCut to support the projects digital publications and communicate project information across digital media channels.'
+    ],
+    tools: ['Photoshop', 'Affinity', 'Canva', 'CapCut'],
+    images: [],
+    description:
+      'Creative direction, publication media management, visual assets, and cultural communication specialist for PusakaBugis.id supported by Kementerian Kebudayaan.'
+  },
+  {
     id: 'kknt-lakessi',
     role: 'Visual Identity & Branding Specialist',
     organization: 'KKN-T Gelombang 110 — Universitas Hasanuddin (Kel. Lakessi)',
@@ -175,4 +195,5 @@ export const mockExperiences = [
       'Visual identity design and packaging assets crafted for local micro-enterprises in Lakessi, Parepare, empowering local market presence.'
   }
 ];
+
 

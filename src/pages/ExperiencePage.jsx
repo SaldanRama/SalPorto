@@ -97,8 +97,40 @@ export function ExperiencePage() {
               <h2 className="font-serif" style={{ fontSize: '1.75rem', color: 'var(--text)', marginBottom: '0.25rem' }}>
                 {exp.role}
               </h2>
-              <div style={{ fontSize: '1.05rem', fontWeight: 600, color: 'var(--text)', marginBottom: '1.25rem' }}>
-                {exp.organization}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', marginBottom: '1.25rem', flexWrap: 'wrap' }}>
+                <span style={{ fontSize: '1.05rem', fontWeight: 600, color: 'var(--text)' }}>
+                  {exp.organization}
+                </span>
+                {(() => {
+                  const logos = Array.isArray(exp.logo)
+                    ? exp.logo
+                    : (typeof exp.logo === 'string' && exp.logo.startsWith('[')
+                        ? JSON.parse(exp.logo)
+                        : (exp.logo ? [exp.logo] : []));
+                  return logos.length > 0 ? (
+                    <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}>
+                      {logos.map((l, lIdx) => (
+                        <span
+                          key={lIdx}
+                          style={{
+                            width: '28px',
+                            height: '28px',
+                            borderRadius: '6px',
+                            background: '#ffffff',
+                            padding: '3px',
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            boxShadow: '0 2px 6px rgba(0, 0, 0, 0.15)',
+                            border: '1px solid var(--line)',
+                          }}
+                        >
+                          <img src={l} alt="Logo" style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }} />
+                        </span>
+                      ))}
+                    </div>
+                  ) : null;
+                })()}
               </div>
 
               {exp.jobdesk && exp.jobdesk.length > 0 ? (

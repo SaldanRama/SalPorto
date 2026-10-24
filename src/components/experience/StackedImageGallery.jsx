@@ -59,6 +59,26 @@ export function StackedImageGallery({ images = [], altTitle = 'Dokumentasi Penga
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [isModalOpen, total]);
 
+  // Normalize companyLogo into an array of logo URLs
+  const logoList = React.useMemo(() => {
+    if (!companyLogo) return [];
+    if (Array.isArray(companyLogo)) return companyLogo.filter(Boolean);
+    if (typeof companyLogo === 'string') {
+      const trimmed = companyLogo.trim();
+      if (trimmed.startsWith('[') && trimmed.endsWith(']')) {
+        try {
+          const parsed = JSON.parse(trimmed);
+          if (Array.isArray(parsed)) return parsed.filter(Boolean);
+        } catch (_) {}
+      }
+      if (trimmed.includes(',')) {
+        return trimmed.split(',').map((s) => s.trim()).filter(Boolean);
+      }
+      return [trimmed];
+    }
+    return [];
+  }, [companyLogo]);
+
   return (
     <div className="stacked-gallery-container">
       {/* 3 STACKED CARDS STAGE */}
@@ -96,10 +116,14 @@ export function StackedImageGallery({ images = [], altTitle = 'Dokumentasi Penga
                   loading="lazy"
                 />
                 
-                {companyLogo && offset === 0 && (
+                {logoList.length > 0 && offset === 0 && (
                   <div className="stacked-card-overlay">
-                    <div className="stacked-card-logo">
-                      <img src={companyLogo} alt="Institution Logo" />
+                    <div className="stacked-card-logos-wrap">
+                      {logoList.map((logoUrl, lIdx) => (
+                        <div key={lIdx} className="stacked-card-logo" title={altTitle}>
+                          <img src={logoUrl} alt={`Logo ${lIdx + 1}`} />
+                        </div>
+                      ))}
                     </div>
                   </div>
                 )}

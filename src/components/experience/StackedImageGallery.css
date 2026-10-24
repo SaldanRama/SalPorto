@@ -113,18 +113,31 @@
   pointer-events: none;
 }
 
-.stacked-card-logo {
+.stacked-card-logos-wrap {
   align-self: flex-start;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.stacked-card-logo {
   width: 42px;
   height: 42px;
-  border-radius: var(--radius-sm);
-  background: rgba(255, 255, 255, 0.92);
+  border-radius: var(--radius-sm, 0.5rem);
+  background: rgba(255, 255, 255, 0.95);
   backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
   padding: 4px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);
   display: flex;
   align-items: center;
   justify-content: center;
+  border: 1px solid rgba(255, 255, 255, 0.8);
+  transition: transform var(--transition-fast, 0.2s);
+}
+
+.stacked-card-logo:hover {
+  transform: scale(1.08);
 }
 
 .stacked-card-logo img {

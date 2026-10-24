@@ -488,6 +488,33 @@
   font-size: 0.95rem;
   font-weight: 600;
   color: var(--muted);
+  flex-wrap: wrap;
+}
+
+.card-org-logos-wrap {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin-left: 0.45rem;
+}
+
+.card-org-logo-pill {
+  width: 24px;
+  height: 24px;
+  border-radius: 4px;
+  background: #ffffff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2px;
+  border: 1px solid var(--line);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+}
+
+.card-org-logo-pill img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
 }
 
 .exp-card-period {
@@ -1286,6 +1313,68 @@
   color: #ef4444;
   background: rgba(239, 68, 68, 0.12);
   border-color: rgba(239, 68, 68, 0.2);
+}
+
+/* Modal Logo Presets Grid */
+.modal-logo-presets-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: 0.65rem;
+}
+
+.modal-logo-preset-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  padding: 0.6rem 0.85rem;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 0.75rem;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--text);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  text-align: left;
+  font-family: inherit;
+}
+
+.modal-logo-preset-btn:hover {
+  border-color: rgba(99, 102, 241, 0.4);
+  background: rgba(99, 102, 241, 0.06);
+  transform: translateY(-1px);
+}
+
+.modal-logo-preset-btn.active {
+  background: rgba(99, 102, 241, 0.16);
+  border-color: var(--accent-strong);
+  color: #fff;
+  box-shadow: 0 2px 10px rgba(99, 102, 241, 0.2);
+}
+
+.preset-btn-logos {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  flex-shrink: 0;
+}
+
+.preset-logo-pill {
+  width: 26px;
+  height: 26px;
+  border-radius: 4px;
+  background: #ffffff;
+  padding: 2px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.15);
+}
+
+.preset-logo-pill img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
 }
 
 /* Tools Selection Chips Grid */

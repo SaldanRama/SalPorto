@@ -228,6 +228,47 @@ function saveLocalToolsBackup(id, tools) {
 }
 
 /**
+ * Helper to resolve experience logo with fallback for PusakaBugis + Kemenbud and other institutions
+ */
+export function resolveExperienceLogo(e) {
+  if (e?.logo) {
+    if (Array.isArray(e.logo) && e.logo.length > 0) return e.logo;
+    if (typeof e.logo === 'string' && e.logo.trim() !== '') {
+      const trimmed = e.logo.trim();
+      if (trimmed.startsWith('[') && trimmed.endsWith(']')) {
+        try {
+          const parsed = JSON.parse(trimmed);
+          if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+        } catch (_) {}
+      }
+      if (trimmed.includes(',')) {
+        return trimmed.split(',').map((s) => s.trim()).filter(Boolean);
+      }
+      return trimmed;
+    }
+  }
+
+  const org = (e?.organization || '').toLowerCase();
+  const role = (e?.role || '').toLowerCase();
+  const id = (e?.id || '').toLowerCase();
+
+  if (org.includes('pusaka') || org.includes('kemenbud') || role.includes('pusaka') || id.includes('pusaka')) {
+    return ['/images/PusakaBugisLogo.png', '/images/KemenbudLogo.png'];
+  }
+  if (org.includes('unhas') || org.includes('laboratorium') || id.includes('lab')) {
+    return '/images/UnhasLogo.png';
+  }
+  if (org.includes('diskominfo') || id.includes('diskominfo')) {
+    return '/images/KominfoLogo.png';
+  }
+  if (org.includes('bpjs') || id.includes('bpjs')) {
+    return '/images/BpjsLogo.png';
+  }
+
+  return '';
+}
+
+/**
  * Fetch experiences from Supabase with multi-layered fallback for tools
  */
 export async function getExperiences() {
@@ -282,12 +323,16 @@ export async function getExperiences() {
             saveLocalToolsBackup(e.id, finalTools);
           }
 
+          // Resolve logo
+          const finalLogo = resolveExperienceLogo(e);
+
           return {
             ...e,
             description: cleanDescription,
             isCurrent: e.is_current !== undefined ? e.is_current : e.isCurrent,
             sortOrder: e.sort_order ?? e.sortOrder,
             tools: finalTools,
+            logo: finalLogo,
           };
         });
 
@@ -309,13 +354,17 @@ export async function getExperiences() {
           if (!tools || tools.length === 0) {
             tools = toolsBackup[e.id] || mockExperiences.find((m) => m.id === e.id)?.tools || [];
           }
-          return { ...e, tools };
+          const finalLogo = resolveExperienceLogo(e);
+          return { ...e, tools, logo: finalLogo };
         });
       }
     } catch (_) {}
   }
 
-  return mockExperiences;
+  return mockExperiences.map((m) => ({
+    ...m,
+    logo: resolveExperienceLogo(m),
+  }));
 }
 
 /**
@@ -331,6 +380,10 @@ export async function saveExperience(expData) {
     .trim();
   const encodedDescription = `${baseDescription} <!--TOOLS_META:${toolsJson}-->`.trim();
 
+  // Resolve logo (supports array or string)
+  const resolvedLogo = resolveExperienceLogo(expData);
+  const dbLogo = Array.isArray(resolvedLogo) ? JSON.stringify(resolvedLogo) : (resolvedLogo || '');
+
   const row = {
     id: String(expData.id || `exp-${Date.now()}`),
     role: expData.role,
@@ -338,7 +391,7 @@ export async function saveExperience(expData) {
     period: expData.period || '',
     type: expData.type || 'Internship',
     is_current: expData.is_current !== undefined ? expData.is_current : (expData.isCurrent ?? false),
-    logo: expData.logo || '',
+    logo: dbLogo,
     jobdesk: Array.isArray(expData.jobdesk) ? expData.jobdesk : [],
     tools: finalTools,
     images: Array.isArray(expData.images) ? expData.images : [],

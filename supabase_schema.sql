@@ -152,8 +152,21 @@ VALUES
     '["Notion", "Microsoft Excel", "Data Analytics"]'::jsonb,
     '[{"url": "/images/experience/03-bpjs-kesehatan/image-1.svg", "title": "Validasi & Rekonsiliasi Data Mitra Faskes", "caption": "Pencocokan data fasilitas kesehatan dan verifikasi kelayakan dokumen administrasi faskes mitra BPJS."}, {"url": "/images/experience/03-bpjs-kesehatan/image-2.svg", "title": "Sistem Pengarsipan Digital Dokumen Operasional", "caption": "Standardisasi pengelompokan berkas digital untuk mempermudah akses retrieval berkas tim verifikator."}, {"url": "/images/experience/03-bpjs-kesehatan/image-3.svg", "title": "Laporan Rekapitulasi & Dukungan Operasional", "caption": "Penyusunan ringkasan performa verifikasi dokumen dan koordinasi lintas bagian operasional kantor cabang."}]'::jsonb,
     3
+  ),
+  (
+    'pusakabugis',
+    'Creative & Media Producer Specialist',
+    'PusakaBugis.id (Kemenbud)',
+    'Agustus 2024 — Sekarang',
+    'Community / Project', true,
+    '["/images/PusakaBugisLogo.png", "/images/KemenbudLogo.png"]',
+    '["Developed the projects visual identity and creative direction to strengthen public recognition of PusakaBugis.id and encourage engagement with Bugis cultural heritage.", "Managed creative media, publications, and documentation throughout the project, including the production of visual content for digital communications.", "Planned publication schedules and developed content formats aligned with the projects communication needs and objectives.", "Created graphic design materials using Affinity Designer as the primary design tool, with Canva as a supporting tool for visual content production.", "Edited video content using CapCut to support the projects digital publications and communicate project information across digital media channels."]'::jsonb,
+    '["Photoshop", "Affinity", "Canva", "CapCut"]'::jsonb,
+    '[]'::jsonb,
+    0
   )
 ON CONFLICT (id) DO UPDATE SET 
+  logo = EXCLUDED.logo,
   tools = EXCLUDED.tools,
   jobdesk = EXCLUDED.jobdesk,
   images = EXCLUDED.images;
