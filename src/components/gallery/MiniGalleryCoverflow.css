@@ -1,131 +1,55 @@
 /* ==========================================================================
-   MINI GALLERY: 3D COVERFLOW CAROUSEL (16:9 RATIO)
+   MINI GALLERY: MINIMALIST 3D COVERFLOW (PURE 16:9 IMAGES, NO CLUTTER)
    ========================================================================== */
 
-.coverflow-wrapper {
-  position: relative;
+.coverflow-minimal-wrap {
   width: 100%;
-  max-width: 1200px;
+  max-width: 1100px;
   margin: 0 auto;
-  padding: 1.5rem 0 2.5rem;
-  overflow: hidden;
+  padding: 0.5rem 0 1.5rem;
   user-select: none;
 }
 
-/* Header Section */
-.coverflow-header {
-  display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
-  margin-bottom: 2rem;
-  flex-wrap: wrap;
-  gap: 1rem;
+.coverflow-minimal-head {
+  text-align: center;
+  margin-bottom: 1.5rem;
 }
 
-.coverflow-header-left {
-  display: flex;
-  flex-direction: column;
-  gap: 0.35rem;
-}
-
-.coverflow-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.4rem;
-  font-size: 0.725rem;
+.coverflow-minimal-title {
+  font-size: clamp(1.4rem, 2.5vw, 1.95rem);
   font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: var(--accent-strong, #6366f1);
-  background: rgba(99, 102, 241, 0.1);
-  border: 1px solid rgba(99, 102, 241, 0.2);
-  padding: 0.25rem 0.65rem;
-  border-radius: 9999px;
-  width: fit-content;
-}
-
-.coverflow-title {
-  font-size: clamp(1.6rem, 3vw, 2.25rem);
-  font-weight: 800;
   letter-spacing: -0.025em;
   color: var(--text);
   margin: 0;
   line-height: 1.2;
 }
 
-.coverflow-subtitle {
-  font-size: 0.875rem;
-  color: var(--muted);
-  margin: 0;
-  max-width: 520px;
-}
-
-/* Autoplay & Controls Pill */
-.coverflow-controls-top {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-}
-
-.coverflow-autoplay-toggle {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.45rem;
-  padding: 0.4rem 0.85rem;
-  border-radius: 9999px;
-  font-size: 0.75rem;
-  font-weight: 600;
-  background: var(--surface, rgba(255, 255, 255, 0.05));
-  border: 1px solid var(--line, rgba(255, 255, 255, 0.1));
-  color: var(--text);
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.coverflow-autoplay-toggle:hover {
-  border-color: var(--accent-strong, #6366f1);
-  background: rgba(99, 102, 241, 0.08);
-}
-
-.coverflow-autoplay-toggle.active .coverflow-pulse-dot {
-  background: #10b981;
-  box-shadow: 0 0 8px #10b981;
-}
-
-.coverflow-pulse-dot {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: var(--muted);
-  transition: background 0.2s ease;
-}
-
-/* 3D Stage Container */
-.coverflow-stage-container {
+/* 3D Stage Box (Compact, Balanced Height) */
+.coverflow-stage-box {
   position: relative;
   width: 100%;
-  height: 380px;
+  height: 250px;
   display: flex;
   align-items: center;
   justify-content: center;
-  perspective: 1200px;
+  perspective: 1100px;
   overflow: visible;
-  padding: 1rem 0;
+  touch-action: pan-y;
 }
 
-@media (min-width: 768px) {
-  .coverflow-stage-container {
-    height: 440px;
+@media (min-width: 640px) {
+  .coverflow-stage-box {
+    height: 300px;
   }
 }
 
 @media (min-width: 1024px) {
-  .coverflow-stage-container {
-    height: 480px;
+  .coverflow-stage-box {
+    height: 350px;
   }
 }
 
-.coverflow-stage {
+.coverflow-stage-track {
   position: relative;
   width: 100%;
   height: 100%;
@@ -135,17 +59,19 @@
   transform-style: preserve-3d;
 }
 
-/* Individual Coverflow Card (Strict 16:9 Aspect Ratio) */
-.coverflow-card {
+/* Pure 16:9 Image Card (Strictly Pure Image, No Text, No Overlays, No Buttons) */
+.coverflow-card-pure {
   position: absolute;
-  width: 82%;
-  max-width: 680px;
+  top: 50%;
+  left: 50%;
+  width: 76%;
+  max-width: 540px;
   aspect-ratio: 16 / 9;
-  border-radius: 20px;
+  border-radius: 16px;
   overflow: hidden;
-  background: #111215;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.45);
+  background: #0d0e11;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.45);
   cursor: pointer;
   transform-origin: center center;
   transition: transform 0.65s cubic-bezier(0.22, 1, 0.36, 1),
@@ -156,19 +82,18 @@
   will-change: transform, opacity;
 }
 
-.coverflow-card.active {
-  border-color: rgba(99, 102, 241, 0.4);
-  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.6),
-              0 0 35px rgba(99, 102, 241, 0.25);
+.coverflow-card-pure.active {
+  border-color: rgba(99, 102, 241, 0.35);
+  box-shadow: 0 18px 45px rgba(0, 0, 0, 0.6),
+              0 0 25px rgba(99, 102, 241, 0.18);
   cursor: default;
 }
 
-.coverflow-card:hover:not(.active) {
+.coverflow-card-pure:hover:not(.active) {
   filter: brightness(0.85) !important;
 }
 
-/* Image Container (16:9) */
-.coverflow-media-box {
+.coverflow-card-media {
   position: relative;
   width: 100%;
   height: 100%;
@@ -176,187 +101,16 @@
   overflow: hidden;
 }
 
-.coverflow-img {
+.coverflow-pure-img {
   width: 100%;
   height: 100%;
   object-fit: cover;
   display: block;
-  transition: transform 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+  user-select: none;
+  -webkit-user-drag: none;
+  transition: transform 0.5s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
-.coverflow-card.active:hover .coverflow-img {
-  transform: scale(1.025);
-}
-
-/* Aspect Ratio Watermark Badge */
-.coverflow-aspect-badge {
-  position: absolute;
-  top: 14px;
-  right: 14px;
-  background: rgba(0, 0, 0, 0.65);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  color: #ffffff;
-  font-size: 0.675rem;
-  font-weight: 700;
-  letter-spacing: 0.05em;
-  padding: 0.2rem 0.55rem;
-  border-radius: 6px;
-  z-index: 3;
-}
-
-/* Overlay Scrim & Info */
-.coverflow-scrim-overlay {
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(
-    to top,
-    rgba(10, 11, 14, 0.92) 0%,
-    rgba(10, 11, 14, 0.5) 45%,
-    transparent 100%
-  );
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-end;
-  padding: 1.5rem 1.75rem;
-  z-index: 2;
-  transition: opacity 0.3s ease;
-}
-
-.coverflow-card:not(.active) .coverflow-scrim-overlay {
-  opacity: 0.85;
-}
-
-.coverflow-info-content {
-  display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
-  gap: 1rem;
-}
-
-.coverflow-item-title {
-  font-size: clamp(1rem, 2vw, 1.35rem);
-  font-weight: 700;
-  color: #ffffff;
-  margin: 0 0 0.3rem 0;
-  line-height: 1.25;
-  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.6);
-}
-
-.coverflow-item-caption {
-  font-size: 0.8rem;
-  color: rgba(255, 255, 255, 0.75);
-  margin: 0;
-  line-height: 1.4;
-}
-
-.coverflow-view-action-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.35rem;
-  padding: 0.45rem 0.85rem;
-  border-radius: 9999px;
-  background: rgba(255, 255, 255, 0.15);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  color: #ffffff;
-  font-size: 0.775rem;
-  font-weight: 600;
-  text-decoration: none;
-  flex-shrink: 0;
-  transition: all 0.2s ease;
-}
-
-.coverflow-view-action-btn:hover {
-  background: #ffffff;
-  color: #000000;
-  transform: translateY(-2px);
-}
-
-/* Side Navigation Arrows (Floating Chevron) */
-.coverflow-arrow-btn {
-  position: absolute;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 46px;
-  height: 46px;
-  border-radius: 50%;
-  background: var(--surface, rgba(20, 22, 28, 0.8));
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid var(--line, rgba(255, 255, 255, 0.15));
-  color: var(--text, #ffffff);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  z-index: 20;
-  transition: all 0.25s cubic-bezier(0.22, 1, 0.36, 1);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
-}
-
-.coverflow-arrow-btn:hover {
-  background: var(--accent-strong, #6366f1);
-  color: #ffffff;
-  border-color: var(--accent-strong, #6366f1);
-  transform: translateY(-50%) scale(1.1);
-}
-
-.coverflow-arrow-btn.prev {
-  left: 12px;
-}
-
-.coverflow-arrow-btn.next {
-  right: 12px;
-}
-
-@media (min-width: 1024px) {
-  .coverflow-arrow-btn.prev {
-    left: 24px;
-  }
-  .coverflow-arrow-btn.next {
-    right: 24px;
-  }
-}
-
-/* Pagination Dots & Position Indicator */
-.coverflow-footer-nav {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.65rem;
-  margin-top: 1.5rem;
-}
-
-.coverflow-dot {
-  width: 10px;
-  height: 10px;
-  border-radius: 9999px;
-  background: var(--line, rgba(255, 255, 255, 0.2));
-  border: none;
-  cursor: pointer;
-  padding: 0;
-  transition: all 0.3s cubic-bezier(0.22, 1, 0.36, 1);
-}
-
-.coverflow-dot:hover {
-  background: var(--accent-strong, #6366f1);
-  opacity: 0.8;
-}
-
-.coverflow-dot.active {
-  width: 32px;
-  background: var(--accent-strong, #6366f1);
-  box-shadow: 0 0 12px rgba(99, 102, 241, 0.5);
-}
-
-/* Slide Counter */
-.coverflow-counter {
-  font-size: 0.775rem;
-  font-weight: 700;
-  color: var(--muted);
-  letter-spacing: 0.05em;
-  margin-left: 0.5rem;
+.coverflow-card-pure.active:hover .coverflow-pure-img {
+  transform: scale(1.02);
 }
