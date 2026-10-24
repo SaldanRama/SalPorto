@@ -122,11 +122,17 @@ export function ExperiencePage() {
               )}
 
               {/* Tools & Teknologi yang Digunakan */}
-              {exp.tools && exp.tools.length > 0 && (
-                <div style={{ marginTop: '0.5rem', marginBottom: '1rem' }}>
-                  <ExperienceTools tools={exp.tools} />
-                </div>
-              )}
+              {(() => {
+                const tools =
+                  (Array.isArray(exp.tools) && exp.tools.length > 0)
+                    ? exp.tools
+                    : (mockExperiences.find((m) => m.id === exp.id || m.role?.toLowerCase() === exp.role?.toLowerCase())?.tools || []);
+                return tools.length > 0 ? (
+                  <div style={{ marginTop: '0.5rem', marginBottom: '1rem' }}>
+                    <ExperienceTools tools={tools} />
+                  </div>
+                ) : null;
+              })()}
 
               {exp.images && exp.images.length > 0 && (
                 <div style={{ marginTop: '1.5rem', paddingTop: '1.5rem', borderTop: '1px solid var(--line)' }}>

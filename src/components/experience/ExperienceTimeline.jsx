@@ -195,11 +195,35 @@ export function ExperienceTimeline() {
   );
 }
 
+function getExperienceTools(exp) {
+  if (Array.isArray(exp?.tools) && exp.tools.length > 0) {
+    return exp.tools;
+  }
+  try {
+    const raw = localStorage.getItem('salporto_exp_tools_backup');
+    if (raw) {
+      const backup = JSON.parse(raw);
+      if (backup[exp?.id] && backup[exp?.id].length > 0) return backup[exp.id];
+    }
+  } catch (_) {}
+
+  const mock = mockExperiences.find(
+    (m) => m.id === exp?.id || m.role?.toLowerCase() === exp?.role?.toLowerCase()
+  );
+  if (mock && Array.isArray(mock.tools) && mock.tools.length > 0) {
+    return mock.tools;
+  }
+
+  return [];
+}
+
 /**
  * Helper Sub-component for rendering the text content
  * (Job Title, Institution, Period in Months, and Jobdesk List)
  */
 function ExperienceContentBody({ exp, index }) {
+  const displayTools = getExperienceTools(exp);
+
   return (
     <div className="experience-body-inner">
       {/* 1. Header Meta (Badge & Index) */}
@@ -253,8 +277,8 @@ function ExperienceContentBody({ exp, index }) {
       </div>
 
       {/* 6. Tools & Teknologi yang Digunakan */}
-      {exp.tools && exp.tools.length > 0 && (
-        <ExperienceTools tools={exp.tools} />
+      {displayTools.length > 0 && (
+        <ExperienceTools tools={displayTools} />
       )}
     </div>
   );

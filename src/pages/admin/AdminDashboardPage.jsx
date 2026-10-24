@@ -1097,19 +1097,19 @@ export function AdminDashboardPage() {
               <div>
                 <h1 className="admin-pane-title">Setup Database Supabase</h1>
                 <p className="admin-pane-subtitle">
-                  Script SQL lengkap untuk tabel <code>projects</code>, <code>experiences</code>, serta konfigurasi RLS Storage.
+                  Script SQL lengkap untuk tabel <code>projects</code>, <code>experiences</code> (termasuk kolom <code>tools</code>), serta konfigurasi RLS Storage.
                 </p>
               </div>
               <button
                 type="button"
                 onClick={() => {
-                  const sql = `-- SalPorto Database Setup Script\nALTER TABLE public.experiences ADD COLUMN IF NOT EXISTS tools JSONB DEFAULT '[]'::jsonb;`;
+                  const sql = `-- SalPorto Migration: Menambahkan kolom tools jika belum ada\nALTER TABLE public.experiences ADD COLUMN IF NOT EXISTS tools JSONB DEFAULT '[]'::jsonb;\n\n-- Update data tools bawaan jika kolom baru ditambahkan\nUPDATE public.experiences \nSET tools = '["VS Code", "React", "JavaScript", "PHP", "Laravel"]'::jsonb \nWHERE id = 'lab-assistant' AND (tools IS NULL OR jsonb_array_length(tools) = 0);\n\nUPDATE public.experiences \nSET tools = '["Figma", "VS Code", "JavaScript", "CSS3"]'::jsonb \nWHERE id = 'diskominfo' AND (tools IS NULL OR jsonb_array_length(tools) = 0);\n\nUPDATE public.experiences \nSET tools = '["Notion", "Microsoft Excel", "Data Analytics"]'::jsonb \nWHERE id = 'bpjs-kesehatan' AND (tools IS NULL OR jsonb_array_length(tools) = 0);`;
                   copyToClipboard(sql);
                 }}
                 className="admin-btn admin-btn-primary"
               >
                 <Copy size={15} />
-                <span>Salin Script SQL Lengkap</span>
+                <span>Salin Script SQL Migration Tools</span>
               </button>
             </div>
 
@@ -1124,8 +1124,23 @@ export function AdminDashboardPage() {
               </div>
               <div className="sql-instruction-step">
                 <span className="step-num">3</span>
-                <span>Paste script dan klik tombol <strong>Run</strong>.</span>
+                <span>Paste script migration di bawah dan klik tombol <strong>Run</strong>:</span>
               </div>
+              <pre style={{ margin: '1rem 0 0', padding: '1rem', background: '#0a0d14', border: '1px solid var(--line)', borderRadius: '0.65rem', overflowX: 'auto', fontSize: '0.8rem', color: '#10b981', fontFamily: 'monospace' }}>
+{`ALTER TABLE public.experiences ADD COLUMN IF NOT EXISTS tools JSONB DEFAULT '[]'::jsonb;
+
+UPDATE public.experiences 
+SET tools = '["VS Code", "React", "JavaScript", "PHP", "Laravel"]'::jsonb 
+WHERE id = 'lab-assistant' AND (tools IS NULL OR jsonb_array_length(tools) = 0);
+
+UPDATE public.experiences 
+SET tools = '["Figma", "VS Code", "JavaScript", "CSS3"]'::jsonb 
+WHERE id = 'diskominfo' AND (tools IS NULL OR jsonb_array_length(tools) = 0);
+
+UPDATE public.experiences 
+SET tools = '["Notion", "Microsoft Excel", "Data Analytics"]'::jsonb 
+WHERE id = 'bpjs-kesehatan' AND (tools IS NULL OR jsonb_array_length(tools) = 0);`}
+              </pre>
             </div>
           </div>
         )}

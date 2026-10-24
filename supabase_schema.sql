@@ -32,12 +32,16 @@ CREATE TABLE IF NOT EXISTS public.experiences (
   is_current BOOLEAN DEFAULT false,
   logo TEXT,
   jobdesk JSONB DEFAULT '[]'::jsonb,
+  tools JSONB DEFAULT '[]'::jsonb,
   images JSONB DEFAULT '[]'::jsonb,
   description TEXT,
   sort_order INTEGER DEFAULT 0,
   created_at TIMESTAMPTZ DEFAULT timezone('utc'::text, now()),
   updated_at TIMESTAMPTZ DEFAULT timezone('utc'::text, now())
 );
+
+-- Ensure 'tools' column exists even if table was created earlier
+ALTER TABLE public.experiences ADD COLUMN IF NOT EXISTS tools JSONB DEFAULT '[]'::jsonb;
 
 -- 3. ENABLE ROW LEVEL SECURITY (RLS)
 ALTER TABLE public.projects ENABLE ROW LEVEL SECURITY;
@@ -114,7 +118,7 @@ VALUES
   )
 ON CONFLICT (id) DO NOTHING;
 
-INSERT INTO public.experiences (id, role, organization, period, type, is_current, logo, jobdesk, images, sort_order)
+INSERT INTO public.experiences (id, role, organization, period, type, is_current, logo, jobdesk, tools, images, sort_order)
 VALUES 
   (
     'lab-assistant',
@@ -123,6 +127,7 @@ VALUES
     'Agustus 2023 — Sekarang',
     'Academic', true, '/images/UnhasLogo.png',
     '["Membimbing lebih dari 100+ mahasiswa dalam praktikum intensif Web Development (HTML5, CSS3, Modern JavaScript, React, dan PHP/Laravel).", "Menyusun silabus, modul praktikum kurikulum teknologi web terkini, materi hands-on coding, serta tugas studi kasus riil.", "Melakukan code review komprehensif, pemeriksaan best practices arsitektur web, dan evaluasi berkala tugas praktikum.", "Memfasilitasi sesi troubleshooting bug, debugging instruksional, serta pendampingan proyek akhir mahasiswa."]'::jsonb,
+    '["VS Code", "React", "JavaScript", "PHP", "Laravel"]'::jsonb,
     '[{"url": "/images/experience/01-lab-assistant/image-1.svg", "title": "Sesi Praktikum Coding & Lab Mentoring", "caption": "Membimbing mahasiswa dalam penguasaan fundamental web modern dan arsitektur aplikasi di laboratorium."}, {"url": "/images/experience/01-lab-assistant/image-2.svg", "title": "Review Kode & Evaluasi Tugas Mahasiswa", "caption": "Pemeriksaan standar kode, semantic markup, optimasi performa, dan pengujian fungsionalitas aplikasi."}, {"url": "/images/experience/01-lab-assistant/image-3.svg", "title": "Penyusunan Modul & Workshop Arsitektur Web", "caption": "Pengembangan bahan ajar praktikum terstruktur mencakup client-server, REST API, dan basis data."}]'::jsonb,
     1
   ),
@@ -133,6 +138,7 @@ VALUES
     'Juli 2024 — September 2024',
     'Internship', false, '/images/KominfoLogo.png',
     '["Merancang arsitektur informasi, alur pengalaman pengguna (user journey), dan antarmuka web portal \"Website Kelurahan Cantik\".", "Membuat wireframe, prototipe interaktif high-fidelity, serta atomic design system yang konsisten di Figma.", "Mengimplementasikan komponen antarmuka front-end responsif berbasis standar web modern yang ramah aksesibilitas publik.", "Melakukan usability evaluation bersama tim Diskominfo serta mengiterasi desain berdasarkan masukan para pemangku kepentingan."]'::jsonb,
+    '["Figma", "VS Code", "JavaScript", "CSS3"]'::jsonb,
     '[{"url": "/images/experience/02-diskominfo/image-1.svg", "title": "Antarmuka Portal Layanan Publik Kelurahan Cantik", "caption": "Desain visual dashboard penyajian data kependudukan dan transparansi statistik kelurahan kota Makassar."}, {"url": "/images/experience/02-diskominfo/image-2.svg", "title": "Figma Design System & Komponen Terstandarisasi", "caption": "Penyusunan atomic components, token warna, tipografi, dan navigasi ramah pengguna di Figma."}, {"url": "/images/experience/02-diskominfo/image-3.svg", "title": "Implementasi Front-End & Pengujian Usabilitas", "caption": "Penerapan kode antarmuka web responsif dan audit standar performa serta aksesibilitas WCAG."}]'::jsonb,
     2
   ),
@@ -143,7 +149,11 @@ VALUES
     'Januari 2023 — Maret 2023',
     'Internship', false, '/images/BpjsLogo.png',
     '["Melakukan audit data, pencocokan (data matching), dan validasi database mitra Fasilitas Kesehatan (Faskes) se-Makassar.", "Menstandarisasi sistem pengarsipan digital untuk ribuan berkas administrasi dan dokumen kerja sama fasilitas kesehatan.", "Mendukung koordinasi operasional pelayanan publik dan verifikasi data rujukan berjenjang layanan kesehatan.", "Menyusun laporan rekapitulasi periodik guna meningkatkan efisiensi dan transparansi alur kerja administrasi internal cabang."]'::jsonb,
+    '["Notion", "Microsoft Excel", "Data Analytics"]'::jsonb,
     '[{"url": "/images/experience/03-bpjs-kesehatan/image-1.svg", "title": "Validasi & Rekonsiliasi Data Mitra Faskes", "caption": "Pencocokan data fasilitas kesehatan dan verifikasi kelayakan dokumen administrasi faskes mitra BPJS."}, {"url": "/images/experience/03-bpjs-kesehatan/image-2.svg", "title": "Sistem Pengarsipan Digital Dokumen Operasional", "caption": "Standardisasi pengelompokan berkas digital untuk mempermudah akses retrieval berkas tim verifikator."}, {"url": "/images/experience/03-bpjs-kesehatan/image-3.svg", "title": "Laporan Rekapitulasi & Dukungan Operasional", "caption": "Penyusunan ringkasan performa verifikasi dokumen dan koordinasi lintas bagian operasional kantor cabang."}]'::jsonb,
     3
   )
-ON CONFLICT (id) DO NOTHING;
+ON CONFLICT (id) DO UPDATE SET 
+  tools = EXCLUDED.tools,
+  jobdesk = EXCLUDED.jobdesk,
+  images = EXCLUDED.images;

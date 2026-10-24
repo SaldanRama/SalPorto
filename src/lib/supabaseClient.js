@@ -207,9 +207,32 @@ export async function deleteProject(projectId) {
 }
 
 /**
- * Fetch experiences from Supabase with fallback
+/**
+ * Helper to get backup tools from localStorage
+ */
+function getLocalToolsBackup() {
+  try {
+    const raw = localStorage.getItem('salporto_exp_tools_backup');
+    return raw ? JSON.parse(raw) : {};
+  } catch (_) {
+    return {};
+  }
+}
+
+function saveLocalToolsBackup(id, tools) {
+  try {
+    const backup = getLocalToolsBackup();
+    backup[id] = Array.isArray(tools) ? tools : [];
+    localStorage.setItem('salporto_exp_tools_backup', JSON.stringify(backup));
+  } catch (_) {}
+}
+
+/**
+ * Fetch experiences from Supabase with multi-layered fallback for tools
  */
 export async function getExperiences() {
+  const toolsBackup = getLocalToolsBackup();
+
   try {
     if (isSupabaseConfigured()) {
       const { data, error } = await supabase
@@ -218,12 +241,56 @@ export async function getExperiences() {
         .order('sort_order', { ascending: true });
 
       if (!error && data && data.length > 0) {
-        const normalized = data.map((e) => ({
-          ...e,
-          isCurrent: e.is_current !== undefined ? e.is_current : e.isCurrent,
-          sortOrder: e.sort_order ?? e.sortOrder,
-          tools: Array.isArray(e.tools) ? e.tools : [],
-        }));
+        const normalized = data.map((e) => {
+          // 1. Try native column
+          let tools = Array.isArray(e.tools) && e.tools.length > 0 ? e.tools : null;
+
+          // 2. Try embedded metadata in description
+          let cleanDescription = e.description || '';
+          if (typeof e.description === 'string') {
+            const match = e.description.match(/<!--TOOLS_META:(.*?)-->/s);
+            if (match) {
+              try {
+                const parsed = JSON.parse(match[1]);
+                if (Array.isArray(parsed) && parsed.length > 0) {
+                  tools = tools || parsed;
+                }
+              } catch (_) {}
+            }
+            cleanDescription = e.description.replace(/<!--TOOLS_META:.*?-->/s, '').trim();
+          }
+
+          // 3. Try local tools backup by ID
+          if (!tools || tools.length === 0) {
+            if (toolsBackup[e.id] && toolsBackup[e.id].length > 0) {
+              tools = toolsBackup[e.id];
+            }
+          }
+
+          // 4. Fallback to mock data for initial known items
+          if (!tools || tools.length === 0) {
+            const mock = mockExperiences.find(
+              (m) => m.id === e.id || m.role?.toLowerCase() === e.role?.toLowerCase()
+            );
+            if (mock && Array.isArray(mock.tools) && mock.tools.length > 0) {
+              tools = mock.tools;
+            }
+          }
+
+          const finalTools = Array.isArray(tools) ? tools : [];
+          if (finalTools.length > 0) {
+            saveLocalToolsBackup(e.id, finalTools);
+          }
+
+          return {
+            ...e,
+            description: cleanDescription,
+            isCurrent: e.is_current !== undefined ? e.is_current : e.isCurrent,
+            sortOrder: e.sort_order ?? e.sortOrder,
+            tools: finalTools,
+          };
+        });
+
         localStorage.setItem('salporto_experiences', JSON.stringify(normalized));
         return normalized;
       }
@@ -235,7 +302,16 @@ export async function getExperiences() {
   const cached = localStorage.getItem('salporto_experiences');
   if (cached) {
     try {
-      return JSON.parse(cached);
+      const parsed = JSON.parse(cached);
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        return parsed.map((e) => {
+          let tools = e.tools;
+          if (!tools || tools.length === 0) {
+            tools = toolsBackup[e.id] || mockExperiences.find((m) => m.id === e.id)?.tools || [];
+          }
+          return { ...e, tools };
+        });
+      }
     } catch (_) {}
   }
 
@@ -246,6 +322,15 @@ export async function getExperiences() {
  * Save / Update experience
  */
 export async function saveExperience(expData) {
+  const finalTools = Array.isArray(expData.tools) ? expData.tools : [];
+  const toolsJson = JSON.stringify(finalTools);
+
+  // Clean existing metadata comment from description, then embed tools metadata
+  const baseDescription = (expData.description || '')
+    .replace(/<!--TOOLS_META:.*?-->/s, '')
+    .trim();
+  const encodedDescription = `${baseDescription} <!--TOOLS_META:${toolsJson}-->`.trim();
+
   const row = {
     id: String(expData.id || `exp-${Date.now()}`),
     role: expData.role,
@@ -255,28 +340,34 @@ export async function saveExperience(expData) {
     is_current: expData.is_current !== undefined ? expData.is_current : (expData.isCurrent ?? false),
     logo: expData.logo || '',
     jobdesk: Array.isArray(expData.jobdesk) ? expData.jobdesk : [],
-    tools: Array.isArray(expData.tools) ? expData.tools : [],
+    tools: finalTools,
     images: Array.isArray(expData.images) ? expData.images : [],
-    description: expData.description || '',
+    description: encodedDescription,
     sort_order: parseInt(expData.sort_order ?? expData.sortOrder ?? 0, 10),
     updated_at: new Date().toISOString(),
   };
 
+  // Keep backup in localStorage immediately
+  saveLocalToolsBackup(row.id, finalTools);
+
   let savedRow = {
     ...row,
+    description: baseDescription,
     isCurrent: row.is_current,
     sortOrder: row.sort_order,
+    tools: finalTools,
   };
 
   if (isSupabaseConfigured()) {
     try {
+      // 1. Try upsert with tools column
       let { data, error } = await supabase
         .from('experiences')
         .upsert(row, { onConflict: 'id' })
         .select()
         .single();
 
-      // If Supabase table does not have 'tools' column yet, gracefully retry without it
+      // 2. If table doesn't have 'tools' column yet, retry with fallbackRow (description preserves the tools!)
       if (error && (error.message?.includes('tools') || error.code === '42703')) {
         const { tools, ...fallbackRow } = row;
         const retry = await supabase
@@ -284,9 +375,10 @@ export async function saveExperience(expData) {
           .upsert(fallbackRow, { onConflict: 'id' })
           .select()
           .single();
+
         if (!retry.error) {
           error = null;
-          data = { ...retry.data, tools: row.tools };
+          data = { ...retry.data, tools: finalTools };
         }
       }
 
@@ -294,12 +386,14 @@ export async function saveExperience(expData) {
         console.error('Supabase saveExperience error:', error);
         return { data: null, error };
       }
+
       if (data) {
         savedRow = {
           ...data,
+          description: baseDescription,
           isCurrent: data.is_current !== undefined ? data.is_current : data.isCurrent,
           sortOrder: data.sort_order ?? data.sortOrder,
-          tools: Array.isArray(data.tools) ? data.tools : row.tools,
+          tools: finalTools,
         };
       }
     } catch (e) {
