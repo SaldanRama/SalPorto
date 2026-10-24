@@ -30,7 +30,13 @@ export function ExperienceTimeline() {
     };
   }, []);
 
-  const primaryExperiences = experiences.slice(0, 3);
+  const sortedExperiences = React.useMemo(() => {
+    return [...experiences].sort(
+      (a, b) => (a.sort_order ?? a.sortOrder ?? 0) - (b.sort_order ?? b.sortOrder ?? 0)
+    );
+  }, [experiences]);
+
+  const primaryExperiences = sortedExperiences.slice(0, 3);
   const stemRef = useRef(null);
   const progressLineRef = useRef(null);
   const nodeRefs = useRef([]);

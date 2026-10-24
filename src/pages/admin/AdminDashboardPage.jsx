@@ -27,6 +27,10 @@ import {
   Building2,
   CheckCircle2,
   Wrench,
+  ArrowUpDown,
+  ChevronUp,
+  ChevronDown,
+  GripVertical,
 } from 'lucide-react';
 import { ThemeToggle } from '@/components/ui/ThemeToggle';
 import { getToolLogo } from '@/components/experience/ExperienceTools';
@@ -94,6 +98,12 @@ export function AdminDashboardPage() {
   const [isExpDragOver, setIsExpDragOver] = useState(false);
   const [customToolInput, setCustomToolInput] = useState('');
 
+  // Experience Quick Reorder Modal State
+  const [isReorderModalOpen, setIsReorderModalOpen] = useState(false);
+  const [reorderList, setReorderList] = useState([]);
+  const [reorderSaving, setReorderSaving] = useState(false);
+  const [draggedExpIndex, setDraggedExpIndex] = useState(null);
+
   // Media Tab State
   const [uploadedMediaList, setUploadedMediaList] = useState([]);
   const [mediaUploading, setMediaUploading] = useState(false);
@@ -123,7 +133,10 @@ export function AdminDashboardPage() {
     setLoading(true);
     const [pList, eList] = await Promise.all([getProjects(), getExperiences()]);
     setProjects(pList || []);
-    setExperiences(eList || []);
+    const sortedExp = (eList || []).sort(
+      (a, b) => (a.sort_order ?? a.sortOrder ?? 0) - (b.sort_order ?? b.sortOrder ?? 0)
+    );
+    setExperiences(sortedExp);
     setLoading(false);
   };
 
@@ -345,6 +358,107 @@ export function AdminDashboardPage() {
     }
   };
 
+  // Reorder single experience up / down by 1 position directly from card
+  const handleMoveExperience = async (currentIndex, direction) => {
+    const sorted = [...experiences].sort(
+      (a, b) => (a.sort_order ?? a.sortOrder ?? 0) - (b.sort_order ?? b.sortOrder ?? 0)
+    );
+
+    const targetIndex = direction === 'up' ? currentIndex - 1 : currentIndex + 1;
+    if (targetIndex < 0 || targetIndex >= sorted.length) return;
+
+    const newSorted = [...sorted];
+    const [movedItem] = newSorted.splice(currentIndex, 1);
+    newSorted.splice(targetIndex, 0, movedItem);
+
+    // Normalize sort_order sequentially
+    const updated = newSorted.map((item, idx) => ({
+      ...item,
+      sort_order: idx,
+      sortOrder: idx,
+    }));
+
+    setExperiences(updated);
+    showToast(`Urutan "${movedItem.role}" dipindahkan ke posisi #${targetIndex + 1}!`);
+
+    // Persist to Supabase & localStorage
+    try {
+      await Promise.all(
+        updated.map((item) =>
+          saveExperience({
+            ...item,
+            sort_order: item.sort_order,
+            sortOrder: item.sort_order,
+          })
+        )
+      );
+    } catch (err) {
+      console.error('Gagal menyimpan urutan baru:', err);
+    }
+  };
+
+  // Quick Reorder Modal Handlers
+  const openReorderModal = () => {
+    const sorted = [...experiences].sort(
+      (a, b) => (a.sort_order ?? a.sortOrder ?? 0) - (b.sort_order ?? b.sortOrder ?? 0)
+    );
+    setReorderList(sorted);
+    setIsReorderModalOpen(true);
+  };
+
+  const moveReorderItem = (fromIndex, toIndex) => {
+    if (toIndex < 0 || toIndex >= reorderList.length) return;
+    const updated = [...reorderList];
+    const [moved] = updated.splice(fromIndex, 1);
+    updated.splice(toIndex, 0, moved);
+    setReorderList(updated);
+  };
+
+  const handleDragStart = (e, index) => {
+    setDraggedExpIndex(index);
+    e.dataTransfer.effectAllowed = 'move';
+  };
+
+  const handleDragOver = (e, index) => {
+    e.preventDefault();
+  };
+
+  const handleDropItem = (e, targetIndex) => {
+    e.preventDefault();
+    if (draggedExpIndex === null || draggedExpIndex === targetIndex) return;
+    moveReorderItem(draggedExpIndex, targetIndex);
+    setDraggedExpIndex(null);
+  };
+
+  const saveReorderList = async () => {
+    setReorderSaving(true);
+    const updated = reorderList.map((item, idx) => ({
+      ...item,
+      sort_order: idx,
+      sortOrder: idx,
+    }));
+
+    setExperiences(updated);
+
+    try {
+      await Promise.all(
+        updated.map((item) =>
+          saveExperience({
+            ...item,
+            sort_order: item.sort_order,
+            sortOrder: item.sort_order,
+          })
+        )
+      );
+      showToast('Susunan urutan semua pengalaman berhasil disimpan!');
+      setIsReorderModalOpen(false);
+    } catch (err) {
+      alert('Gagal menyimpan susunan ke database: ' + (err.message || 'Error'));
+    } finally {
+      setReorderSaving(false);
+    }
+  };
+
   // Jobdesk list point operations
   const addJobdeskPoint = () => {
     setExpForm((prev) => ({ ...prev, jobdesk: [...(prev.jobdesk || []), ''] }));
@@ -491,8 +605,12 @@ export function AdminDashboardPage() {
     showToast('Tautan berhasil disalin!');
   };
 
-  // Filtered lists for search
-  const filteredExperiences = experiences.filter((e) => {
+  // Filtered lists for search (always strictly sorted by sort_order)
+  const sortedExperiences = [...experiences].sort(
+    (a, b) => (a.sort_order ?? a.sortOrder ?? 0) - (b.sort_order ?? b.sortOrder ?? 0)
+  );
+
+  const filteredExperiences = sortedExperiences.filter((e) => {
     const term = expSearch.toLowerCase();
     return (
       (e.role && e.role.toLowerCase().includes(term)) ||
@@ -705,14 +823,25 @@ export function AdminDashboardPage() {
                   Atur riwayat jabatan, instansi, jangka waktu, jobdesk, tools yang digunakan, dan foto dokumentasi di timeline.
                 </p>
               </div>
-              <button
-                type="button"
-                onClick={openNewExpModal}
-                className="admin-btn admin-btn-primary admin-btn-lg"
-              >
-                <Plus size={18} />
-                <span>Tambah Pengalaman Baru</span>
-              </button>
+              <div className="admin-header-actions-group">
+                <button
+                  type="button"
+                  onClick={openReorderModal}
+                  className="admin-btn admin-btn-secondary admin-btn-lg"
+                  title="Atur susunan urutan semua pengalaman secara fleksibel"
+                >
+                  <ArrowUpDown size={17} />
+                  <span>Atur Urutan ({experiences.length})</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={openNewExpModal}
+                  className="admin-btn admin-btn-primary admin-btn-lg"
+                >
+                  <Plus size={18} />
+                  <span>Tambah Pengalaman Baru</span>
+                </button>
+              </div>
             </div>
 
             {/* Filter & Search Bar */}
@@ -733,7 +862,7 @@ export function AdminDashboardPage() {
                 )}
               </div>
               <div className="admin-filter-meta">
-                Menampilkan <strong>{filteredExperiences.length}</strong> pengalaman
+                Menampilkan <strong>{filteredExperiences.length}</strong> pengalaman (diurutkan dari posisi #1)
               </div>
             </div>
 
@@ -748,9 +877,15 @@ export function AdminDashboardPage() {
                         {exp.isCurrent && (
                           <span className="admin-status-pill live">Sedang Aktif (Current)</span>
                         )}
-                        <span className="admin-order-badge" title="Urutan prioritas di timeline">
-                          Urutan #{exp.sort_order ?? exp.sortOrder ?? idx + 1}
-                        </span>
+                        {idx < 3 ? (
+                          <span className="admin-order-badge top-badge" title="Tampil di Timeline Beranda (Top 3)">
+                            ⭐ Beranda #{idx + 1}
+                          </span>
+                        ) : (
+                          <span className="admin-order-badge" title="Tampil di halaman /experience">
+                            Urutan #{idx + 1}
+                          </span>
+                        )}
                       </div>
                       <h3 className="exp-card-role">{exp.role}</h3>
                       <div className="exp-card-org">
@@ -780,6 +915,34 @@ export function AdminDashboardPage() {
                     </div>
 
                     <div className="exp-card-actions">
+                      {/* 1-Click Move Up / Down Buttons */}
+                      <div className="exp-reorder-quick-group" title="Ubah urutan langsung">
+                        <button
+                          type="button"
+                          onClick={() => handleMoveExperience(idx, 'up')}
+                          disabled={idx === 0}
+                          className="admin-icon-btn reorder-btn"
+                          title={idx === 0 ? 'Sudah berada di posisi teratas' : 'Pindahkan ke Atas (▲)'}
+                          aria-label="Pindahkan ke Atas"
+                        >
+                          <ChevronUp size={16} />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleMoveExperience(idx, 'down')}
+                          disabled={idx === filteredExperiences.length - 1}
+                          className="admin-icon-btn reorder-btn"
+                          title={
+                            idx === filteredExperiences.length - 1
+                              ? 'Sudah berada di posisi terbawah'
+                              : 'Pindahkan ke Bawah (▼)'
+                          }
+                          aria-label="Pindahkan ke Bawah"
+                        >
+                          <ChevronDown size={16} />
+                        </button>
+                      </div>
+
                       <button
                         type="button"
                         onClick={() => openEditExpModal(exp)}
@@ -1300,19 +1463,37 @@ WHERE id = 'bpjs-kesehatan' AND (tools IS NULL OR jsonb_array_length(tools) = 0)
 
                 <div className="modal-form-grid-2">
                   <div className="admin-field">
-                    <label>Urutan di Timeline Beranda</label>
-                    <select
-                      value={expForm.sortOrder}
-                      onChange={(e) =>
-                        setExpForm({ ...expForm, sortOrder: parseInt(e.target.value, 10) })
-                      }
-                      className="admin-input"
-                    >
-                      <option value="0">Tampil Paling Atas (Posisi #1)</option>
-                      <option value="1">Tampil Kedua (Posisi #2)</option>
-                      <option value="2">Tampil Ketiga (Posisi #3)</option>
-                      <option value="10">Pengalaman Lainnya (Halaman /experience)</option>
-                    </select>
+                    <label>Nomor Urutan Tampilan (Sort Order) *</label>
+                    <div className="sort-order-modal-row">
+                      <input
+                        type="number"
+                        min="0"
+                        max="999"
+                        value={expForm.sortOrder}
+                        onChange={(e) =>
+                          setExpForm({
+                            ...expForm,
+                            sortOrder: Math.max(0, parseInt(e.target.value, 10) || 0),
+                          })
+                        }
+                        className="admin-input sort-order-number-input"
+                        placeholder="0"
+                      />
+                      <div className="sort-order-pill-status">
+                        {expForm.sortOrder <= 2 ? (
+                          <span className="order-pill-live">
+                            ⭐ Beranda #{expForm.sortOrder + 1}
+                          </span>
+                        ) : (
+                          <span className="order-pill-page">
+                            📄 /experience #{expForm.sortOrder + 1}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                    <span className="admin-field-hint">
+                      Urutan 0, 1, 2 otomatis tampil pada timeline Beranda. Urutan 3 ke atas tampil di halaman /experience.
+                    </span>
                   </div>
 
                   <div className="admin-field checkbox-cell">
@@ -1572,6 +1753,122 @@ WHERE id = 'bpjs-kesehatan' AND (tools IS NULL OR jsonb_array_length(tools) = 0)
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* =========================================================================
+          MODAL: ATUR URUTAN SEMUA PENGALAMAN (DRAG & DROP / REORDER MANAGER)
+          ========================================================================= */}
+      {isReorderModalOpen && (
+        <div className="admin-modal-backdrop" onClick={() => setIsReorderModalOpen(false)}>
+          <div className="admin-modal-content reorder-modal-content" onClick={(e) => e.stopPropagation()}>
+            <div className="admin-modal-header">
+              <div>
+                <span className="modal-badge">
+                  <ArrowUpDown size={14} />
+                  <span>Pengaturan Urutan Fleksibel</span>
+                </span>
+                <h2 className="modal-title">Atur Susunan Posisi Pengalaman</h2>
+              </div>
+              <button
+                type="button"
+                className="modal-close-btn"
+                onClick={() => setIsReorderModalOpen(false)}
+                title="Tutup Modal"
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            <div className="reorder-modal-body">
+              <div className="reorder-instructions-box">
+                <span className="instructions-icon">💡</span>
+                <p>
+                  Geser kartu ke atas/bawah menggunakan tombol panah (<strong>▲ / ▼</strong>) atau seret (drag) langsung.
+                  <strong> 3 Pengalaman teratas (Urutan #1, #2, #3)</strong> otomatis tampil di Timeline Beranda.
+                </p>
+              </div>
+
+              <div className="reorder-items-list">
+                {reorderList.map((item, idx) => {
+                  const isTop3 = idx < 3;
+                  return (
+                    <div
+                      key={item.id || idx}
+                      draggable
+                      onDragStart={(e) => handleDragStart(e, idx)}
+                      onDragOver={(e) => handleDragOver(e, idx)}
+                      onDrop={(e) => handleDropItem(e, idx)}
+                      className={`reorder-item-card ${isTop3 ? 'top-slot' : ''} ${
+                        draggedExpIndex === idx ? 'dragging' : ''
+                      }`}
+                    >
+                      <div className="reorder-item-drag-handle" title="Tahan dan geser untuk memindahkan">
+                        <GripVertical size={18} />
+                      </div>
+
+                      <div className="reorder-rank-pill">
+                        <span className="rank-num">#{idx + 1}</span>
+                        {isTop3 ? (
+                          <span className="rank-home-tag">⭐ Beranda</span>
+                        ) : (
+                          <span className="rank-page-tag">/experience</span>
+                        )}
+                      </div>
+
+                      <div className="reorder-item-info">
+                        <h4 className="reorder-item-role">{item.role}</h4>
+                        <span className="reorder-item-org">{item.organization}</span>
+                      </div>
+
+                      <div className="reorder-item-buttons">
+                        <button
+                          type="button"
+                          onClick={() => moveReorderItem(idx, idx - 1)}
+                          disabled={idx === 0}
+                          className="reorder-arrow-btn"
+                          title="Geser ke Atas (▲)"
+                          aria-label="Geser ke Atas"
+                        >
+                          <ChevronUp size={16} />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => moveReorderItem(idx, idx + 1)}
+                          disabled={idx === reorderList.length - 1}
+                          className="reorder-arrow-btn"
+                          title="Geser ke Bawah (▼)"
+                          aria-label="Geser ke Bawah"
+                        >
+                          <ChevronDown size={16} />
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            <div className="admin-modal-footer">
+              <button
+                type="button"
+                onClick={() => setIsReorderModalOpen(false)}
+                className="admin-btn admin-btn-outline"
+                disabled={reorderSaving}
+              >
+                Batal
+              </button>
+              <button
+                type="button"
+                onClick={saveReorderList}
+                disabled={reorderSaving}
+                className="admin-btn admin-btn-primary admin-btn-lg"
+              >
+                {reorderSaving ? <RefreshCw size={16} className="spin-icon" /> : <Check size={16} />}
+                <span>{reorderSaving ? 'Menyimpan Susunan...' : 'Simpan Susunan Urutan'}</span>
+              </button>
+            </div>
           </div>
         </div>
       )}

@@ -104,6 +104,12 @@ export function ExperiencePage() {
     }
   };
 
+  const sortedExperiences = React.useMemo(() => {
+    return [...experiences].sort(
+      (a, b) => (a.sort_order ?? a.sortOrder ?? 0) - (b.sort_order ?? b.sortOrder ?? 0)
+    );
+  }, [experiences]);
+
   return (
     <div className="section">
       <div className="container" style={{ maxWidth: '900px' }}>
@@ -120,7 +126,7 @@ export function ExperiencePage() {
 
         {/* Timeline / Editorial List */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
-          {experiences.map((exp) => (
+          {sortedExperiences.map((exp) => (
             <div
               key={exp.id}
               style={{
