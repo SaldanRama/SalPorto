@@ -15,10 +15,12 @@ import {
   X,
   Layers,
   ArrowUpDown,
-  Grid,
-  List as ListIcon,
-  Sparkles,
-  SlidersHorizontal,
+  Upload,
+  Check,
+  Tag,
+  ListTodo,
+  Camera,
+  Building,
 } from 'lucide-react';
 import {
   getExperiences,
@@ -27,12 +29,28 @@ import {
   getProjects,
   saveProject,
   deleteProject,
+  uploadImageToSanity,
   resolveExperienceLogo,
-  urlFor,
   projectId,
   dataset,
 } from '@/lib/sanityClient';
 import './AdminDashboardPage.css';
+
+// Popular Tools Preset for 1-Click Selection
+const PRESET_TOOLS = [
+  'VS Code',
+  'Figma',
+  'Photoshop',
+  'Affinity',
+  'Canva',
+  'CapCut',
+  'React',
+  'JavaScript',
+  'HTML',
+  'CSS',
+  'Notion',
+  'Microsoft Excel',
+];
 
 export function AdminDashboardPage() {
   const [activeTab, setActiveTab] = useState('experiences');
@@ -41,30 +59,33 @@ export function AdminDashboardPage() {
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState('default');
-  const [viewMode, setViewMode] = useState('grid');
   const [toastMessage, setToastMessage] = useState(null);
   const [openMenuId, setOpenMenuId] = useState(null);
-  const [showWidget, setShowWidget] = useState(true);
 
   // Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
   const [isSaving, setIsSaving] = useState(false);
+  const [uploadingImage, setUploadingImage] = useState(false);
+  const [customToolInput, setCustomToolInput] = useState('');
 
-  // Form State
+  // Experience Form State
   const [expForm, setExpForm] = useState({
     id: '',
     role: '',
     organization: '',
-    period: '',
+    period: 'Agustus 2024 — Sekarang',
     type: 'Internship',
     isCurrent: false,
     sortOrder: 0,
     description: '',
     jobdesk: [''],
     tools: ['VS Code', 'Figma'],
+    images: [],
+    logos: [],
   });
 
+  // Project Form State
   const [projForm, setProjForm] = useState({
     id: '',
     title: '',
@@ -75,10 +96,11 @@ export function AdminDashboardPage() {
     role: '',
     projectType: 'Case Study',
     summary: '',
+    coverImage: '',
     featured: true,
     published: true,
     sortOrder: 0,
-    tags: ['Figma', 'Web'],
+    tags: ['Design', 'Web'],
   });
 
   const showToast = (msg) => {
@@ -115,6 +137,7 @@ export function AdminDashboardPage() {
     if (activeTab === 'experiences') {
       const nextOrder = experiences.length;
       setEditingItem(null);
+      setCustomToolInput('');
       setExpForm({
         id: `exp-${Date.now()}`,
         role: '',
@@ -126,6 +149,8 @@ export function AdminDashboardPage() {
         description: '',
         jobdesk: [''],
         tools: ['VS Code', 'Figma'],
+        images: [],
+        logos: [],
       });
     } else {
       setEditingItem(null);
@@ -139,6 +164,7 @@ export function AdminDashboardPage() {
         role: '',
         projectType: 'Case Study',
         summary: '',
+        coverImage: '',
         featured: true,
         published: true,
         sortOrder: projects.length,
@@ -148,10 +174,11 @@ export function AdminDashboardPage() {
     setIsModalOpen(true);
   };
 
-  // Open Edit Modal
+  // Open Edit Experience Modal
   const handleOpenEditExp = (e, exp) => {
     e.stopPropagation();
     setEditingItem(exp);
+    setCustomToolInput('');
     setExpForm({
       id: exp.id || exp._id,
       role: exp.role || '',
@@ -161,13 +188,17 @@ export function AdminDashboardPage() {
       isCurrent: exp.isCurrent ?? exp.is_current ?? false,
       sortOrder: exp.sortOrder ?? exp.sort_order ?? 0,
       description: exp.description || '',
-      jobdesk: Array.isArray(exp.jobdesk) && exp.jobdesk.length > 0 ? exp.jobdesk : [''],
-      tools: Array.isArray(exp.tools) ? exp.tools : [],
+      jobdesk:
+        Array.isArray(exp.jobdesk) && exp.jobdesk.length > 0 ? [...exp.jobdesk] : [''],
+      tools: Array.isArray(exp.tools) ? [...exp.tools] : [],
+      images: Array.isArray(exp.images) ? [...exp.images] : [],
+      logos: exp.logos || [],
     });
     setOpenMenuId(null);
     setIsModalOpen(true);
   };
 
+  // Open Edit Project Modal
   const handleOpenEditProj = (e, proj) => {
     e.stopPropagation();
     setEditingItem(proj);
@@ -181,27 +212,118 @@ export function AdminDashboardPage() {
       role: proj.role || '',
       projectType: proj.projectType || 'Case Study',
       summary: proj.summary || '',
+      coverImage: proj.coverImage || proj.cover_image || '',
       featured: proj.featured ?? true,
       published: proj.published ?? true,
       sortOrder: proj.sortOrder ?? 0,
-      tags: Array.isArray(proj.tags) ? proj.tags : [],
+      tags: Array.isArray(proj.tags) ? [...proj.tags] : [],
     });
     setOpenMenuId(null);
     setIsModalOpen(true);
+  };
+
+  // Jobdesk point list helpers
+  const handleAddJobdeskPoint = () => {
+    setExpForm((prev) => ({
+      ...prev,
+      jobdesk: [...(prev.jobdesk || []), ''],
+    }));
+  };
+
+  const handleUpdateJobdeskPoint = (index, value) => {
+    setExpForm((prev) => {
+      const updated = [...(prev.jobdesk || [])];
+      updated[index] = value;
+      return { ...prev, jobdesk: updated };
+    });
+  };
+
+  const handleRemoveJobdeskPoint = (index) => {
+    setExpForm((prev) => {
+      const updated = (prev.jobdesk || []).filter((_, i) => i !== index);
+      return { ...prev, jobdesk: updated.length > 0 ? updated : [''] };
+    });
+  };
+
+  // Tool tags helpers
+  const handleToggleTool = (toolName) => {
+    setExpForm((prev) => {
+      const cur = prev.tools || [];
+      if (cur.includes(toolName)) {
+        return { ...prev, tools: cur.filter((t) => t !== toolName) };
+      }
+      return { ...prev, tools: [...cur, toolName] };
+    });
+  };
+
+  const handleAddCustomTool = (e) => {
+    if (e) e.preventDefault();
+    const trimmed = customToolInput.trim();
+    if (!trimmed) return;
+    if (!expForm.tools?.includes(trimmed)) {
+      setExpForm((prev) => ({
+        ...prev,
+        tools: [...(prev.tools || []), trimmed],
+      }));
+    }
+    setCustomToolInput('');
+  };
+
+  // Image upload handler (uploads directly to Sanity CDN pipeline)
+  const handleUploadDocPhotos = async (e) => {
+    const files = Array.from(e.target.files || []);
+    if (files.length === 0) return;
+
+    setUploadingImage(true);
+    let count = 0;
+    const uploadedPhotos = [];
+
+    for (const file of files) {
+      const res = await uploadImageToSanity(file);
+      if (res.asset) {
+        count++;
+        uploadedPhotos.push({
+          url: res.url,
+          _id: res.asset._id,
+          title: file.name.replace(/\.[^/.]+$/, ''),
+          caption: '',
+        });
+      }
+    }
+
+    if (uploadedPhotos.length > 0) {
+      setExpForm((prev) => ({
+        ...prev,
+        images: [...(prev.images || []), ...uploadedPhotos],
+      }));
+      showToast(`${count} foto berhasil diunggah ke Sanity CDN!`);
+    }
+
+    setUploadingImage(false);
+    e.target.value = '';
+  };
+
+  const handleRemoveDocPhoto = (index) => {
+    setExpForm((prev) => ({
+      ...prev,
+      images: (prev.images || []).filter((_, i) => i !== index),
+    }));
   };
 
   // Save Experience to Sanity
   const handleSaveExpSubmit = async (e) => {
     e.preventDefault();
     if (!expForm.role || !expForm.organization) {
-      alert('Mohon isi Job Title dan Nama Instansi.');
+      alert('Mohon isi Jabatan dan Nama Instansi.');
       return;
     }
 
     setIsSaving(true);
+    const cleanJobdesk = (expForm.jobdesk || []).filter((j) => j && j.trim() !== '');
+
     const toSave = {
       ...expForm,
-      jobdesk: (expForm.jobdesk || []).filter((j) => j && j.trim() !== ''),
+      jobdesk: cleanJobdesk,
       sortOrder: Number(expForm.sortOrder || 0),
     };
 
@@ -213,7 +335,7 @@ export function AdminDashboardPage() {
       return;
     }
 
-    showToast(`Pengalaman "${toSave.role}" berhasil dipublikasikan ke Sanity!`);
+    showToast(`Pengalaman "${toSave.role}" berhasil disimpan ke Sanity!`);
     setIsModalOpen(false);
     await loadData();
   };
@@ -231,7 +353,7 @@ export function AdminDashboardPage() {
     setIsSaving(false);
 
     if (res?.error) {
-      alert('Gagal menyimpan proyek ke Sanity: ' + (res.error.message || 'Error'));
+      alert('Gagal menyimpan proyek: ' + (res.error.message || 'Error'));
       return;
     }
 
@@ -284,7 +406,7 @@ export function AdminDashboardPage() {
     await loadData();
   };
 
-  // Filter & Sorting logic
+  // Filter & Sorting
   const filteredExperiences = experiences
     .filter((item) => {
       const q = searchQuery.toLowerCase();
@@ -297,7 +419,6 @@ export function AdminDashboardPage() {
     })
     .sort((a, b) => {
       if (sortBy === 'name') return (a.role || '').localeCompare(b.role || '');
-      // default: sortOrder ascending
       return (a.sortOrder ?? a.sort_order ?? 0) - (b.sortOrder ?? b.sort_order ?? 0);
     });
 
@@ -317,473 +438,404 @@ export function AdminDashboardPage() {
     });
 
   return (
-    <div className="sp-dashboard-root">
+    <div className="sp-fullscreen-app">
       {/* Toast Alert */}
       {toastMessage && (
-        <div className="sp-toast">
+        <div className="sp-toast-notification">
           <CheckCircle2 size={18} color="#80c5a3" />
           <span>{toastMessage}</span>
         </div>
       )}
 
-      {/* Main Container Window */}
-      <div className="sp-dashboard-window">
-        {/* ================================================================
-            SIDEBAR
-            ================================================================ */}
-        <aside className="sp-sidebar">
-          <div>
-            <div className="sp-brand">
-              <div className="sp-brand-icon">S</div>
-              <div className="sp-brand-info">
-                <h2>SalPorto</h2>
-                <span>Content Studio</span>
-              </div>
+      {/* ====================================================================
+          LEFT SIDEBAR (FULLSCREEN HEIGHT, FLUSH TO LEFT EDGE)
+          ==================================================================== */}
+      <aside className="sp-fullscreen-sidebar">
+        <div>
+          <div className="sp-sidebar-brand">
+            <div className="sp-sidebar-brand-icon">S</div>
+            <div className="sp-sidebar-brand-text">
+              <h2>SalPorto</h2>
+              <span>Content Studio</span>
             </div>
-
-            <nav className="sp-nav-menu">
-              <button
-                type="button"
-                className={`sp-nav-item ${activeTab === 'experiences' ? 'active' : ''}`}
-                onClick={() => setActiveTab('experiences')}
-              >
-                <Briefcase size={18} />
-                <span>Pengalaman</span>
-                <span className="sp-nav-badge">{experiences.length}</span>
-              </button>
-
-              <button
-                type="button"
-                className={`sp-nav-item ${activeTab === 'projects' ? 'active' : ''}`}
-                onClick={() => setActiveTab('projects')}
-              >
-                <FolderGit2 size={18} />
-                <span>Proyek & Studi</span>
-                <span className="sp-nav-badge">{projects.length}</span>
-              </button>
-
-              <button
-                type="button"
-                className={`sp-nav-item ${activeTab === 'media' ? 'active' : ''}`}
-                onClick={() => setActiveTab('media')}
-              >
-                <ImageIcon size={18} />
-                <span>Media Galeri</span>
-              </button>
-            </nav>
           </div>
 
-          <div className="sp-sidebar-footer">
-            <div className="sp-lake-card">
-              <div className="sp-lake-header">
-                <span className="sp-pulse-dot" />
-                <span>Sanity Content Lake</span>
-              </div>
-              <div className="sp-lake-details">
-                Project: <strong>{projectId}</strong>
-                <br />
-                Dataset: <strong>{dataset}</strong>
-                <br />
-                Status: <strong>0s Live Sync (CDN Off)</strong>
-              </div>
-            </div>
+          <nav className="sp-sidebar-nav">
+            <button
+              type="button"
+              className={`sp-sidebar-btn ${activeTab === 'experiences' ? 'active' : ''}`}
+              onClick={() => setActiveTab('experiences')}
+            >
+              <Briefcase size={18} />
+              <span>Pengalaman</span>
+              <span className="sp-sidebar-badge">{experiences.length}</span>
+            </button>
 
-            <Link to="/admin/studio" className="sp-studio-alt-btn">
-              <Layers size={14} />
-              <span>Buka Sanity Studio Raw ↗</span>
-            </Link>
+            <button
+              type="button"
+              className={`sp-sidebar-btn ${activeTab === 'projects' ? 'active' : ''}`}
+              onClick={() => setActiveTab('projects')}
+            >
+              <FolderGit2 size={18} />
+              <span>Proyek & Karya</span>
+              <span className="sp-sidebar-badge">{projects.length}</span>
+            </button>
+
+            <button
+              type="button"
+              className={`sp-sidebar-btn ${activeTab === 'media' ? 'active' : ''}`}
+              onClick={() => setActiveTab('media')}
+            >
+              <ImageIcon size={18} />
+              <span>Media Galeri</span>
+            </button>
+          </nav>
+        </div>
+
+        <div className="sp-sidebar-bottom">
+          <div className="sp-lake-status-pill">
+            <div className="sp-status-indicator">
+              <span className="sp-pulse-dot" />
+              <span>Sanity Lake Active</span>
+            </div>
+            <div className="sp-lake-info">
+              Dataset: <strong>{dataset}</strong> • <strong>0s Live Sync</strong>
+            </div>
           </div>
-        </aside>
 
-        {/* ================================================================
-            MAIN WORKSPACE
-            ================================================================ */}
-        <main className="sp-main">
-          {/* Top Header Bar */}
-          <header className="sp-topbar">
-            <div className="sp-search-bar">
-              <Search size={16} />
-              <input
-                type="text"
-                placeholder={
-                  activeTab === 'experiences'
-                    ? 'Cari jabatan, instansi, atau tipe pengalaman...'
-                    : 'Cari judul proyek, kategori, atau tag...'
-                }
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="sp-search-input"
-              />
-              {searchQuery && (
-                <button
-                  type="button"
-                  onClick={() => setSearchQuery('')}
-                  style={{ background: 'none', border: 'none', color: '#777', cursor: 'pointer' }}
-                >
-                  <X size={14} />
-                </button>
-              )}
-            </div>
+          <Link to="/admin/studio" className="sp-studio-link-btn" title="Buka Sanity Studio Bawaan">
+            <Layers size={14} />
+            <span>Sanity Studio Raw ↗</span>
+          </Link>
+        </div>
+      </aside>
 
-            <div className="sp-topbar-actions">
+      {/* ====================================================================
+          MAIN VIEWPORT (SPACIOUS, MINIMALIST, EDGE-TO-EDGE)
+          ==================================================================== */}
+      <main className="sp-viewport-main">
+        {/* Sticky Topbar */}
+        <header className="sp-fullscreen-topbar">
+          <div className="sp-search-capsule">
+            <Search size={16} />
+            <input
+              type="text"
+              placeholder={
+                activeTab === 'experiences'
+                  ? 'Cari pengalaman, nama instansi, atau role...'
+                  : 'Cari proyek atau kategori...'
+              }
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="sp-search-input-field"
+            />
+            {searchQuery && (
               <button
                 type="button"
-                className="sp-btn-create"
-                onClick={handleOpenAddModal}
-              >
-                <Plus size={16} strokeWidth={2.8} />
-                <span>
-                  {activeTab === 'experiences' ? 'Tambah Pengalaman' : 'Tambah Proyek'}
-                </span>
-              </button>
-
-              <div className="sp-user-profile">
-                <div className="sp-user-avatar">SR</div>
-                <div className="sp-user-info">
-                  <span className="sp-user-name">Saldan Rama</span>
-                  <span className="sp-user-role">Administrator</span>
-                </div>
-              </div>
-
-              <a
-                href="/"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="sp-site-link"
-                title="Buka Website Portofolio di tab baru"
-              >
-                <ExternalLink size={14} />
-                <span>Website ↗</span>
-              </a>
-            </div>
-          </header>
-
-          {/* Workspace Body */}
-          <div className="sp-workspace">
-            {/* Header Title & Sorting Area */}
-            <div className="sp-workspace-header">
-              <div className="sp-title-area">
-                <h1>
-                  {activeTab === 'experiences'
-                    ? 'Career & Track Record'
-                    : activeTab === 'projects'
-                    ? 'Projects & Case Studies'
-                    : 'Media Assets'}
-                </h1>
-                <p className="sp-counter-label">
-                  Total:{' '}
-                  <strong>
-                    {activeTab === 'experiences'
-                      ? `${filteredExperiences.length} Riwayat Pengalaman`
-                      : `${filteredProjects.length} Proyek`}
-                  </strong>
-                  {activeTab === 'experiences' && (
-                    <span> • Posisi [#0], [#1], [#2] otomatis tampil di Timeline Beranda</span>
-                  )}
-                </p>
-              </div>
-
-              <div className="sp-view-controls">
-                <select
-                  value={sortBy}
-                  onChange={(e) => setSortBy(e.target.value)}
-                  className="sp-sort-select"
-                >
-                  <option value="default">Urutan Tampilan (Sort Order)</option>
-                  <option value="name">Nama (A — Z)</option>
-                </select>
-
-                <div className="sp-view-toggle">
-                  <button
-                    type="button"
-                    className={`sp-view-btn ${viewMode === 'grid' ? 'active' : ''}`}
-                    onClick={() => setViewMode('grid')}
-                    title="Grid View"
-                  >
-                    <Grid size={15} />
-                  </button>
-                  <button
-                    type="button"
-                    className={`sp-view-btn ${viewMode === 'list' ? 'active' : ''}`}
-                    onClick={() => setViewMode('list')}
-                    title="List View"
-                  >
-                    <ListIcon size={15} />
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            {/* ============================================================
-                CARD GRID: EXPERIENCES (IDENTICAL TO USER MOCKUP!)
-                ============================================================ */}
-            {activeTab === 'experiences' && (
-              <div className="sp-grid-layout">
-                {filteredExperiences.map((exp) => {
-                  const logos = resolveExperienceLogo(exp);
-                  const firstLogo = Array.isArray(logos) ? logos[0] : logos;
-                  const isTopThree = (exp.sortOrder ?? exp.sort_order ?? 99) < 3;
-                  const orderNum = exp.sortOrder ?? exp.sort_order ?? 0;
-
-                  return (
-                    <div
-                      key={exp.id || exp._id}
-                      className="sp-doc-card"
-                      onClick={(e) => handleOpenEditExp(e, exp)}
-                    >
-                      {/* Top Row: Big Centered Circular Icon Badge & 3-dots Menu */}
-                      <div className="sp-card-top">
-                        <div className="sp-icon-circle">
-                          {firstLogo ? (
-                            <img src={firstLogo} alt={exp.organization} />
-                          ) : (
-                            <div className="sp-icon-circle fallback-gradient">
-                              {(exp.organization || 'E')[0].toUpperCase()}
-                            </div>
-                          )}
-                        </div>
-
-                        <div style={{ position: 'relative' }}>
-                          <button
-                            type="button"
-                            className="sp-menu-trigger"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setOpenMenuId(openMenuId === exp.id ? null : exp.id);
-                            }}
-                          >
-                            <MoreVertical size={16} />
-                          </button>
-
-                          {openMenuId === exp.id && (
-                            <div
-                              className="sp-menu-dropdown"
-                              onClick={(e) => e.stopPropagation()}
-                            >
-                              <button
-                                type="button"
-                                className="sp-menu-item"
-                                onClick={(e) => handleOpenEditExp(e, exp)}
-                              >
-                                <Edit2 size={13} />
-                                <span>Edit Pengalaman</span>
-                              </button>
-
-                              <button
-                                type="button"
-                                className="sp-menu-item"
-                                onClick={(e) => handleMakeTopFeatured(e, exp)}
-                              >
-                                <Star size={13} color="#80c5a3" />
-                                <span>Jadikan #0 di Home</span>
-                              </button>
-
-                              <button
-                                type="button"
-                                className="sp-menu-item delete"
-                                onClick={(e) => handleDeleteExp(e, exp)}
-                              >
-                                <Trash2 size={13} />
-                                <span>Hapus</span>
-                              </button>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-
-                      {/* Card Content */}
-                      <div className="sp-card-body">
-                        <h3 className="sp-card-title">{exp.role}</h3>
-                        <p className="sp-card-org">{exp.organization}</p>
-                        <p className="sp-card-period">{exp.period || 'Periode belum diisi'}</p>
-                      </div>
-
-                      {/* Card Footer Badges */}
-                      <div className="sp-card-footer">
-                        {isTopThree ? (
-                          <span className="sp-badge-home">⭐ #{orderNum} di Beranda</span>
-                        ) : (
-                          <span className="sp-badge-order">Posisi #{orderNum}</span>
-                        )}
-                        <span className="sp-badge-type">{exp.type}</span>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-
-            {/* ============================================================
-                CARD GRID: PROJECTS
-                ============================================================ */}
-            {activeTab === 'projects' && (
-              <div className="sp-grid-layout">
-                {filteredProjects.map((proj) => {
-                  const coverUrl = proj.coverImage || proj.cover_image;
-                  return (
-                    <div
-                      key={proj.id || proj._id}
-                      className="sp-doc-card"
-                      onClick={(e) => handleOpenEditProj(e, proj)}
-                    >
-                      <div className="sp-card-top">
-                        <div className="sp-icon-circle">
-                          {coverUrl ? (
-                            <img src={coverUrl} alt={proj.title} />
-                          ) : (
-                            <div className="sp-icon-circle fallback-gradient">
-                              <FolderGit2 size={24} />
-                            </div>
-                          )}
-                        </div>
-
-                        <div style={{ position: 'relative' }}>
-                          <button
-                            type="button"
-                            className="sp-menu-trigger"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setOpenMenuId(openMenuId === proj.id ? null : proj.id);
-                            }}
-                          >
-                            <MoreVertical size={16} />
-                          </button>
-
-                          {openMenuId === proj.id && (
-                            <div
-                              className="sp-menu-dropdown"
-                              onClick={(e) => e.stopPropagation()}
-                            >
-                              <button
-                                type="button"
-                                className="sp-menu-item"
-                                onClick={(e) => handleOpenEditProj(e, proj)}
-                              >
-                                <Edit2 size={13} />
-                                <span>Edit Proyek</span>
-                              </button>
-                              <button
-                                type="button"
-                                className="sp-menu-item delete"
-                                onClick={(e) => handleDeleteProj(e, proj)}
-                              >
-                                <Trash2 size={13} />
-                                <span>Hapus</span>
-                              </button>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-
-                      <div className="sp-card-body">
-                        <h3 className="sp-card-title">{proj.title}</h3>
-                        <p className="sp-card-org">{proj.categoryLabel || proj.category}</p>
-                        <p className="sp-card-period">Tahun: {proj.year}</p>
-                      </div>
-
-                      <div className="sp-card-footer">
-                        <span className="sp-badge-home">
-                          {proj.published ? '🟢 Live di Website' : 'Draft'}
-                        </span>
-                        <span className="sp-badge-type">{proj.projectType}</span>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-
-            {/* Media Tab Placeholder */}
-            {activeTab === 'media' && (
-              <div
-                style={{
-                  background: '#1d1e19',
-                  border: '1px solid #2d2f26',
-                  borderRadius: '20px',
-                  padding: '3rem',
-                  textAlign: 'center',
-                }}
-              >
-                <ImageIcon size={48} color="#bfc9ff" style={{ marginBottom: '1rem' }} />
-                <h3 style={{ fontSize: '1.25rem', marginBottom: '0.5rem' }}>
-                  Media & Asset Pipeline
-                </h3>
-                <p style={{ color: '#8c8c82', maxWidth: '500px', margin: '0 auto' }}>
-                  Semua gambar dan dokumentasi diupload langsung ke CDN Sanity Images
-                  (cdn.sanity.io) dengan optimasi WebP otomatis.
-                </p>
-              </div>
-            )}
-          </div>
-        </main>
-
-        {/* ================================================================
-            FLOATING "SANITY LIVE SYNC" WIDGET (MATCHING BOTTOM-RIGHT MOCKUP)
-            ================================================================ */}
-        {showWidget && (
-          <div className="sp-floating-widget">
-            <div className="sp-widget-header">
-              <span className="sp-widget-title">
-                <Sparkles size={14} color="#bfc9ff" />
-                <span>Sanity Live Sync</span>
-              </span>
-              <button
-                type="button"
-                className="sp-widget-close"
-                onClick={() => setShowWidget(false)}
+                onClick={() => setSearchQuery('')}
+                style={{ background: 'none', border: 'none', color: '#777', cursor: 'pointer' }}
               >
                 <X size={14} />
               </button>
-            </div>
+            )}
+          </div>
 
-            <div className="sp-widget-row">
-              <div className="sp-widget-icon">
-                <Briefcase size={18} />
-              </div>
-              <div className="sp-widget-info">
-                <span className="sp-widget-name">{experiences.length} Experiences Sync</span>
-                <span className="sp-widget-sub">
-                  <span className="sp-pulse-dot" style={{ width: 6, height: 6 }} />
-                  <span>Real-time ke Sanity Lake</span>
-                </span>
-              </div>
-            </div>
+          <div className="sp-topbar-right-actions">
+            <button
+              type="button"
+              className="sp-btn-primary-create"
+              onClick={handleOpenAddModal}
+            >
+              <Plus size={16} strokeWidth={2.8} />
+              <span>
+                {activeTab === 'experiences' ? 'Tambah Pengalaman' : 'Tambah Proyek'}
+              </span>
+            </button>
 
             <a
-              href="/experience"
+              href="/"
               target="_blank"
               rel="noopener noreferrer"
-              style={{
-                display: 'block',
-                textAlign: 'center',
-                background: '#23251e',
-                color: '#bfc9ff',
-                padding: '0.5rem',
-                borderRadius: '10px',
-                fontSize: '0.75rem',
-                fontWeight: 600,
-                textDecoration: 'none',
-              }}
+              className="sp-site-external-btn"
+              title="Buka Website Portofolio di Tab Baru"
             >
-              Lihat Timeline di Website ↗
+              <ExternalLink size={14} />
+              <span>Website ↗</span>
             </a>
           </div>
-        )}
-      </div>
+        </header>
 
-      {/* ================================================================
-          MODAL: TAMBAH / EDIT PENGALAMAN
-          ================================================================ */}
+        {/* Content Workspace */}
+        <div className="sp-fullscreen-content">
+          <div className="sp-content-header">
+            <div>
+              <h1>
+                {activeTab === 'experiences'
+                  ? 'Career & Track Record'
+                  : activeTab === 'projects'
+                  ? 'Projects & Case Studies'
+                  : 'Media Assets'}
+              </h1>
+              <p className="sp-content-subtitle">
+                Total:{' '}
+                <strong>
+                  {activeTab === 'experiences'
+                    ? `${filteredExperiences.length} Riwayat Pengalaman`
+                    : `${filteredProjects.length} Proyek`}
+                </strong>
+                {activeTab === 'experiences' && (
+                  <span> • Urutan [#0], [#1], [#2] otomatis tampil di Timeline Beranda Website</span>
+                )}
+              </p>
+            </div>
+
+            <div className="sp-controls-group">
+              <select
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value)}
+                className="sp-select-minimal"
+              >
+                <option value="default">Urutan Tampilan (Sort Order)</option>
+                <option value="name">Nama Jabatan (A — Z)</option>
+              </select>
+            </div>
+          </div>
+
+          {/* ================================================================
+              EXPERIENCES GRID (SPACIOUS, AIRY, MINIMALIST)
+              ================================================================ */}
+          {activeTab === 'experiences' && (
+            <div className="sp-cards-grid">
+              {filteredExperiences.map((exp) => {
+                const logos = resolveExperienceLogo(exp);
+                const firstLogo = Array.isArray(logos) ? logos[0] : logos;
+                const isTopThree = (exp.sortOrder ?? exp.sort_order ?? 99) < 3;
+                const orderNum = exp.sortOrder ?? exp.sort_order ?? 0;
+                const photosCount = Array.isArray(exp.images) ? exp.images.length : 0;
+                const jobdeskItems = Array.isArray(exp.jobdesk) ? exp.jobdesk.slice(0, 2) : [];
+
+                return (
+                  <div
+                    key={exp.id || exp._id}
+                    className="sp-card-item"
+                    onClick={(e) => handleOpenEditExp(e, exp)}
+                  >
+                    {/* Header: Centered Circle Logo & Menu */}
+                    <div className="sp-card-item-header">
+                      <div className="sp-logo-circle">
+                        {firstLogo ? (
+                          <img src={firstLogo} alt={exp.organization} />
+                        ) : (
+                          <div className="sp-logo-circle text-fallback">
+                            {(exp.organization || 'E')[0].toUpperCase()}
+                          </div>
+                        )}
+                      </div>
+
+                      <div style={{ position: 'relative' }}>
+                        <button
+                          type="button"
+                          className="sp-card-menu-btn"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setOpenMenuId(openMenuId === exp.id ? null : exp.id);
+                          }}
+                        >
+                          <MoreVertical size={16} />
+                        </button>
+
+                        {openMenuId === exp.id && (
+                          <div
+                            className="sp-card-dropdown"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            <button
+                              type="button"
+                              className="sp-dropdown-action"
+                              onClick={(e) => handleOpenEditExp(e, exp)}
+                            >
+                              <Edit2 size={13} />
+                              <span>Edit Pengalaman</span>
+                            </button>
+
+                            <button
+                              type="button"
+                              className="sp-dropdown-action"
+                              onClick={(e) => handleMakeTopFeatured(e, exp)}
+                            >
+                              <Star size={13} color="#80c5a3" />
+                              <span>Jadikan #0 di Beranda</span>
+                            </button>
+
+                            <button
+                              type="button"
+                              className="sp-dropdown-action danger"
+                              onClick={(e) => handleDeleteExp(e, exp)}
+                            >
+                              <Trash2 size={13} />
+                              <span>Hapus</span>
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Body */}
+                    <div className="sp-card-body-content">
+                      <h3 className="sp-card-role-title">{exp.role}</h3>
+                      <p className="sp-card-org-name">{exp.organization}</p>
+                      <p className="sp-card-period-date">{exp.period || 'Periode belum diisi'}</p>
+
+                      {/* Jobdesk Bullets Preview */}
+                      {jobdeskItems.length > 0 && (
+                        <ul className="sp-card-jobdesk-preview">
+                          {jobdeskItems.map((point, idx) => (
+                            <li key={idx}>{point}</li>
+                          ))}
+                        </ul>
+                      )}
+                    </div>
+
+                    {/* Footer */}
+                    <div className="sp-card-footer-strip">
+                      {isTopThree ? (
+                        <span className="sp-pill-home-badge">⭐ #{orderNum} di Beranda</span>
+                      ) : (
+                        <span className="sp-pill-order-badge">Posisi #{orderNum}</span>
+                      )}
+
+                      {photosCount > 0 && (
+                        <span className="sp-photos-count-badge">
+                          <Camera size={13} />
+                          <span>{photosCount} Foto</span>
+                        </span>
+                      )}
+
+                      <span style={{ fontSize: '0.75rem', color: '#8c8c82' }}>{exp.type}</span>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+
+          {/* ================================================================
+              PROJECTS GRID
+              ================================================================ */}
+          {activeTab === 'projects' && (
+            <div className="sp-cards-grid">
+              {filteredProjects.map((proj) => {
+                const coverUrl = proj.coverImage || proj.cover_image;
+                return (
+                  <div
+                    key={proj.id || proj._id}
+                    className="sp-card-item"
+                    onClick={(e) => handleOpenEditProj(e, proj)}
+                  >
+                    <div className="sp-card-item-header">
+                      <div className="sp-logo-circle">
+                        {coverUrl ? (
+                          <img src={coverUrl} alt={proj.title} />
+                        ) : (
+                          <div className="sp-logo-circle text-fallback">
+                            <FolderGit2 size={24} />
+                          </div>
+                        )}
+                      </div>
+
+                      <div style={{ position: 'relative' }}>
+                        <button
+                          type="button"
+                          className="sp-card-menu-btn"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setOpenMenuId(openMenuId === proj.id ? null : proj.id);
+                          }}
+                        >
+                          <MoreVertical size={16} />
+                        </button>
+
+                        {openMenuId === proj.id && (
+                          <div
+                            className="sp-card-dropdown"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            <button
+                              type="button"
+                              className="sp-dropdown-action"
+                              onClick={(e) => handleOpenEditProj(e, proj)}
+                            >
+                              <Edit2 size={13} />
+                              <span>Edit Proyek</span>
+                            </button>
+                            <button
+                              type="button"
+                              className="sp-dropdown-action danger"
+                              onClick={(e) => handleDeleteProj(e, proj)}
+                            >
+                              <Trash2 size={13} />
+                              <span>Hapus</span>
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="sp-card-body-content">
+                      <h3 className="sp-card-role-title">{proj.title}</h3>
+                      <p className="sp-card-org-name">{proj.categoryLabel || proj.category}</p>
+                      <p className="sp-card-period-date">Tahun: {proj.year}</p>
+                    </div>
+
+                    <div className="sp-card-footer-strip">
+                      <span className="sp-pill-home-badge">
+                        {proj.published ? '🟢 Live di Website' : 'Draft'}
+                      </span>
+                      <span style={{ fontSize: '0.75rem', color: '#8c8c82' }}>
+                        {proj.projectType}
+                      </span>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+
+          {/* Media Tab Placeholder */}
+          {activeTab === 'media' && (
+            <div
+              style={{
+                background: '#141512',
+                border: '1px solid rgba(255, 255, 255, 0.05)',
+                borderRadius: '20px',
+                padding: '4rem 2rem',
+                textAlign: 'center',
+              }}
+            >
+              <ImageIcon size={48} color="#bfc9ff" style={{ marginBottom: '1rem' }} />
+              <h3 style={{ fontSize: '1.25rem', marginBottom: '0.5rem' }}>
+                Sanity Media & Image Asset Pipeline
+              </h3>
+              <p style={{ color: '#8c8c82', maxWidth: '520px', margin: '0 auto' }}>
+                Semua file dokumentasi dan logo tersimpan di Content Delivery Network Sanity (CDN)
+                dengan kompresi WebP otomatis untuk kecepatan loading maksimal.
+              </p>
+            </div>
+          )}
+        </div>
+      </main>
+
+      {/* ====================================================================
+          MODAL DIALOG (SPACIOUS, COMPLETE RICH FIELDS)
+          ==================================================================== */}
       {isModalOpen && activeTab === 'experiences' && (
-        <div className="sp-modal-backdrop" onClick={() => setIsModalOpen(false)}>
-          <div className="sp-modal-box" onClick={(e) => e.stopPropagation()}>
-            <div className="sp-modal-header">
-              <h2 className="sp-modal-title">
-                {editingItem ? 'Edit Riwayat Pengalaman' : 'Tambah Pengalaman Baru'}
-              </h2>
+        <div className="sp-modal-overlay" onClick={() => setIsModalOpen(false)}>
+          <div className="sp-modal-container" onClick={(e) => e.stopPropagation()}>
+            <div className="sp-modal-head">
+              <h2>{editingItem ? 'Edit Riwayat Pengalaman' : 'Tambah Pengalaman Baru'}</h2>
               <button
                 type="button"
-                className="sp-modal-close"
+                className="sp-modal-close-btn"
                 onClick={() => setIsModalOpen(false)}
               >
                 <X size={18} />
@@ -791,98 +843,260 @@ export function AdminDashboardPage() {
             </div>
 
             <form onSubmit={handleSaveExpSubmit}>
-              <div className="sp-modal-body">
-                <div className="sp-field">
-                  <label>Jabatan / Posisi Pekerjaan *</label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="e.g. Creative & Media Producer Specialist"
-                    value={expForm.role}
-                    onChange={(e) => setExpForm({ ...expForm, role: e.target.value })}
-                    className="sp-input"
-                  />
+              <div className="sp-modal-scroll-body">
+                {/* SECTION 1: INFORMASI UTAMA */}
+                <div className="sp-form-section">
+                  <h3 className="sp-section-heading">
+                    <Building size={16} />
+                    <span>1. Informasi Pokok & Jabatan</span>
+                  </h3>
+
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                    <div>
+                      <label className="sp-input-label">Jabatan / Posisi Pekerjaan *</label>
+                      <input
+                        type="text"
+                        required
+                        placeholder="e.g. Creative & Media Producer Specialist"
+                        value={expForm.role}
+                        onChange={(e) => setExpForm({ ...expForm, role: e.target.value })}
+                        className="sp-input-field"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="sp-input-label">Nama Instansi / Perusahaan *</label>
+                      <input
+                        type="text"
+                        required
+                        placeholder="e.g. PusakaBugis.id (Kemenbud)"
+                        value={expForm.organization}
+                        onChange={(e) => setExpForm({ ...expForm, organization: e.target.value })}
+                        className="sp-input-field"
+                      />
+                    </div>
+                  </div>
+
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                    <div>
+                      <label className="sp-input-label">Periode Waktu</label>
+                      <input
+                        type="text"
+                        placeholder="e.g. Agustus 2024 — Sekarang"
+                        value={expForm.period}
+                        onChange={(e) => setExpForm({ ...expForm, period: e.target.value })}
+                        className="sp-input-field"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="sp-input-label">Tipe Pengalaman</label>
+                      <select
+                        value={expForm.type}
+                        onChange={(e) => setExpForm({ ...expForm, type: e.target.value })}
+                        className="sp-select-field"
+                      >
+                        <option value="Internship">Internship</option>
+                        <option value="Full-Time">Full-Time</option>
+                        <option value="Kontrak / Contract">Kontrak / Contract</option>
+                        <option value="Academic">Academic</option>
+                        <option value="Community / Project">Community / Project</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                    <div>
+                      <label className="sp-input-label">
+                        <span>Nomor Urutan Tampilan (Sort Order) *</span>
+                      </label>
+                      <input
+                        type="number"
+                        min="0"
+                        value={expForm.sortOrder}
+                        onChange={(e) =>
+                          setExpForm({
+                            ...expForm,
+                            sortOrder: parseInt(e.target.value, 10) || 0,
+                          })
+                        }
+                        className="sp-input-field"
+                      />
+                      <span style={{ fontSize: '0.725rem', color: '#8c8c82', marginTop: '4px', display: 'block' }}>
+                        💡 Urutan 0, 1, 2 akan otomatis menjadi Top 3 yang tampil di Beranda!
+                      </span>
+                    </div>
+
+                    <div style={{ display: 'flex', alignItems: 'center', marginTop: '1.25rem' }}>
+                      <label style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', cursor: 'pointer' }}>
+                        <input
+                          type="checkbox"
+                          checked={expForm.isCurrent}
+                          onChange={(e) => setExpForm({ ...expForm, isCurrent: e.target.checked })}
+                          style={{ width: '18px', height: '18px', accentColor: '#bfc9ff' }}
+                        />
+                        <span style={{ fontSize: '0.85rem', fontWeight: 600, color: '#f4f2ec' }}>
+                          Masih aktif menjalani posisi ini (Current Role)
+                        </span>
+                      </label>
+                    </div>
+                  </div>
                 </div>
 
-                <div className="sp-field">
-                  <label>Nama Instansi / Perusahaan *</label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="e.g. PusakaBugis.id (Kemenbud)"
-                    value={expForm.organization}
-                    onChange={(e) => setExpForm({ ...expForm, organization: e.target.value })}
-                    className="sp-input"
-                  />
+                {/* SECTION 2: TANGGUNG JAWAB & JOBDESK (LIST DINAMIS, BUKAN PARAGRAF) */}
+                <div className="sp-form-section">
+                  <h3 className="sp-section-heading">
+                    <ListTodo size={16} />
+                    <span>2. Tanggung Jawab & Lingkup Kontribusi (List Poin)</span>
+                  </h3>
+                  <p style={{ fontSize: '0.8rem', color: '#8c8c82', margin: '0 0 0.5rem 0' }}>
+                    Tuliskan poin-poin fokus atau tanggung jawab utama Anda. Poin ini akan tampil dengan bullet dot yang rapi di website.
+                  </p>
+
+                  <div className="sp-jobdesk-rows">
+                    {(expForm.jobdesk || []).map((point, idx) => (
+                      <div key={idx} className="sp-jobdesk-row">
+                        <span className="sp-bullet-dot" />
+                        <input
+                          type="text"
+                          placeholder={`Poin ${idx + 1}: e.g. Merancang antarmuka pengguna responsif...`}
+                          value={point}
+                          onChange={(e) => handleUpdateJobdeskPoint(idx, e.target.value)}
+                          className="sp-input-field"
+                        />
+                        <button
+                          type="button"
+                          className="sp-row-delete-btn"
+                          onClick={() => handleRemoveJobdeskPoint(idx)}
+                          title="Hapus poin ini"
+                        >
+                          <Trash2 size={15} />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+
+                  <button
+                    type="button"
+                    className="sp-btn-add-item"
+                    onClick={handleAddJobdeskPoint}
+                  >
+                    <Plus size={14} />
+                    <span>Tambah Poin Tanggung Jawab</span>
+                  </button>
                 </div>
 
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-                  <div className="sp-field">
-                    <label>Periode Waktu</label>
+                {/* SECTION 3: TOOLS & CREATIVE STACK (TAGS) */}
+                <div className="sp-form-section">
+                  <h3 className="sp-section-heading">
+                    <Tag size={16} />
+                    <span>3. Tools & Software yang Digunakan</span>
+                  </h3>
+                  <p style={{ fontSize: '0.8rem', color: '#8c8c82', margin: '0 0 0.5rem 0' }}>
+                    Klik tool untuk memilih atau menghapus, atau tambahkan tool custom di bawah.
+                  </p>
+
+                  <div className="sp-tools-presets">
+                    {PRESET_TOOLS.map((tool) => {
+                      const isSelected = expForm.tools?.includes(tool);
+                      return (
+                        <button
+                          key={tool}
+                          type="button"
+                          className={`sp-tool-chip ${isSelected ? 'selected' : ''}`}
+                          onClick={() => handleToggleTool(tool)}
+                        >
+                          {tool} {isSelected && '✓'}
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.5rem' }}>
                     <input
                       type="text"
-                      placeholder="e.g. Agustus 2024 — Sekarang"
-                      value={expForm.period}
-                      onChange={(e) => setExpForm({ ...expForm, period: e.target.value })}
-                      className="sp-input"
+                      placeholder="Tambah software/tool lain (e.g. Cinema 4D, DaVinci)..."
+                      value={customToolInput}
+                      onChange={(e) => setCustomToolInput(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          e.preventDefault();
+                          handleAddCustomTool();
+                        }
+                      }}
+                      className="sp-input-field"
+                      style={{ maxWidth: '380px' }}
                     />
-                  </div>
-
-                  <div className="sp-field">
-                    <label>Tipe Pengalaman</label>
-                    <select
-                      value={expForm.type}
-                      onChange={(e) => setExpForm({ ...expForm, type: e.target.value })}
-                      className="sp-select"
+                    <button
+                      type="button"
+                      className="sp-btn-add-item"
+                      onClick={handleAddCustomTool}
                     >
-                      <option value="Internship">Internship</option>
-                      <option value="Full-Time">Full-Time</option>
-                      <option value="Kontrak / Contract">Kontrak / Contract</option>
-                      <option value="Academic">Academic</option>
-                      <option value="Community / Project">Community / Project</option>
-                    </select>
+                      <span>+ Tambah Tool</span>
+                    </button>
                   </div>
                 </div>
 
-                <div className="sp-field">
-                  <label>
-                    Nomor Urutan Tampilan (Sort Order) *
-                  </label>
-                  <input
-                    type="number"
-                    min="0"
-                    value={expForm.sortOrder}
-                    onChange={(e) =>
-                      setExpForm({ ...expForm, sortOrder: parseInt(e.target.value, 10) || 0 })
-                    }
-                    className="sp-input"
-                  />
-                  <span className="sp-field-hint">
-                    💡 <strong>Tips:</strong> Angka 0, 1, 2 akan otomatis menjadi <strong>Top 3</strong> yang tampil di Beranda Website!
-                  </span>
-                </div>
+                {/* SECTION 4: FOTO DOKUMENTASI (PHOTO STACK & LIGHTBOX) */}
+                <div className="sp-form-section">
+                  <h3 className="sp-section-heading">
+                    <Camera size={16} />
+                    <span>4. Foto Dokumentasi Kegiatan (Photo Stack & Lightbox)</span>
+                  </h3>
+                  <p style={{ fontSize: '0.8rem', color: '#8c8c82', margin: '0 0 0.5rem 0' }}>
+                    Unggah 3+ foto untuk efek tumpukan kartu interaktif dan tampilan modal resolusi tinggi di website.
+                  </p>
 
-                <div className="sp-field">
-                  <label>Ringkasan Tanggung Jawab / Overview</label>
-                  <textarea
-                    rows={3}
-                    placeholder="Deskripsi singkat mengenai peran dan pencapaian Anda..."
-                    value={expForm.description}
-                    onChange={(e) => setExpForm({ ...expForm, description: e.target.value })}
-                    className="sp-textarea"
-                  />
+                  <label className="sp-upload-dropzone">
+                    <input
+                      type="file"
+                      multiple
+                      accept="image/*"
+                      onChange={handleUploadDocPhotos}
+                      style={{ display: 'none' }}
+                      disabled={uploadingImage}
+                    />
+                    <Upload size={24} color="#bfc9ff" />
+                    <span style={{ fontSize: '0.85rem', fontWeight: 600 }}>
+                      {uploadingImage
+                        ? 'Mengunggah foto ke Sanity CDN...'
+                        : 'Klik untuk memilih atau seret foto dokumentasi ke sini'}
+                    </span>
+                    <span style={{ fontSize: '0.75rem', color: '#8c8c82' }}>
+                      Mendukung PNG, JPG, WebP (Otomatis disimpan di Sanity Image Assets)
+                    </span>
+                  </label>
+
+                  {/* Grid Preview Foto yang Sudah Ada / Terunggah */}
+                  {Array.isArray(expForm.images) && expForm.images.length > 0 && (
+                    <div className="sp-photos-grid-preview">
+                      {expForm.images.map((img, i) => (
+                        <div key={i} className="sp-photo-card-thumb">
+                          <img src={img.url || img.image?.url} alt={`Dokumentasi ${i + 1}`} />
+                          <button
+                            type="button"
+                            className="sp-photo-card-remove"
+                            onClick={() => handleRemoveDocPhoto(i)}
+                            title="Hapus foto ini"
+                          >
+                            <X size={13} />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </div>
 
-              <div className="sp-modal-footer">
+              <div className="sp-modal-foot">
                 <button
                   type="button"
-                  className="sp-btn-secondary"
+                  className="sp-btn-cancel"
                   onClick={() => setIsModalOpen(false)}
                 >
                   Batal
                 </button>
-                <button type="submit" className="sp-btn-primary" disabled={isSaving}>
+                <button type="submit" className="sp-btn-save-submit" disabled={isSaving}>
                   {isSaving ? 'Menyimpan ke Sanity...' : 'Simpan & Publikasikan'}
                 </button>
               </div>
@@ -891,19 +1105,17 @@ export function AdminDashboardPage() {
         </div>
       )}
 
-      {/* ================================================================
-          MODAL: TAMBAH / EDIT PROYEK
-          ================================================================ */}
+      {/* ====================================================================
+          MODAL DIALOG: PROYEK
+          ==================================================================== */}
       {isModalOpen && activeTab === 'projects' && (
-        <div className="sp-modal-backdrop" onClick={() => setIsModalOpen(false)}>
-          <div className="sp-modal-box" onClick={(e) => e.stopPropagation()}>
-            <div className="sp-modal-header">
-              <h2 className="sp-modal-title">
-                {editingItem ? 'Edit Proyek' : 'Tambah Proyek Baru'}
-              </h2>
+        <div className="sp-modal-overlay" onClick={() => setIsModalOpen(false)}>
+          <div className="sp-modal-container" onClick={(e) => e.stopPropagation()}>
+            <div className="sp-modal-head">
+              <h2>{editingItem ? 'Edit Proyek' : 'Tambah Proyek Baru'}</h2>
               <button
                 type="button"
-                className="sp-modal-close"
+                className="sp-modal-close-btn"
                 onClick={() => setIsModalOpen(false)}
               >
                 <X size={18} />
@@ -911,67 +1123,69 @@ export function AdminDashboardPage() {
             </div>
 
             <form onSubmit={handleSaveProjSubmit}>
-              <div className="sp-modal-body">
-                <div className="sp-field">
-                  <label>Judul Proyek *</label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="e.g. Redesign SIMRS RSUD Hasanuddin"
-                    value={projForm.title}
-                    onChange={(e) => setProjForm({ ...projForm, title: e.target.value })}
-                    className="sp-input"
-                  />
-                </div>
-
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+              <div className="sp-modal-scroll-body">
+                <div className="sp-form-section">
                   <div className="sp-field">
-                    <label>Kategori</label>
-                    <select
-                      value={projForm.category}
-                      onChange={(e) => setProjForm({ ...projForm, category: e.target.value })}
-                      className="sp-select"
-                    >
-                      <option value="ui-ux">UI/UX Design</option>
-                      <option value="web">Web Projects</option>
-                      <option value="graphic-design">Graphic Design</option>
-                    </select>
+                    <label className="sp-input-label">Judul Proyek *</label>
+                    <input
+                      type="text"
+                      required
+                      placeholder="e.g. Redesign SIMRS RSUD Hasanuddin"
+                      value={projForm.title}
+                      onChange={(e) => setProjForm({ ...projForm, title: e.target.value })}
+                      className="sp-input-field"
+                    />
                   </div>
 
-                  <div className="sp-field">
-                    <label>Tahun Pembuatan</label>
-                    <input
-                      type="number"
-                      value={projForm.year}
-                      onChange={(e) =>
-                        setProjForm({ ...projForm, year: parseInt(e.target.value, 10) })
-                      }
-                      className="sp-input"
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                    <div>
+                      <label className="sp-input-label">Kategori</label>
+                      <select
+                        value={projForm.category}
+                        onChange={(e) => setProjForm({ ...projForm, category: e.target.value })}
+                        className="sp-select-field"
+                      >
+                        <option value="ui-ux">UI/UX Design</option>
+                        <option value="web">Web Projects</option>
+                        <option value="graphic-design">Graphic Design</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="sp-input-label">Tahun Pembuatan</label>
+                      <input
+                        type="number"
+                        value={projForm.year}
+                        onChange={(e) =>
+                          setProjForm({ ...projForm, year: parseInt(e.target.value, 10) })
+                        }
+                        className="sp-input-field"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="sp-input-label">Ringkasan Proyek</label>
+                    <textarea
+                      rows={3}
+                      placeholder="Ringkasan singkat tentang proyek ini..."
+                      value={projForm.summary}
+                      onChange={(e) => setProjForm({ ...projForm, summary: e.target.value })}
+                      className="sp-textarea-field"
                     />
                   </div>
                 </div>
-
-                <div className="sp-field">
-                  <label>Ringkasan Proyek</label>
-                  <textarea
-                    rows={3}
-                    placeholder="Ringkasan singkat tentang proyek ini..."
-                    value={projForm.summary}
-                    onChange={(e) => setProjForm({ ...projForm, summary: e.target.value })}
-                    className="sp-textarea"
-                  />
-                </div>
               </div>
 
-              <div className="sp-modal-footer">
+              <div className="sp-modal-foot">
                 <button
                   type="button"
-                  className="sp-btn-secondary"
+                  className="sp-btn-cancel"
                   onClick={() => setIsModalOpen(false)}
                 >
                   Batal
                 </button>
-                <button type="submit" className="sp-btn-primary" disabled={isSaving}>
+                <button type="submit" className="sp-btn-save-submit" disabled={isSaving}>
                   {isSaving ? 'Menyimpan...' : 'Simpan Proyek'}
                 </button>
               </div>

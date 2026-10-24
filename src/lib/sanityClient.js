@@ -386,15 +386,36 @@ export async function saveExperience(exp) {
     };
 
     if (Array.isArray(exp.images) && exp.images.length > 0) {
-      doc.images = exp.images.map((img) => {
-        if (img.image) return img;
+      doc.images = exp.images.map((img, i) => {
+        const assetRef = img._id || img.assetId || img.asset?._ref || img.image?.asset?._ref;
         return {
-          _key: `img-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`,
+          _key: img._key || `img-${Date.now()}-${i}`,
           title: img.title || '',
           caption: img.caption || '',
-          image: img.url ? { _type: 'image', url: img.url } : undefined,
+          ...(assetRef
+            ? {
+                image: {
+                  _type: 'image',
+                  asset: { _type: 'reference', _ref: assetRef },
+                },
+              }
+            : img.image
+            ? { image: img.image }
+            : {}),
         };
       });
+    }
+
+    if (exp.logoAssetId) {
+      doc.logos = [
+        {
+          _key: `logo-${Date.now()}`,
+          _type: 'image',
+          asset: { _type: 'reference', _ref: exp.logoAssetId },
+        },
+      ];
+    } else if (Array.isArray(exp.logos) && exp.logos.length > 0) {
+      doc.logos = exp.logos;
     }
 
     const result = await sanityWriteClient.createOrReplace(doc);
