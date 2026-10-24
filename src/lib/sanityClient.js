@@ -333,3 +333,136 @@ export async function getExperiences() {
     logo: resolveExperienceLogo(m),
   }));
 }
+
+export const writeToken =
+  import.meta.env.VITE_SANITY_WRITE_TOKEN ||
+  'skGGzNf2QNqiJsJdcxsD6ApBNhxPa4EYA8eJHowJ67A1ewdAFmqyGY7d4vCrGHIih8umVpk0ipIX7ftNoUBHuh6KlOI1EZEuc95QkVwqYE1rqsJ4l1mpdr79cnezLGVOv3kt00sWDuUgZCQQQrL4Op0Is4mtvnLHagluQd6df7coF1S5PIyB';
+
+export const sanityWriteClient = createClient({
+  projectId,
+  dataset,
+  apiVersion,
+  token: writeToken,
+  useCdn: false,
+});
+
+/**
+ * Upload an image file (File or Blob) to Sanity Assets pipeline
+ */
+export async function uploadImageToSanity(file, filename) {
+  try {
+    const asset = await sanityWriteClient.assets.upload('image', file, {
+      filename: filename || file.name,
+    });
+    return {
+      asset,
+      url: asset.url,
+      _id: asset._id,
+    };
+  } catch (err) {
+    console.error('uploadImageToSanity error:', err);
+    return { error: err };
+  }
+}
+
+/**
+ * Create or Update Experience in Sanity Lake
+ */
+export async function saveExperience(exp) {
+  try {
+    const docId = exp.id || exp._id || `exp-${Date.now()}`;
+    const doc = {
+      _id: docId,
+      _type: 'experience',
+      role: exp.role,
+      organization: exp.organization,
+      period: exp.period || '',
+      type: exp.type || 'Internship',
+      isCurrent: Boolean(exp.isCurrent ?? exp.is_current),
+      sortOrder: Number(exp.sortOrder ?? exp.sort_order ?? 0),
+      description: exp.description || '',
+      jobdesk: Array.isArray(exp.jobdesk) ? exp.jobdesk.filter(Boolean) : [],
+      tools: Array.isArray(exp.tools) ? exp.tools : [],
+    };
+
+    if (Array.isArray(exp.images) && exp.images.length > 0) {
+      doc.images = exp.images.map((img) => {
+        if (img.image) return img;
+        return {
+          _key: `img-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`,
+          title: img.title || '',
+          caption: img.caption || '',
+          image: img.url ? { _type: 'image', url: img.url } : undefined,
+        };
+      });
+    }
+
+    const result = await sanityWriteClient.createOrReplace(doc);
+    return { data: result, error: null };
+  } catch (err) {
+    console.error('saveExperience error:', err);
+    return { data: null, error: err };
+  }
+}
+
+/**
+ * Delete Experience from Sanity Lake
+ */
+export async function deleteExperience(id) {
+  try {
+    const res = await sanityWriteClient.delete(id);
+    return { data: res, error: null };
+  } catch (err) {
+    console.error('deleteExperience error:', err);
+    return { data: null, error: err };
+  }
+}
+
+/**
+ * Create or Update Project in Sanity Lake
+ */
+export async function saveProject(project) {
+  try {
+    const docId = project.id || project._id || `project-${Date.now()}`;
+    const slugVal =
+      project.slug ||
+      project.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+
+    const doc = {
+      _id: docId,
+      _type: 'project',
+      title: project.title,
+      slug: { _type: 'slug', current: slugVal },
+      category: project.category || 'ui-ux',
+      categoryLabel: project.categoryLabel || 'UI/UX Design',
+      year: Number(project.year) || new Date().getFullYear(),
+      role: project.role || '',
+      projectType: project.projectType || 'Case Study',
+      summary: project.summary || '',
+      featured: Boolean(project.featured ?? true),
+      published: Boolean(project.published ?? true),
+      tags: Array.isArray(project.tags) ? project.tags : [],
+      sortOrder: Number(project.sortOrder ?? 0),
+    };
+
+    const result = await sanityWriteClient.createOrReplace(doc);
+    return { data: result, error: null };
+  } catch (err) {
+    console.error('saveProject error:', err);
+    return { data: null, error: err };
+  }
+}
+
+/**
+ * Delete Project from Sanity Lake
+ */
+export async function deleteProject(id) {
+  try {
+    const res = await sanityWriteClient.delete(id);
+    return { data: res, error: null };
+  } catch (err) {
+    console.error('deleteProject error:', err);
+    return { data: null, error: err };
+  }
+}
+

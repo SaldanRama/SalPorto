@@ -15,7 +15,7 @@ export default defineConfig({
   title: 'SalPorto Studio',
   projectId,
   dataset,
-  basePath: '/admin',
+  basePath: '/admin/studio',
   plugins: [structureTool()],
   schema: {
     types: schemaTypes,

@@ -35,18 +35,18 @@ const AdminFallback = () => (
 
 export const router = createBrowserRouter([
   {
-    path: '/admin/*',
+    path: '/admin',
     element: (
       <Suspense fallback={<AdminFallback />}>
-        <StudioPage />
+        <AdminDashboardPage />
       </Suspense>
     ),
   },
   {
-    path: '/admin-legacy',
+    path: '/admin/studio/*',
     element: (
       <Suspense fallback={<AdminFallback />}>
-        <AdminDashboardPage />
+        <StudioPage />
       </Suspense>
     ),
   },
