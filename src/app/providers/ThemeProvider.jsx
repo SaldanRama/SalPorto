@@ -47,13 +47,90 @@ export function ThemeProvider({ children }) {
     }
   }, []);
 
-  const toggleTheme = () => {
-    setThemeState((prev) => (prev === 'light' ? 'dark' : 'light'));
+  // Smooth circular wavefront transition originating from button coordinates
+  const executeThemeTransition = (nextTheme, event) => {
+    if (nextTheme === theme) return;
+
+    // Check if user prefers reduced motion
+    const prefersReducedMotion =
+      typeof window !== 'undefined' &&
+      window.matchMedia &&
+      window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    // Determine origin coordinates for circular wave
+    let x = typeof window !== 'undefined' ? window.innerWidth - 60 : 0;
+    let y = 36;
+
+    if (event) {
+      if (typeof event.clientX === 'number' && typeof event.clientY === 'number' && event.clientX > 0) {
+        x = event.clientX;
+        y = event.clientY;
+      } else if (event.currentTarget && event.currentTarget.getBoundingClientRect) {
+        const rect = event.currentTarget.getBoundingClientRect();
+        x = rect.left + rect.width / 2;
+        y = rect.top + rect.height / 2;
+      }
+    } else {
+      const btn = document.querySelector('.theme-toggle-btn');
+      if (btn) {
+        const rect = btn.getBoundingClientRect();
+        x = rect.left + rect.width / 2;
+        y = rect.top + rect.height / 2;
+      }
+    }
+
+    const endRadius = Math.hypot(
+      Math.max(x, window.innerWidth - x),
+      Math.max(y, window.innerHeight - y)
+    );
+
+    const updateDOM = () => {
+      setThemeState(nextTheme);
+      document.documentElement.setAttribute('data-theme', nextTheme);
+      document.documentElement.style.colorScheme = nextTheme;
+      try {
+        localStorage.setItem(STORAGE_KEY, nextTheme);
+      } catch (_) {}
+    };
+
+    // 1. Native View Transitions API (Chrome, Edge, Safari 18+, Brave, Arc)
+    if (typeof document.startViewTransition === 'function' && !prefersReducedMotion) {
+      const transition = document.startViewTransition(() => {
+        updateDOM();
+      });
+
+      transition.ready.then(() => {
+        const clipPath = [
+          `circle(0px at ${x}px ${y}px)`,
+          `circle(${endRadius}px at ${x}px ${y}px)`
+        ];
+        document.documentElement.animate(
+          {
+            clipPath: clipPath,
+          },
+          {
+            duration: 620,
+            easing: 'cubic-bezier(0.22, 1, 0.36, 1)',
+            pseudoElement: '::view-transition-new(root)',
+          }
+        );
+      });
+      return;
+    }
+
+    // 2. Fallback Ripple for browsers without View Transitions
+    triggerFallbackRipple(x, y, nextTheme);
+    updateDOM();
   };
 
-  const setTheme = (newTheme) => {
+  const toggleTheme = (event) => {
+    const nextTheme = theme === 'light' ? 'dark' : 'light';
+    executeThemeTransition(nextTheme, event);
+  };
+
+  const setTheme = (newTheme, event) => {
     if (newTheme === 'light' || newTheme === 'dark') {
-      setThemeState(newTheme);
+      executeThemeTransition(newTheme, event);
     }
   };
 
@@ -62,6 +139,25 @@ export function ThemeProvider({ children }) {
       {children}
     </ThemeContext.Provider>
   );
+}
+
+function triggerFallbackRipple(x, y, nextTheme) {
+  try {
+    const ripple = document.createElement('div');
+    ripple.className = `theme-fallback-ripple ${
+      nextTheme === 'dark' ? 'theme-fallback-ripple--dark' : 'theme-fallback-ripple--light'
+    }`;
+    ripple.style.left = `${x}px`;
+    ripple.style.top = `${y}px`;
+    document.body.appendChild(ripple);
+
+    document.documentElement.classList.add('theme-transitioning');
+
+    setTimeout(() => {
+      ripple.remove();
+      document.documentElement.classList.remove('theme-transitioning');
+    }, 700);
+  } catch (_) {}
 }
 
 export function useTheme() {
