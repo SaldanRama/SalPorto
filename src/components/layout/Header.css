@@ -22,51 +22,34 @@
   height: 76px;
 }
 
-/* Wordmark */
+/* Wordmark (Minimalist & Elegant) */
 .header-wordmark {
-  display: flex;
-  align-items: baseline;
-  gap: 0.5rem;
+  display: inline-flex;
+  align-items: center;
   font-family: var(--font-serif);
-  font-size: 1.5rem;
+  font-size: 1.15rem;
   letter-spacing: -0.01em;
   color: var(--text);
   text-decoration: none;
+  font-weight: 500;
+  transition: opacity var(--transition-fast);
 }
 
-.header-wordmark .accent-dot {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background-color: var(--accent-strong);
-  display: inline-block;
+.header-wordmark:hover {
+  opacity: 0.75;
 }
 
-.header-role-sub {
-  font-family: var(--font-sans);
-  font-size: 0.75rem;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: var(--muted);
-  display: none;
-}
-
-@media (min-width: 900px) {
-  .header-role-sub {
-    display: inline-block;
-  }
-}
-
-/* Desktop Pill Navigation */
+/* Desktop Navigation (Pure Minimalist: No background-color, no box-shadow, no border, no border-radius) */
 .desktop-nav {
   display: none;
   align-items: center;
-  gap: 0.25rem;
-  background-color: var(--surface);
-  border: 1px solid var(--line);
-  border-radius: var(--radius-pill);
-  padding: 0.3rem 0.5rem;
-  box-shadow: var(--shadow-subtle);
+  gap: clamp(1.25rem, 2.2vw, 2.25rem);
+  background: transparent;
+  background-color: transparent;
+  border: none;
+  border-radius: 0;
+  padding: 0;
+  box-shadow: none;
 }
 
 @media (min-width: 768px) {
@@ -76,12 +59,20 @@
 }
 
 .nav-link {
-  font-size: 0.875rem;
+  font-family: var(--font-sans);
+  font-size: 0.84375rem;
   font-weight: 500;
   color: var(--muted);
-  padding: 0.45rem 1rem;
-  border-radius: var(--radius-pill);
-  transition: all var(--transition-fast);
+  padding: 0.25rem 0.15rem;
+  background: transparent;
+  background-color: transparent;
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
+  text-decoration: none;
+  letter-spacing: 0.01em;
+  transition: color var(--transition-fast);
+  position: relative;
 }
 
 .nav-link:hover {
@@ -90,8 +81,10 @@
 
 .nav-link.active {
   color: var(--text);
-  background-color: var(--bg);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  background: transparent;
+  background-color: transparent;
+  box-shadow: none;
+  border: none;
   font-weight: 600;
 }
 

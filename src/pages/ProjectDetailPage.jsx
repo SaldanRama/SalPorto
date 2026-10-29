@@ -169,7 +169,7 @@ export function ProjectDetailPage() {
               Tags & Methods
             </h2>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
-              {project.tags.map((tag) => (
+              {(project.tags || []).map((tag) => (
                 <span
                   key={tag}
                   style={{

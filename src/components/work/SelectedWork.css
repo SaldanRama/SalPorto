@@ -1,0 +1,818 @@
+/* ==========================================================================
+   SELECTED WORK SHOWCASE - SEAMLESS LIGHT THEME ARCHITECTURE
+   Consistent with the site's design tokens and editorial serif typography.
+   ========================================================================== */
+
+.section-selected-work-theme {
+  position: relative;
+  background-color: var(--bg);
+  color: var(--text);
+  padding-top: 0;
+  padding-bottom: clamp(3.5rem, 6vw, 6.5rem);
+  overflow: visible;
+  transition: var(--transition-theme);
+}
+
+/* Atmospheric Ambient Light & Subtle Architectural Grid */
+.selected-work-ambient-mesh {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: 
+    radial-gradient(circle at 10% 25%, var(--glow-color) 0%, transparent 50%),
+    radial-gradient(circle at 90% 75%, rgba(174, 190, 255, 0.18) 0%, transparent 55%);
+  z-index: 0;
+}
+
+.selected-work-grid-texture {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image: 
+    linear-gradient(to right, rgba(23, 23, 23, 0.035) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(23, 23, 23, 0.035) 1px, transparent 1px);
+  background-size: 40px 40px;
+  mask-image: radial-gradient(circle at 50% 50%, black 70%, transparent 100%);
+  -webkit-mask-image: radial-gradient(circle at 50% 50%, black 70%, transparent 100%);
+  opacity: 0.6;
+  z-index: 0;
+}
+
+[data-theme='dark'] .selected-work-grid-texture {
+  background-image: 
+    linear-gradient(to right, rgba(255, 255, 255, 0.035) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.035) 1px, transparent 1px);
+}
+
+.selected-work-container {
+  position: relative;
+  z-index: 2;
+}
+
+/* --------------------------------------------------------------------------
+   FULL-WIDTH SECTION HEADER BANNER: NO SIDE BORDERS
+   Maximizes width across the page with seamless top and bottom lines.
+   Typography matches the site's signature serif header font.
+   -------------------------------------------------------------------------- */
+.selected-header-banner {
+  position: relative;
+  width: 100%;
+  background: var(--surface);
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+  border-left: none;
+  border-right: none;
+  border-radius: 0;
+  padding: clamp(3rem, 6vw, 4.75rem) 0;
+  margin-bottom: 2.5rem;
+  overflow: hidden;
+  transition: var(--transition-theme);
+}
+
+.selected-banner-inner {
+  position: relative;
+}
+
+/* Background Wireframe "03" with Pixelated Contour - Exceeds Top Boundary */
+.selected-banner-wireframe-wrap {
+  position: absolute;
+  top: -45px;
+  left: var(--gutter-desktop);
+  height: 145%;
+  width: auto;
+  pointer-events: none;
+  z-index: 1;
+  color: var(--accent-strong);
+  opacity: 0.55;
+  transition: opacity var(--transition-normal), transform var(--transition-normal);
+}
+
+@media (min-width: 1100px) {
+  .selected-banner-wireframe-wrap {
+    top: -65px;
+    height: 155%;
+  }
+}
+
+@media (max-width: 768px) {
+  .selected-banner-wireframe-wrap {
+    left: var(--gutter-mobile);
+    top: -28px;
+    height: 125%;
+    opacity: 0.35;
+  }
+}
+
+.selected-header-banner:hover .selected-banner-wireframe-wrap {
+  opacity: 0.75;
+  transform: scale(1.02);
+}
+
+.selected-wireframe-03 {
+  height: 100%;
+  width: auto;
+  display: block;
+}
+
+/* Banner Content Foreground */
+.selected-banner-content {
+  position: relative;
+  z-index: 3;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  justify-content: space-between;
+  align-items: center;
+}
+
+@media (min-width: 768px) {
+  .selected-banner-content {
+    flex-direction: row;
+    align-items: center;
+  }
+}
+
+.selected-banner-left {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.selected-banner-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: fit-content;
+  padding: 0.35rem 0.85rem;
+  background: var(--bg);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-pill);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.chip-pulsing-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background-color: var(--accent-strong);
+  box-shadow: 0 0 8px var(--accent-strong);
+  animation: pulseDot 2s infinite ease-in-out;
+}
+
+@keyframes pulseDot {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.4; transform: scale(0.85); }
+}
+
+/* Title matching the font of other headers: Instrument Serif */
+.selected-banner-title {
+  display: flex;
+  flex-direction: column;
+  font-family: var(--font-serif);
+  font-size: clamp(3.25rem, 8vw, 6.25rem);
+  font-weight: 400;
+  line-height: 0.94;
+  letter-spacing: -0.025em;
+  color: var(--text);
+  margin: 0;
+  transition: var(--transition-theme);
+}
+
+.selected-banner-title .title-row {
+  display: block;
+}
+
+/* Right Side of Banner: Minimalist Action Link */
+.selected-banner-right {
+  display: flex;
+  align-items: center;
+}
+
+.selected-banner-cta-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.48rem 1.15rem;
+  background: transparent;
+  color: var(--text);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-pill);
+  font-family: var(--font-sans);
+  font-size: 0.8125rem;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  text-decoration: none;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.selected-banner-cta-btn:hover {
+  background: var(--surface);
+  border-color: var(--text);
+  color: var(--text);
+  transform: translateY(-1px);
+}
+
+.cta-btn-icon {
+  opacity: 0.75;
+  transition: transform var(--transition-fast), opacity var(--transition-fast);
+}
+
+.selected-banner-cta-btn:hover .cta-btn-icon {
+  transform: translate(2px, -2px);
+  opacity: 1;
+}
+
+/* --------------------------------------------------------------------------
+   FULL-SCREEN SESSION SCROLLING & STACKING SHOWCASES (3 BENCHMARK PROJECTS)
+   The 300vh track pins a 100vh viewport where each project card rises
+   slowly from bottom to top to overlap and replace the previous one.
+   -------------------------------------------------------------------------- */
+.selected-stack-track {
+  position: relative;
+  width: 100%;
+}
+
+.selected-stack-sticky-stage {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  height: 100dvh;
+  width: 100%;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 105; /* Elevates above sticky header (100) */
+  background-color: var(--bg);
+}
+
+.selected-stack-container {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.selected-stack-card {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: clamp(0.75rem, 2.2vh, 1.75rem) 0;
+  box-sizing: border-box;
+  will-change: transform;
+}
+
+.selected-stage-media-wrap {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  max-height: calc(100vh - clamp(1.5rem, 4.4vh, 3.5rem));
+  max-height: calc(100dvh - clamp(1.5rem, 4.4vh, 3.5rem));
+  border-radius: clamp(20px, 2.8vw, 32px);
+  overflow: hidden;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  box-shadow: 
+    0 -20px 50px -10px rgba(0, 0, 0, 0.45),
+    0 25px 65px -12px rgba(0, 0, 0, 0.5);
+  transform-origin: center center;
+  will-change: transform, filter;
+  transition: filter 80ms linear;
+}
+
+[data-theme='light'] .selected-stage-media-wrap {
+  box-shadow: 
+    0 -16px 45px -8px rgba(0, 0, 0, 0.2),
+    0 24px 55px -10px rgba(0, 0, 0, 0.22);
+}
+
+.selected-stage-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center top;
+  display: block;
+}
+
+/* Placeholder for missing cover */
+.selected-stage-placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, var(--surface) 0%, var(--bg) 100%);
+  padding: 2rem;
+  text-align: center;
+}
+
+.placeholder-sparkle {
+  color: var(--accent-strong);
+  margin-bottom: 1rem;
+}
+
+.placeholder-title {
+  font-family: var(--font-serif);
+  font-size: 2.25rem;
+  color: var(--text);
+  margin-bottom: 0.5rem;
+}
+
+.placeholder-sub {
+  color: var(--muted);
+  font-size: 0.95rem;
+}
+
+/* Gradient Scrim for readable contrast and bottom floating card */
+.selected-stage-scrim {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(
+    to top,
+    rgba(23, 23, 23, 0.75) 0%,
+    rgba(23, 23, 23, 0.3) 35%,
+    transparent 70%
+  );
+  z-index: 1;
+}
+
+/* Top-Left Index Pill */
+.selected-stage-index-badge {
+  position: absolute;
+  top: clamp(1rem, 2.5vw, 1.75rem);
+  left: clamp(1rem, 2.5vw, 1.75rem);
+  z-index: 3;
+  padding: 0.45rem 0.9rem;
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(12px);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-pill);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #171717;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+[data-theme='dark'] .selected-stage-index-badge {
+  background: rgba(26, 27, 24, 0.85);
+  color: #F4F2EC;
+}
+
+/* Top-Right Zoom Button */
+.selected-stage-zoom-btn {
+  position: absolute;
+  top: clamp(1rem, 2.5vw, 1.75rem);
+  right: clamp(1rem, 2.5vw, 1.75rem);
+  z-index: 3;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.45rem 0.9rem;
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(12px);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-pill);
+  color: #171717;
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  transition: all var(--transition-fast);
+}
+
+[data-theme='dark'] .selected-stage-zoom-btn {
+  background: rgba(26, 27, 24, 0.85);
+  color: #F4F2EC;
+}
+
+.selected-stage-zoom-btn:hover {
+  background: var(--inverse);
+  color: var(--inverse-text);
+  border-color: var(--inverse);
+  transform: translateY(-2px);
+}
+
+.zoom-text {
+  font-size: 0.75rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+/* --------------------------------------------------------------------------
+   FLOATING CARD OVER THE SHOWCASE (Matching Image 1 Reference)
+   Pristine, elevated card with Project Name, Description, Tools, and Button.
+   -------------------------------------------------------------------------- */
+.selected-floating-card {
+  position: absolute;
+  bottom: clamp(1.25rem, 2.5vw, 2.25rem);
+  left: clamp(1.25rem, 2.5vw, 2.25rem);
+  width: calc(100% - clamp(2.5rem, 5vw, 4.5rem));
+  max-width: 620px;
+  z-index: 4;
+}
+
+.selected-card-inner {
+  background: rgba(255, 255, 255, 0.96);
+  backdrop-filter: blur(16px);
+  color: #171717;
+  border-radius: clamp(16px, 2vw, 22px);
+  padding: clamp(1.4rem, 2.5vw, 2rem);
+  box-shadow: 
+    0 20px 40px -10px rgba(0, 0, 0, 0.25),
+    0 4px 14px rgba(0, 0, 0, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.9);
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+  transition: transform var(--transition-normal), box-shadow var(--transition-normal);
+}
+
+[data-theme='dark'] .selected-card-inner {
+  background: rgba(26, 27, 24, 0.94);
+  color: #F4F2EC;
+  border: 1px solid var(--line);
+}
+
+.selected-project-stage:hover .selected-card-inner {
+  transform: translateY(-3px);
+  box-shadow: 0 25px 50px -10px rgba(0, 0, 0, 0.35);
+}
+
+/* Card Title & Category Group */
+.selected-card-title-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.selected-card-category {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+}
+
+.selected-card-title {
+  font-family: var(--font-sans);
+  font-size: clamp(1.6rem, 2.5vw, 2.25rem);
+  font-weight: 800;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  color: var(--text);
+  text-transform: uppercase;
+  margin: 0;
+}
+
+/* Card Headline (Problem definition) */
+.selected-card-headline {
+  font-family: var(--font-sans);
+  font-size: clamp(0.95rem, 1.2vw, 1.05rem);
+  font-weight: 600;
+  color: var(--text);
+  line-height: 1.45;
+  margin: 0;
+}
+
+/* Card Description */
+.selected-card-desc {
+  font-size: 0.875rem;
+  color: var(--muted);
+  line-height: 1.55;
+  margin: 0;
+}
+
+/* Meta Badges Row (Role & Year) */
+.selected-card-meta-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.selected-meta-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.35rem 0.8rem;
+  background: var(--bg);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  font-size: 0.775rem;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+.selected-meta-badge.year-badge {
+  font-family: monospace;
+  font-weight: 700;
+  color: var(--text);
+  background: var(--line);
+}
+
+/* Tools Used Badges Group */
+.selected-card-tools-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  padding-top: 0.4rem;
+  border-top: 1px solid var(--line);
+}
+
+.selected-tools-label {
+  font-size: 0.725rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+}
+
+.selected-tools-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.selected-tool-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.3rem 0.7rem;
+  background: var(--bg);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-pill);
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text);
+  transition: border-color var(--transition-fast), background-color var(--transition-fast);
+}
+
+.selected-tool-tag:hover {
+  background: var(--surface);
+  border-color: var(--accent-strong);
+}
+
+.tool-indicator-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background-color: var(--accent-strong);
+}
+
+/* Card Footer: Action Button "View Full Case Study" */
+.selected-card-footer {
+  padding-top: 0.5rem;
+  display: flex;
+  justify-content: center;
+}
+
+.selected-view-project-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.65rem;
+  width: 100%;
+  padding: 0.75rem 1.4rem;
+  background: var(--inverse);
+  color: var(--inverse-text);
+  border-radius: var(--radius-pill);
+  font-weight: 700;
+  font-size: 0.875rem;
+  text-decoration: none;
+  transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.selected-view-project-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(23, 23, 23, 0.2);
+}
+
+.selected-view-project-btn .btn-arrow-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.18);
+  transition: transform var(--transition-fast), background-color var(--transition-fast);
+}
+
+[data-theme='dark'] .selected-view-project-btn .btn-arrow-wrap {
+  background: rgba(0, 0, 0, 0.18);
+}
+
+.selected-view-project-btn:hover .btn-arrow-wrap {
+  transform: translateX(3px) translateY(-3px);
+  background: rgba(255, 255, 255, 0.3);
+}
+
+/* --------------------------------------------------------------------------
+   SECTION FOOTER CTA
+   -------------------------------------------------------------------------- */
+.selected-footer-cta-box {
+  margin-top: clamp(3.5rem, 6vw, 5.5rem);
+  padding: clamp(2rem, 4vw, 3rem);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-subtle);
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  align-items: center;
+  text-align: center;
+}
+
+@media (min-width: 768px) {
+  .selected-footer-cta-box {
+    flex-direction: row;
+    justify-content: space-between;
+    text-align: left;
+  }
+}
+
+.footer-cta-heading {
+  font-family: var(--font-serif);
+  font-size: clamp(1.5rem, 2.5vw, 2rem);
+  font-weight: 400;
+  color: var(--text);
+  margin-bottom: 0.4rem;
+}
+
+.footer-cta-sub {
+  color: var(--muted);
+  font-size: 0.95rem;
+  margin: 0;
+}
+
+.selected-cta-primary-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.85rem 1.6rem;
+  background: var(--inverse);
+  color: var(--inverse-text);
+  border-radius: var(--radius-pill);
+  font-weight: 700;
+  font-size: 0.925rem;
+  text-decoration: none;
+  white-space: nowrap;
+  box-shadow: var(--shadow-subtle);
+  transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.selected-cta-primary-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-card);
+}
+
+/* --------------------------------------------------------------------------
+   LIGHTBOX FULL-SCREEN PREVIEW
+   -------------------------------------------------------------------------- */
+.selected-lightbox-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: rgba(0, 0, 0, 0.88);
+  backdrop-filter: blur(14px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  animation: fadeIn 200ms ease;
+}
+
+.selected-lightbox-content {
+  position: relative;
+  max-width: 94vw;
+  max-height: 92vh;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.8);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.selected-lightbox-img {
+  width: 100%;
+  height: auto;
+  max-height: 90vh;
+  object-fit: contain;
+  display: block;
+}
+
+.selected-lightbox-close {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #FFFFFF;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background-color var(--transition-fast), transform var(--transition-fast);
+  z-index: 10;
+}
+
+.selected-lightbox-close:hover {
+  background: #FFFFFF;
+  color: #000000;
+  transform: scale(1.08);
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* --------------------------------------------------------------------------
+   RESPONSIVE ADJUSTMENTS (MOBILE & LOW-HEIGHT SCREENS)
+   -------------------------------------------------------------------------- */
+@media (max-width: 768px) {
+  .selected-stack-card {
+    padding: 0.5rem 0;
+  }
+
+  .selected-stage-media-wrap {
+    max-height: calc(100vh - 1rem);
+    max-height: calc(100dvh - 1rem);
+    border-radius: 20px;
+  }
+
+  .selected-floating-card {
+    position: absolute;
+    bottom: 0.75rem;
+    left: 0.75rem;
+    width: calc(100% - 1.5rem);
+    max-width: none;
+    margin-top: 0;
+    padding: 0;
+  }
+
+  .selected-card-inner {
+    padding: 1.15rem;
+    gap: 0.65rem;
+    border-radius: 16px;
+    box-shadow: var(--shadow-card);
+  }
+
+  .selected-card-title {
+    font-size: 1.35rem;
+  }
+
+  .selected-card-headline {
+    font-size: 0.875rem;
+  }
+
+  .selected-card-desc {
+    display: none; /* Keep card compact on mobile so background showcase stays visible */
+  }
+
+  .selected-view-project-btn {
+    padding: 0.55rem 1rem;
+    font-size: 0.8125rem;
+  }
+
+  .selected-banner-title {
+    font-size: 3.25rem;
+  }
+}
+
+@media (max-height: 800px) {
+  .selected-card-inner {
+    padding: 0.95rem 1.25rem;
+    gap: 0.45rem;
+  }
+  .selected-card-title {
+    font-size: clamp(1.25rem, 2vw, 1.55rem);
+  }
+  .selected-card-desc {
+    font-size: 0.8125rem;
+    line-height: 1.38;
+  }
+  .selected-card-tools-section {
+    padding-top: 0.25rem;
+  }
+  .selected-view-project-btn {
+    padding: 0.5rem 1.15rem;
+  }
+}

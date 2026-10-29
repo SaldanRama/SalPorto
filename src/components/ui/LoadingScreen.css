@@ -1,0 +1,507 @@
+/* ==========================================================================
+   INTERACTIVE MULTILINGUAL LOADING SCREEN & REALISTIC SILVER GLASS FOLDER
+   - Cards emerge from within the folder cavity (behind front glass)
+   - Silver glassmorphism with high specular rim lighting
+   - Smooth vertical rolling ticker below the folder (languages replace each other upward)
+   ========================================================================== */
+
+.app-loading-screen {
+  position: fixed;
+  inset: 0;
+  z-index: 99999;
+  background-color: #0b0c0e;
+  color: #ffffff;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: clamp(1.25rem, 3.2vw, 2.75rem);
+  box-sizing: border-box;
+  overflow: hidden;
+  user-select: none;
+  cursor: default;
+  transition: transform 850ms cubic-bezier(0.85, 0, 0.15, 1), opacity 650ms ease;
+}
+
+.app-loading-screen.is-exiting {
+  transform: translateY(-100%);
+  pointer-events: none;
+}
+
+/* Background Micro Dot Grid Pattern (reference Image 1) */
+.loading-bg-grid {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image: 
+    radial-gradient(circle at 1px 1px, rgba(255, 255, 255, 0.08) 1px, transparent 0);
+  background-size: 24px 24px;
+  z-index: 1;
+}
+
+.loading-ambient-glow {
+  position: absolute;
+  top: 45%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 650px;
+  height: 650px;
+  background: radial-gradient(circle, rgba(175, 205, 245, 0.09) 0%, transparent 68%);
+  filter: blur(90px);
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* --------------------------------------------------------------------------
+   TOP HEADER BAR
+   -------------------------------------------------------------------------- */
+.loading-top-bar {
+  position: relative;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+}
+
+.loading-status-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-family: monospace;
+  font-size: 0.72rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.status-dot-pulse {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background-color: #34d399;
+  box-shadow: 0 0 8px #34d399;
+  animation: pulseStatus 1.5s infinite ease-in-out;
+}
+
+@keyframes pulseStatus {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.35; transform: scale(0.85); }
+}
+
+.loading-skip-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.35rem 0.85rem;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 9999px;
+  color: rgba(255, 255, 255, 0.8);
+  font-family: var(--font-sans);
+  font-size: 0.75rem;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.loading-skip-btn:hover {
+  background: rgba(255, 255, 255, 0.16);
+  border-color: rgba(255, 255, 255, 0.32);
+  color: #ffffff;
+  transform: translateY(-1px);
+}
+
+/* --------------------------------------------------------------------------
+   CENTER STAGE: FOLDER ON TOP, MULTILINGUAL ROLLING TICKER BELOW
+   -------------------------------------------------------------------------- */
+.loading-main-stage {
+  position: relative;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  max-width: 960px;
+  margin: auto;
+  gap: clamp(2.5rem, 5vh, 4rem);
+}
+
+/* ==========================================================================
+   REALISTIC SILVER GLASSMORPHISM FOLDER (50% COMPACT SCALE)
+   - 3D opening folder hinge: front flap tilts forward to reveal cavity
+   - Cards fit realistically inside cavity at base scale 1.0 (bottom: 8px)
+   - As loading progresses, cards expand dynamically up to full showcase size (~1.72x)
+   - Bottom edge of cards never crosses below the folder
+   ========================================================================== */
+.folder-assembly-wrap {
+  position: relative;
+  width: clamp(140px, 15vw, 170px);
+  height: clamp(95px, 10vw, 115px);
+  perspective: 800px; /* Crucial for realistic 3D folder flap opening */
+  transform-style: preserve-3d;
+  overflow: visible; /* Allows cards to emerge upwards smoothly */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Layer 1: Folder Back Plate */
+.folder-back-plate {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, 
+    rgba(215, 230, 250, 0.24) 0%, 
+    rgba(145, 165, 190, 0.16) 100%
+  );
+  border: 1.2px solid rgba(255, 255, 255, 0.35);
+  border-radius: 12px;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  box-shadow: 0 20px 50px -10px rgba(0, 0, 0, 0.65);
+  z-index: 1;
+  transform: translateZ(0);
+}
+
+.folder-back-tab-shape {
+  position: absolute;
+  top: -9px;
+  left: 10px;
+  width: 50px;
+  height: 12px;
+  background: linear-gradient(135deg, 
+    rgba(230, 242, 255, 0.3) 0%, 
+    rgba(155, 170, 195, 0.2) 100%
+  );
+  border: 1.2px solid rgba(255, 255, 255, 0.38);
+  border-bottom: none;
+  border-radius: 7px 7px 0 0;
+}
+
+/* Layer 2: Interior Cavity with 3 Emerging Cards */
+.folder-cards-cavity {
+  position: absolute;
+  inset: 0;
+  z-index: 5; /* Sitting BEHIND front flap (z-index: 10), in front of back plate (z-index: 1) */
+  pointer-events: none;
+  overflow: visible;
+}
+
+/* 
+ * Emerging Cards:
+ * - Base size fits cleanly inside the compact folder at bottom: 8px
+ * - Expands dynamically to refined showcase size (~1.35x) as cards emerge
+ * - transform-origin: 50% 90% ensures upward expansion and keeps bottom anchored inside folder
+ */
+.folder-emergent-card {
+  position: absolute;
+  bottom: 8px;
+  left: 50%;
+  width: clamp(68px, 7.5vw, 82px);
+  aspect-ratio: 4 / 5;
+  margin-left: calc(-1 * clamp(68px, 7.5vw, 82px) / 2);
+  transform-origin: 50% 90%;
+  will-change: transform, opacity;
+  transition: transform 60ms linear;
+}
+
+.emergent-card-frame {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  border-radius: 7px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.45);
+  background: #14171e;
+  box-shadow: 
+    0 14px 35px -6px rgba(0, 0, 0, 0.75),
+    0 0 0 1px rgba(255, 255, 255, 0.2);
+}
+
+.emergent-card-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center center;
+  display: block;
+}
+
+.emergent-card-glare {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.22) 0%, transparent 60%);
+  pointer-events: none;
+}
+
+/* Layer 3: Realistic Silver Glassmorphic Front Flap with 3D opening tilt */
+.folder-front-flap {
+  position: absolute;
+  inset: 0;
+  border-radius: 12px;
+  background: linear-gradient(135deg, 
+    rgba(255, 255, 255, 0.52) 0%, 
+    rgba(215, 230, 248, 0.22) 38%, 
+    rgba(175, 195, 220, 0.14) 68%, 
+    rgba(240, 248, 255, 0.38) 100%
+  );
+  backdrop-filter: blur(24px) saturate(190%) brightness(1.06);
+  -webkit-backdrop-filter: blur(24px) saturate(190%) brightness(1.06);
+  border: 1.2px solid rgba(255, 255, 255, 0.75);
+  box-shadow: 
+    0 22px 55px -10px rgba(0, 0, 0, 0.68),
+    inset 0 1.5px 1.2px rgba(255, 255, 255, 0.95),
+    inset 0 -1.5px 2px rgba(255, 255, 255, 0.25),
+    inset 1px 0 1.5px rgba(255, 255, 255, 0.5),
+    inset -1px 0 1.5px rgba(255, 255, 255, 0.35);
+  z-index: 10; /* Cleanly sits in front of the emerging cards */
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 0.6rem 0.75rem;
+  overflow: hidden;
+  transform-origin: center bottom; /* Realistic bottom-hinged 3D flap */
+  transform-style: preserve-3d;
+  will-change: transform;
+  transition: transform 90ms ease-out;
+}
+
+/* Front Tab Bar: Amber Capsule "Open Folder" & Arrow */
+.folder-front-tab-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+}
+
+.folder-tab-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.22rem;
+  padding: 0.16rem 0.42rem;
+  border-radius: 9999px;
+  background: linear-gradient(135deg, #ff7a1a 0%, #e65100 100%);
+  color: #ffffff;
+  font-family: 'DM Sans', var(--font-sans);
+  font-size: 0.52rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  box-shadow: 0 2px 8px rgba(230, 81, 0, 0.4), inset 0 1px 1px rgba(255, 255, 255, 0.55);
+  border: 0.8px solid rgba(255, 255, 255, 0.4);
+}
+
+.folder-badge-dot {
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: #ffffff;
+  box-shadow: 0 0 4px #ffffff;
+}
+
+.folder-tab-arrow-btn {
+  width: 17px;
+  height: 17px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.22);
+  border: 0.8px solid rgba(255, 255, 255, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ffffff;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+}
+
+/* Folder Front Center Title (Portfolio) */
+.folder-front-title-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding-bottom: 0.25rem;
+}
+
+.folder-front-title {
+  font-family: 'DM Sans', var(--font-sans);
+  font-size: clamp(0.95rem, 1.5vw, 1.18rem);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  color: #ffffff;
+  margin: 0;
+  text-shadow: 
+    0 2px 10px rgba(255, 255, 255, 0.35),
+    0 3px 14px rgba(0, 0, 0, 0.35);
+}
+
+/* Specular Shimmers */
+.folder-glass-specular-rim {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.95) 20%, rgba(255, 255, 255, 0.95) 80%, transparent 100%);
+  pointer-events: none;
+}
+
+.folder-glass-diagonal-shine {
+  position: absolute;
+  top: -55%;
+  left: -25%;
+  width: 150%;
+  height: 150%;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.2) 0%, transparent 48%);
+  pointer-events: none;
+  transform: rotate(-12deg);
+}
+
+/* ==========================================================================
+   MULTILINGUAL ROLLING TICKER (BELOW THE FOLDER)
+   Smooth vertical slide-up transition where words roll upward
+   Slim & Elegant editorial typography
+   ========================================================================== */
+.loading-ticker-below {
+  position: relative;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.ticker-window {
+  position: relative;
+  height: clamp(65px, 8vh, 85px);
+  width: 100%;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ticker-item {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: 
+    transform 600ms cubic-bezier(0.16, 1, 0.3, 1), 
+    opacity 480ms ease;
+  will-change: transform, opacity;
+}
+
+/* 1. Active word in center */
+.ticker-item.is-current {
+  transform: translateY(0);
+  opacity: 1;
+  z-index: 2;
+}
+
+/* 2. Previous word slides up and out to the top */
+.ticker-item.is-prev {
+  transform: translateY(-100%);
+  opacity: 0;
+  z-index: 1;
+}
+
+/* 3. Upcoming word waiting below */
+.ticker-item.is-hidden {
+  transform: translateY(100%);
+  opacity: 0;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.ticker-text {
+  font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-size: clamp(2.4rem, 5.2vw, 3.8rem);
+  font-weight: 300; /* Ultra-slim, refined, elegant */
+  letter-spacing: -0.015em;
+  color: rgba(255, 255, 255, 0.95);
+  line-height: 1.15;
+  text-shadow: 0 2px 20px rgba(0, 0, 0, 0.4);
+}
+
+.ticker-item.is-arabic .ticker-text {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  font-weight: 300;
+  letter-spacing: 0;
+  direction: rtl;
+}
+
+/* --------------------------------------------------------------------------
+   BOTTOM FOOTER DOCK (Matching Reference Image 1)
+   -------------------------------------------------------------------------- */
+.loading-footer-dock {
+  position: relative;
+  z-index: 20;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  width: 100%;
+}
+
+.loading-footer-brand {
+  display: flex;
+  flex-direction: column;
+  padding-bottom: 0.5rem;
+}
+
+.footer-brand-title {
+  font-family: var(--font-sans);
+  font-size: clamp(0.85rem, 1.2vw, 1.05rem);
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.75);
+  letter-spacing: -0.01em;
+}
+
+/* Digital Counter (0-100) - Medium size & medium weight */
+.loading-footer-counter {
+  display: flex;
+  align-items: baseline;
+  line-height: 0.95;
+}
+
+.counter-digits {
+  font-family: 'DM Sans', var(--font-sans);
+  font-size: clamp(2.1rem, 4vw, 3.25rem); /* Ukuran sedang */
+  font-weight: 500; /* Ketebalan sedang (Medium) */
+  letter-spacing: -0.025em;
+  color: rgba(255, 255, 255, 0.92);
+  font-variant-numeric: tabular-nums;
+  text-shadow: 0 2px 14px rgba(0, 0, 0, 0.35);
+}
+
+/* --------------------------------------------------------------------------
+   RESPONSIVE ADAPTATIONS
+   -------------------------------------------------------------------------- */
+@media (max-width: 640px) {
+  .app-loading-screen {
+    padding: 1.25rem;
+  }
+
+  .folder-assembly-wrap {
+    width: 135px;
+    height: 90px;
+  }
+
+  .folder-emergent-card {
+    width: 60px;
+    bottom: 6px;
+    margin-left: -30px;
+  }
+
+  .loading-main-stage {
+    gap: 1.85rem;
+  }
+
+  .ticker-window {
+    height: 55px;
+  }
+
+  .ticker-text {
+    font-size: 2.1rem;
+  }
+
+  .counter-digits {
+    font-size: 1.85rem;
+  }
+}

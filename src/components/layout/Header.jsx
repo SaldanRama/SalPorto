@@ -38,28 +38,28 @@ export function Header() {
   }, [mobileMenuOpen]);
 
   const navItems = [
-    { label: 'Work', to: '/work' },
+    { label: 'Home', to: '/' },
     { label: 'About', to: '/about' },
     { label: 'Experience', to: '/experience' },
+    { label: 'Project', to: '/work' },
     { label: 'Contact', to: '/contact' },
   ];
 
   return (
     <header className="site-header">
       <div className="container header-inner">
-        {/* Wordmark */}
+        {/* Wordmark: Minimalist & Elegant */}
         <Link to="/" className="header-wordmark" aria-label="Saldan Rama Home">
           <span>Saldan Rama</span>
-          <span className="accent-dot" aria-hidden="true"></span>
-          <span className="header-role-sub">Creative Technologist</span>
         </Link>
 
-        {/* Desktop Navigation */}
+        {/* Desktop Navigation: Minimalist without pill background/border */}
         <nav className="desktop-nav" aria-label="Main navigation">
           {navItems.map((item) => (
             <NavLink
               key={item.to}
               to={item.to}
+              end={item.to === '/'}
               className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}
             >
               {item.label}
@@ -109,6 +109,7 @@ export function Header() {
               <NavLink
                 key={item.to}
                 to={item.to}
+                end={item.to === '/'}
                 className={({ isActive }) => `mobile-nav-link ${isActive ? 'active' : ''}`}
               >
                 <span>{item.label}</span>

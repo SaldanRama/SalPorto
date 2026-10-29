@@ -196,6 +196,7 @@ export async function getProjects() {
             id: p._id,
             slug: p.slug?.current || p.slug || p._id,
             title: p.title,
+            headline: p.headline || '',
             category: p.category || 'ui-ux',
             categoryLabel: p.categoryLabel || 'UI/UX Design',
             year: p.year || new Date().getFullYear(),
@@ -205,13 +206,14 @@ export async function getProjects() {
             coverImage: coverUrl,
             cover_image: coverUrl,
             featured: p.featured ?? true,
+            tools: Array.isArray(p.tools) && p.tools.length > 0 ? p.tools : (Array.isArray(p.tags) ? p.tags : []),
             tags: Array.isArray(p.tags) ? p.tags : [],
             sortOrder: p.sortOrder ?? 0,
           };
         });
 
         try {
-          localStorage.setItem('salporto_projects', JSON.stringify(normalized));
+          localStorage.setItem('salporto_projects_v2', JSON.stringify(normalized));
         } catch (_) {}
 
         return normalized;
@@ -223,10 +225,10 @@ export async function getProjects() {
 
   // Fallback to localStorage or mockProjects
   try {
-    const cached = localStorage.getItem('salporto_projects');
+    const cached = localStorage.getItem('salporto_projects_v2');
     if (cached) {
       const parsed = JSON.parse(cached);
-      if (Array.isArray(parsed) && parsed.length > 0) {
+      if (Array.isArray(parsed) && parsed.length > 0 && parsed.some(p => p.slug === 'sitangkas')) {
         return parsed;
       }
     }
