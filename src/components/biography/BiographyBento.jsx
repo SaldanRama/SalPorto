@@ -99,6 +99,72 @@ export function BiographyBento() {
   const baseRef = React.useRef(null);
   const spiderRef = React.useRef(null);
 
+  // Staggered Text Reveal (on scroll & idle 3s loop) State & Refs
+  const [animKey, setAnimKey] = useState(0);
+  const nameBlockRef = React.useRef(null);
+  const isInViewRef = React.useRef(false);
+  const idleTimerRef = React.useRef(null);
+  const lastScrollTriggerRef = React.useRef(0);
+
+  const triggerReveal = React.useCallback(() => {
+    setAnimKey((prev) => prev + 1);
+  }, []);
+
+  const scheduleNextIdle = React.useCallback(() => {
+    if (idleTimerRef.current) clearTimeout(idleTimerRef.current);
+    idleTimerRef.current = setTimeout(() => {
+      if (isInViewRef.current) {
+        triggerReveal();
+        scheduleNextIdle();
+      }
+    }, 3000);
+  }, [triggerReveal]);
+
+  // 1. Intersection Observer: detect visibility in viewport
+  React.useEffect(() => {
+    const el = nameBlockRef.current;
+    if (!el) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        isInViewRef.current = entry.isIntersecting;
+        if (entry.isIntersecting) {
+          triggerReveal();
+          scheduleNextIdle();
+        } else {
+          if (idleTimerRef.current) clearTimeout(idleTimerRef.current);
+        }
+      },
+      { threshold: 0.2 }
+    );
+
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [triggerReveal, scheduleNextIdle]);
+
+  // 2. Scroll Listener: triggers immediately when scrolling, resets 3s idle counter
+  React.useEffect(() => {
+    const handleScroll = () => {
+      if (!isInViewRef.current) return;
+
+      const now = Date.now();
+      // Trigger immediately when scrolling (throttled to 750ms during continuous scroll)
+      if (now - lastScrollTriggerRef.current > 750) {
+        lastScrollTriggerRef.current = now;
+        triggerReveal();
+      }
+
+      // Reset the 3-second idle timer so it starts counting after scrolling ceases
+      scheduleNextIdle();
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+      if (idleTimerRef.current) clearTimeout(idleTimerRef.current);
+    };
+  }, [triggerReveal, scheduleNextIdle]);
+
   const handleKeyClick = (name) => {
     playKeyClickSound();
     setActiveKey(name);
@@ -219,9 +285,34 @@ export function BiographyBento() {
 
         {/* COLUMN 2: NAME + BIO NARRATIVE + HORIZONTAL ACTION BUTTONS */}
         <div className="resume-col-bio">
-          <div className="resume-name-block">
-            <span className="resume-name-saldan">Saldan</span>
-            <span className="resume-name-rama"> Rama</span>
+          <div ref={nameBlockRef} className="resume-name-block" aria-label="Saldan Rama">
+            <div key={animKey} className="stagger-split-container">
+              <span className="resume-name-saldan split-word">
+                {'Saldan'.split('').map((char, index) => (
+                  <span key={`s-${index}`} className="split-char-mask">
+                    <span
+                      className="split-char"
+                      style={{ animationDelay: `${index * 42}ms` }}
+                    >
+                      {char}
+                    </span>
+                  </span>
+                ))}
+              </span>
+              <span className="split-space">&nbsp;</span>
+              <span className="resume-name-rama split-word">
+                {'Rama'.split('').map((char, index) => (
+                  <span key={`r-${index}`} className="split-char-mask">
+                    <span
+                      className="split-char"
+                      style={{ animationDelay: `${(6 + 1 + index) * 42}ms` }}
+                    >
+                      {char}
+                    </span>
+                  </span>
+                ))}
+              </span>
+            </div>
           </div>
 
           <p className="resume-bio-paragraph">

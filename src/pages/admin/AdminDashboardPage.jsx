@@ -29,6 +29,7 @@ import {
   EyeOff,
   Sparkles,
 } from 'lucide-react';
+import { InstagramIcon } from '@/components/ui/InstagramIcon';
 import { getToolLogo } from '@/components/experience/ExperienceTools';
 import { MiniGalleryCoverflow } from '@/components/gallery/MiniGalleryCoverflow';
 import {
@@ -106,18 +107,31 @@ export function AdminDashboardPage() {
     id: '',
     title: '',
     slug: '',
-    category: 'ui-ux',
-    categoryLabel: 'UI/UX Design',
+    category: 'graphic-design',
+    categoryLabel: 'Graphic Design & Visual Identity',
     year: new Date().getFullYear(),
     role: '',
     projectType: 'Case Study',
     summary: '',
+    headline: '',
+    instagramUrl: '',
     coverImage: '',
     featured: true,
     published: true,
     sortOrder: 0,
-    tags: ['Design', 'Web'],
+    tools: ['Photoshop', 'Canva'],
+    tags: ['Graphic Design', 'Visual Identity'],
+    scopes: ['Graphic Design', 'Visual Identity'],
+    gallery: [],
   });
+
+  const [isUploadingCover, setIsUploadingCover] = useState(false);
+  const [uploadingSlideIndex, setUploadingSlideIndex] = useState(null);
+  const [isBatchUploadingSlides, setIsBatchUploadingSlides] = useState(false);
+  const [customProjTool, setCustomProjTool] = useState('');
+  const [customProjScope, setCustomProjScope] = useState('');
+  const coverFileInputRef = useRef(null);
+  const batchSlideFileInputRef = useRef(null);
 
   // Mini Gallery State (16:9 Coverflow)
   const [galleryItems, setGalleryItems] = useState([]);
@@ -197,21 +211,28 @@ export function AdminDashboardPage() {
       setIsModalOpen(true);
     } else if (activeTab === 'projects') {
       setEditingItem(null);
+      setCustomProjTool('');
+      setCustomProjScope('');
       setProjForm({
         id: `project-${Date.now()}`,
         title: '',
         slug: '',
-        category: 'ui-ux',
-        categoryLabel: 'UI/UX Design',
+        category: 'graphic-design',
+        categoryLabel: 'Graphic Design & Visual Identity',
         year: new Date().getFullYear(),
         role: '',
         projectType: 'Case Study',
         summary: '',
+        headline: '',
+        instagramUrl: '',
         coverImage: '',
         featured: true,
         published: true,
-        sortOrder: projects.length,
-        tags: ['Design', 'Web'],
+        sortOrder: projects.length + 1,
+        tools: ['Photoshop', 'Canva'],
+        tags: ['Graphic Design', 'Visual Identity'],
+        scopes: ['Graphic Design', 'Visual Identity'],
+        gallery: [],
       });
       setIsModalOpen(true);
     } else if (activeTab === 'gallery') {
@@ -247,21 +268,40 @@ export function AdminDashboardPage() {
   const handleOpenEditProj = (e, proj) => {
     e.stopPropagation();
     setEditingItem(proj);
+    setCustomProjTool('');
+    setCustomProjScope('');
+
+    const formattedGallery = Array.isArray(proj.gallery)
+      ? proj.gallery.map((g, i) => ({
+          _key: g._key || g.id || `slide-${i}`,
+          id: g.id || `slide-${i + 1}`,
+          title: g.title || '',
+          category: g.category || '',
+          caption: g.caption || '',
+          src: g.src || g.url || '',
+        }))
+      : [];
+
     setProjForm({
       id: proj.id || proj._id,
       title: proj.title || '',
       slug: proj.slug || '',
-      category: proj.category || 'ui-ux',
-      categoryLabel: proj.categoryLabel || 'UI/UX Design',
+      category: proj.category || 'graphic-design',
+      categoryLabel: proj.categoryLabel || '',
       year: proj.year || new Date().getFullYear(),
       role: proj.role || '',
       projectType: proj.projectType || 'Case Study',
       summary: proj.summary || '',
+      headline: proj.headline || '',
+      instagramUrl: proj.instagramUrl || proj.instagram || '',
       coverImage: proj.coverImage || proj.cover_image || '',
       featured: proj.featured ?? true,
       published: proj.published ?? true,
       sortOrder: proj.sortOrder ?? 0,
+      tools: Array.isArray(proj.tools) && proj.tools.length > 0 ? [...proj.tools] : (Array.isArray(proj.tags) ? [...proj.tags] : []),
       tags: Array.isArray(proj.tags) ? [...proj.tags] : [],
+      scopes: Array.isArray(proj.scopes) ? [...proj.scopes] : [],
+      gallery: formattedGallery,
     });
     setOpenMenuId(null);
     setIsModalOpen(true);
@@ -423,16 +463,200 @@ export function AdminDashboardPage() {
     await loadData();
   };
 
+  // Project Cover Upload & Handlers
+  const handleCoverUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setIsUploadingCover(true);
+    try {
+      const res = await uploadImageToSanity(file);
+      if (res?.url) {
+        setProjForm((prev) => ({ ...prev, coverImage: res.url }));
+        showToast('Gambar 1 (Cover Proyek) berhasil diunggah ke Sanity!');
+      } else {
+        alert('Gagal mengunggah cover image.');
+      }
+    } catch (err) {
+      alert('Error mengunggah cover: ' + (err.message || 'Error'));
+    } finally {
+      setIsUploadingCover(false);
+      if (coverFileInputRef.current) coverFileInputRef.current.value = '';
+    }
+  };
+
+  const handleRemoveCover = () => {
+    setProjForm((prev) => ({ ...prev, coverImage: '' }));
+  };
+
+  // Slide Presentasi Handlers (Gambar 2 s.d. N)
+  const handleAddSlide = () => {
+    setProjForm((prev) => ({
+      ...prev,
+      gallery: [
+        ...(prev.gallery || []),
+        {
+          id: `slide-${Date.now()}`,
+          title: '',
+          category: 'Presentation Asset',
+          caption: '',
+          src: '',
+        },
+      ],
+    }));
+  };
+
+  const handleUpdateSlideField = (index, field, value) => {
+    setProjForm((prev) => {
+      const updated = [...(prev.gallery || [])];
+      updated[index] = { ...updated[index], [field]: value };
+      return { ...prev, gallery: updated };
+    });
+  };
+
+  const handleRemoveSlide = (index) => {
+    setProjForm((prev) => ({
+      ...prev,
+      gallery: (prev.gallery || []).filter((_, i) => i !== index),
+    }));
+  };
+
+  const handleMoveSlide = (index, direction) => {
+    setProjForm((prev) => {
+      const list = [...(prev.gallery || [])];
+      const targetIndex = index + direction;
+      if (targetIndex < 0 || targetIndex >= list.length) return prev;
+      const temp = list[index];
+      list[index] = list[targetIndex];
+      list[targetIndex] = temp;
+      return { ...prev, gallery: list };
+    });
+  };
+
+  const handleSlideImageUpload = async (index, file) => {
+    if (!file) return;
+    setUploadingSlideIndex(index);
+    try {
+      const res = await uploadImageToSanity(file);
+      if (res?.url) {
+        setProjForm((prev) => {
+          const updated = [...(prev.gallery || [])];
+          updated[index] = { ...updated[index], src: res.url };
+          return { ...prev, gallery: updated };
+        });
+        showToast(`Gambar Slide 0${index + 2} berhasil diunggah!`);
+      } else {
+        alert('Gagal mengunggah gambar slide.');
+      }
+    } catch (err) {
+      alert('Error mengunggah slide: ' + (err.message || 'Error'));
+    } finally {
+      setUploadingSlideIndex(null);
+    }
+  };
+
+  const handleBatchSlideUpload = async (e) => {
+    const files = Array.from(e.target.files || []);
+    if (files.length === 0) return;
+    setIsBatchUploadingSlides(true);
+    const newSlides = [];
+    try {
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        const res = await uploadImageToSanity(file);
+        if (res?.url) {
+          const cleanName = file.name.replace(/\.[^/.]+$/, '').replace(/[-_]+/g, ' ');
+          newSlides.push({
+            id: `slide-${Date.now()}-${i}`,
+            title: cleanName,
+            category: 'Presentation Asset',
+            caption: '',
+            src: res.url,
+          });
+        }
+      }
+      if (newSlides.length > 0) {
+        setProjForm((prev) => ({
+          ...prev,
+          gallery: [...(prev.gallery || []), ...newSlides],
+        }));
+        showToast(`${newSlides.length} slide presentasi berhasil ditambahkan!`);
+      }
+    } catch (err) {
+      alert('Error batch upload slide: ' + (err.message || 'Error'));
+    } finally {
+      setIsBatchUploadingSlides(false);
+      if (batchSlideFileInputRef.current) batchSlideFileInputRef.current.value = '';
+    }
+  };
+
+  // Tools & Ruang Lingkup Handlers
+  const handleToggleProjTool = (tool) => {
+    setProjForm((prev) => {
+      const cur = prev.tools || [];
+      if (cur.includes(tool)) {
+        return { ...prev, tools: cur.filter((t) => t !== tool) };
+      }
+      return { ...prev, tools: [...cur, tool] };
+    });
+  };
+
+  const handleAddCustomProjTool = (e) => {
+    if (e) e.preventDefault();
+    if (!customProjTool.trim()) return;
+    const val = customProjTool.trim();
+    setProjForm((prev) => {
+      const cur = prev.tools || [];
+      if (cur.includes(val)) return prev;
+      return { ...prev, tools: [...cur, val] };
+    });
+    setCustomProjTool('');
+  };
+
+  const handleRemoveProjTool = (tool) => {
+    setProjForm((prev) => ({
+      ...prev,
+      tools: (prev.tools || []).filter((t) => t !== tool),
+    }));
+  };
+
+  const handleAddCustomProjScope = (e) => {
+    if (e) e.preventDefault();
+    if (!customProjScope.trim()) return;
+    const val = customProjScope.trim();
+    setProjForm((prev) => {
+      const cur = prev.scopes || [];
+      if (cur.includes(val)) return prev;
+      return { ...prev, scopes: [...cur, val] };
+    });
+    setCustomProjScope('');
+  };
+
+  const handleRemoveProjScope = (scope) => {
+    setProjForm((prev) => ({
+      ...prev,
+      scopes: (prev.scopes || []).filter((s) => s !== scope),
+    }));
+  };
+
   // Save Project to Sanity
   const handleSaveProjSubmit = async (e) => {
     e.preventDefault();
-    if (!projForm.title) {
+    if (!projForm.title.trim()) {
       alert('Mohon isi Judul Proyek.');
       return;
     }
 
     setIsSaving(true);
-    const res = await saveProject(projForm);
+    const toSave = {
+      ...projForm,
+      title: projForm.title.trim(),
+      slug: (projForm.slug || projForm.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')).trim(),
+      year: Number(projForm.year) || new Date().getFullYear(),
+      sortOrder: Number(projForm.sortOrder || 0),
+      gallery: (projForm.gallery || []).filter((g) => g && (g.src || g.title || g.url)),
+    };
+
+    const res = await saveProject(toSave);
     setIsSaving(false);
 
     if (res?.error) {
@@ -1859,13 +2083,13 @@ export function AdminDashboardPage() {
       )}
 
       {/* ====================================================================
-          MODAL DIALOG: PROYEK
+          MODAL DIALOG: PROYEK (Lengkap & Fleksibel)
           ==================================================================== */}
       {isModalOpen && activeTab === 'projects' && (
         <div className="sp-modal-overlay" onClick={() => setIsModalOpen(false)}>
-          <div className="sp-modal-container" onClick={(e) => e.stopPropagation()}>
+          <div className="sp-modal-container" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '920px' }}>
             <div className="sp-modal-head">
-              <h2>{editingItem ? 'Edit Proyek' : 'Tambah Proyek Baru'}</h2>
+              <h2>{editingItem ? `Edit Proyek: ${projForm.title || 'Tanpa Judul'}` : 'Tambah Proyek Baru'}</h2>
               <button
                 type="button"
                 className="sp-modal-close-btn"
@@ -1876,32 +2100,85 @@ export function AdminDashboardPage() {
             </div>
 
             <form className="sp-modal-form" onSubmit={handleSaveProjSubmit}>
-              <div className="sp-modal-scroll-body">
-                <div className="sp-form-section">
+              <div className="sp-modal-scroll-body" style={{ gap: '1.75rem' }}>
+
+                {/* 1. INFORMASI DASAR & IDENTITAS */}
+                <div className="sp-project-section-card">
+                  <div className="sp-project-section-head">
+                    <h3 className="sp-project-section-title">
+                      <FolderGit2 size={18} color="var(--sp-accent)" />
+                      1. Identitas &amp; Pengaturan Proyek
+                    </h3>
+                    <p className="sp-project-section-desc">
+                      Atur judul, URL permalink, kategori, dan visibilitas proyek di website.
+                    </p>
+                  </div>
+
                   <div className="sp-field">
                     <label className="sp-input-label">Judul Proyek *</label>
                     <input
                       type="text"
                       required
-                      placeholder="e.g. Redesign SIMRS RSUD Hasanuddin"
+                      placeholder="e.g. KKN-T 114 Kel. Lakessi"
                       value={projForm.title}
                       onChange={(e) => setProjForm({ ...projForm, title: e.target.value })}
                       className="sp-input-field"
                     />
                   </div>
 
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                  <div className="sp-field">
+                    <label className="sp-input-label">Slug URL / Permalink</label>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                      <span style={{ fontSize: '0.85rem', color: 'var(--sp-muted)', fontFamily: 'monospace' }}>/work/</span>
+                      <input
+                        type="text"
+                        placeholder="lakessi"
+                        value={projForm.slug}
+                        onChange={(e) =>
+                          setProjForm({
+                            ...projForm,
+                            slug: e.target.value.toLowerCase().replace(/[^a-z0-9_-]/g, ''),
+                          })
+                        }
+                        className="sp-input-field"
+                        style={{ fontFamily: 'monospace' }}
+                      />
+                    </div>
+                  </div>
+
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem' }}>
                     <div>
-                      <label className="sp-input-label">Kategori</label>
+                      <label className="sp-input-label">Kategori Utama</label>
                       <select
                         value={projForm.category}
-                        onChange={(e) => setProjForm({ ...projForm, category: e.target.value })}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          let defaultLbl = 'UI/UX Design';
+                          if (val === 'graphic-design') defaultLbl = 'Graphic Design & Visual Identity';
+                          else if (val === 'web') defaultLbl = 'Web Projects';
+                          setProjForm({
+                            ...projForm,
+                            category: val,
+                            categoryLabel: projForm.categoryLabel || defaultLbl,
+                          });
+                        }}
                         className="sp-select-field"
                       >
+                        <option value="graphic-design">Graphic Design</option>
                         <option value="ui-ux">UI/UX Design</option>
                         <option value="web">Web Projects</option>
-                        <option value="graphic-design">Graphic Design</option>
                       </select>
+                    </div>
+
+                    <div>
+                      <label className="sp-input-label">Label Kategori Kustom</label>
+                      <input
+                        type="text"
+                        placeholder="e.g. Graphic Design & Visual Identity"
+                        value={projForm.categoryLabel}
+                        onChange={(e) => setProjForm({ ...projForm, categoryLabel: e.target.value })}
+                        className="sp-input-field"
+                      />
                     </div>
 
                     <div>
@@ -1910,24 +2187,396 @@ export function AdminDashboardPage() {
                         type="number"
                         value={projForm.year}
                         onChange={(e) =>
-                          setProjForm({ ...projForm, year: parseInt(e.target.value, 10) })
+                          setProjForm({ ...projForm, year: parseInt(e.target.value, 10) || new Date().getFullYear() })
+                        }
+                        className="sp-input-field"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="sp-input-label">Urutan Tampil (Sort Order)</label>
+                      <input
+                        type="number"
+                        value={projForm.sortOrder}
+                        onChange={(e) =>
+                          setProjForm({ ...projForm, sortOrder: parseInt(e.target.value, 10) || 0 })
                         }
                         className="sp-input-field"
                       />
                     </div>
                   </div>
 
-                  <div>
-                    <label className="sp-input-label">Ringkasan Proyek</label>
+                  <div style={{ display: 'flex', gap: '2rem', flexWrap: 'wrap', paddingTop: '0.5rem' }}>
+                    <label style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', cursor: 'pointer', fontSize: '0.875rem', color: 'var(--sp-text)' }}>
+                      <input
+                        type="checkbox"
+                        checked={projForm.published}
+                        onChange={(e) => setProjForm({ ...projForm, published: e.target.checked })}
+                      />
+                      <span>🟢 Publikasikan Live di Website</span>
+                    </label>
+
+                    <label style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', cursor: 'pointer', fontSize: '0.875rem', color: 'var(--sp-text)' }}>
+                      <input
+                        type="checkbox"
+                        checked={projForm.featured}
+                        onChange={(e) => setProjForm({ ...projForm, featured: e.target.checked })}
+                      />
+                      <span>⭐ Tampilkan di Beranda (Selected Work)</span>
+                    </label>
+                  </div>
+                </div>
+
+                {/* 2. GAMBAR 1 / HERO COVER SHOWCASE */}
+                <div className="sp-project-section-card">
+                  <div className="sp-project-section-head">
+                    <h3 className="sp-project-section-title">
+                      <ImageIcon size={18} color="var(--sp-accent)" />
+                      2. Gambar Utama (Gambar 1 / Hero Visual Showcase)
+                    </h3>
+                    <p className="sp-project-section-desc">
+                      Gambar ini tampil tepat di bawah judul proyek pada halaman detail, serta menjadi thumbnail cover di daftar proyek.
+                    </p>
+                  </div>
+
+                  {projForm.coverImage ? (
+                    <div className="sp-project-cover-box has-image">
+                      <img src={projForm.coverImage} alt="Cover Proyek" className="sp-project-cover-img" />
+                      <div className="sp-cover-overlay-actions">
+                        <button
+                          type="button"
+                          className="sp-cover-btn-action"
+                          onClick={() => coverFileInputRef.current?.click()}
+                          disabled={isUploadingCover}
+                        >
+                          <Upload size={14} />
+                          <span>{isUploadingCover ? 'Mengunggah...' : 'Ganti Gambar'}</span>
+                        </button>
+                        <button
+                          type="button"
+                          className="sp-cover-btn-action danger"
+                          onClick={handleRemoveCover}
+                        >
+                          <Trash2 size={14} />
+                          <span>Hapus</span>
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div
+                      className="sp-upload-dropzone"
+                      onClick={() => coverFileInputRef.current?.click()}
+                      style={{ cursor: 'pointer', padding: '2.5rem 1.5rem', textAlign: 'center' }}
+                    >
+                      <Upload size={32} color="var(--sp-accent)" style={{ marginBottom: '0.75rem' }} />
+                      <p style={{ margin: 0, fontWeight: 600, color: 'var(--sp-text)', fontSize: '0.95rem' }}>
+                        {isUploadingCover ? 'Mengunggah ke Sanity CDN...' : 'Klik untuk Unggah Gambar 1 (Cover / Hero 16:9)'}
+                      </p>
+                      <span style={{ fontSize: '0.8rem', color: 'var(--sp-muted)', marginTop: '0.25rem', display: 'block' }}>
+                        Format PNG, JPG, atau WebP (Disarankan rasio 16:9)
+                      </span>
+                    </div>
+                  )}
+
+                  <input
+                    type="file"
+                    ref={coverFileInputRef}
+                    style={{ display: 'none' }}
+                    accept="image/*"
+                    onChange={handleCoverUpload}
+                  />
+
+                  <div className="sp-field">
+                    <label className="sp-input-label">Atau Tempel Tautan / Path Gambar Langsung</label>
+                    <input
+                      type="text"
+                      placeholder="e.g. /images/projects/Lakessi/1.png atau https://..."
+                      value={projForm.coverImage}
+                      onChange={(e) => setProjForm({ ...projForm, coverImage: e.target.value })}
+                      className="sp-input-field"
+                    />
+                  </div>
+                </div>
+
+                {/* 3. TEKS EDITORIAL & SPESIFIKASI */}
+                <div className="sp-project-section-card">
+                  <div className="sp-project-section-head">
+                    <h3 className="sp-project-section-title">
+                      <Sparkles size={18} color="var(--sp-accent)" />
+                      3. Teks Editorial &amp; Spesifikasi (Spec Strip)
+                    </h3>
+                    <p className="sp-project-section-desc">
+                      Tuliskan narasi masalah/solusi serta informasi spesifikasi peran dan institusi.
+                    </p>
+                  </div>
+
+                  <div className="sp-field">
+                    <label className="sp-input-label">Tagline / Headline Proyek</label>
+                    <input
+                      type="text"
+                      placeholder="e.g. Local micro-enterprises lacking cohesive visual branding, packaging, and digital reach."
+                      value={projForm.headline}
+                      onChange={(e) => setProjForm({ ...projForm, headline: e.target.value })}
+                      className="sp-input-field"
+                    />
+                  </div>
+
+                  <div className="sp-field">
+                    <label className="sp-input-label">Ringkasan Lengkap Proyek (Summary)</label>
                     <textarea
-                      rows={3}
-                      placeholder="Ringkasan singkat tentang proyek ini..."
+                      rows={4}
+                      placeholder="Jelaskan ruang lingkup, latar belakang, dan hasil akhir proyek ini..."
                       value={projForm.summary}
                       onChange={(e) => setProjForm({ ...projForm, summary: e.target.value })}
                       className="sp-textarea-field"
                     />
                   </div>
+
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                    <div className="sp-field">
+                      <label className="sp-input-label">Peran Anda (Role)</label>
+                      <input
+                        type="text"
+                        placeholder="e.g. Visual Identity & Branding Specialist"
+                        value={projForm.role}
+                        onChange={(e) => setProjForm({ ...projForm, role: e.target.value })}
+                        className="sp-input-field"
+                      />
+                    </div>
+
+                    <div className="sp-field">
+                      <label className="sp-input-label">Konteks / Instansi (Institution)</label>
+                      <input
+                        type="text"
+                        placeholder="e.g. Community Service & UMKM Rebranding"
+                        value={projForm.projectType}
+                        onChange={(e) => setProjForm({ ...projForm, projectType: e.target.value })}
+                        className="sp-input-field"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="sp-field">
+                    <label className="sp-input-label">
+                      <InstagramIcon size={14} style={{ verticalAlign: 'middle', marginRight: '0.35rem' }} />
+                      Link Instagram Proyek (Opsional)
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="e.g. https://www.instagram.com/mipabasketball atau @mipabasketball"
+                      value={projForm.instagramUrl || ''}
+                      onChange={(e) => setProjForm({ ...projForm, instagramUrl: e.target.value })}
+                      className="sp-input-field"
+                    />
+                    <span style={{ fontSize: '0.75rem', color: 'var(--sp-muted)', marginTop: '0.25rem', display: 'block' }}>
+                      Tombol logo Instagram akan tampil di sebelah kanan judul proyek pada halaman detail.
+                    </span>
+                  </div>
                 </div>
+
+                {/* 4. SLIDE PRESENTASI (GAMBAR 2 S.D. N) */}
+                <div className="sp-project-section-card">
+                  <div className="sp-project-section-head">
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '0.75rem' }}>
+                      <h3 className="sp-project-section-title">
+                        <Layers size={18} color="var(--sp-accent)" />
+                        4. Slide Presentasi (Gambar 2 s.d. N / Horizontal Slide Deck)
+                      </h3>
+                      <span className="sp-slide-badge">
+                        Total {(projForm.gallery || []).length} Slide
+                      </span>
+                    </div>
+                    <p className="sp-project-section-desc">
+                      Koleksi slide ini akan tampil dalam fullscreen horizontal slide-on-scroll. Urutan slide dapat digeser naik/turun, gambar dapat diunggah atau diganti kapan saja.
+                    </p>
+                  </div>
+
+                  {/* Action Bar for Slides */}
+                  <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', alignItems: 'center' }}>
+                    <button
+                      type="button"
+                      className="sp-btn-secondary"
+                      onClick={handleAddSlide}
+                      style={{ display: 'inline-flex', alignItems: 'center', gap: '0.45rem', padding: '0.6rem 1rem' }}
+                    >
+                      <Plus size={16} />
+                      <span>+ Tambah Slide Baru</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      className="sp-btn-secondary"
+                      onClick={() => batchSlideFileInputRef.current?.click()}
+                      disabled={isBatchUploadingSlides}
+                      style={{ display: 'inline-flex', alignItems: 'center', gap: '0.45rem', padding: '0.6rem 1rem' }}
+                    >
+                      <Upload size={16} />
+                      <span>{isBatchUploadingSlides ? 'Mengunggah Banyak Gambar...' : 'Upload Banyak Gambar (Batch)'}</span>
+                    </button>
+
+                    <input
+                      type="file"
+                      ref={batchSlideFileInputRef}
+                      style={{ display: 'none' }}
+                      multiple
+                      accept="image/*"
+                      onChange={handleBatchSlideUpload}
+                    />
+                  </div>
+
+                  {/* List of Slide Cards */}
+                  <div className="sp-slide-list">
+                    {(projForm.gallery || []).map((slide, sIdx) => {
+                      const slideDisplayNum = sIdx + 2; // Because Gambar 1 is Hero
+                      return (
+                        <div key={slide.id || sIdx} className="sp-slide-card">
+                          <div className="sp-slide-card-header">
+                            <span className="sp-slide-badge">
+                              Slide 0{slideDisplayNum} (Gambar {slideDisplayNum})
+                            </span>
+
+                            <div className="sp-slide-actions">
+                              <button
+                                type="button"
+                                className="sp-slide-icon-btn"
+                                onClick={() => handleMoveSlide(sIdx, -1)}
+                                disabled={sIdx === 0}
+                                title="Geser ke atas"
+                              >
+                                <ChevronUp size={16} />
+                              </button>
+                              <button
+                                type="button"
+                                className="sp-slide-icon-btn"
+                                onClick={() => handleMoveSlide(sIdx, 1)}
+                                disabled={sIdx === projForm.gallery.length - 1}
+                                title="Geser ke bawah"
+                              >
+                                <ChevronDown size={16} />
+                              </button>
+                              <button
+                                type="button"
+                                className="sp-slide-icon-btn danger"
+                                onClick={() => handleRemoveSlide(sIdx)}
+                                title="Hapus slide ini"
+                              >
+                                <Trash2 size={15} />
+                              </button>
+                            </div>
+                          </div>
+
+                          <div className="sp-slide-card-body">
+                            {/* Left: Thumbnail & Image Upload / URL */}
+                            <div className="sp-slide-media-col">
+                              <div className="sp-slide-thumb-box">
+                                {slide.src ? (
+                                  <img src={slide.src} alt={slide.title || `Slide ${slideDisplayNum}`} className="sp-slide-thumb-img" />
+                                ) : (
+                                  <div style={{ textAlign: 'center', padding: '1rem', color: 'var(--sp-muted)' }}>
+                                    <ImageIcon size={28} style={{ opacity: 0.6, marginBottom: '0.25rem' }} />
+                                    <div style={{ fontSize: '0.75rem' }}>Belum ada gambar</div>
+                                  </div>
+                                )}
+                              </div>
+
+                              <label
+                                className="sp-btn-secondary"
+                                style={{
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                  gap: '0.45rem',
+                                  cursor: 'pointer',
+                                  fontSize: '0.8rem',
+                                  padding: '0.45rem 0.75rem',
+                                }}
+                              >
+                                <Upload size={14} />
+                                <span>{uploadingSlideIndex === sIdx ? 'Mengunggah...' : 'Pilih / Unggah File'}</span>
+                                <input
+                                  type="file"
+                                  accept="image/*"
+                                  style={{ display: 'none' }}
+                                  disabled={uploadingSlideIndex === sIdx}
+                                  onChange={(e) => {
+                                    const file = e.target.files?.[0];
+                                    if (file) handleSlideImageUpload(sIdx, file);
+                                  }}
+                                />
+                              </label>
+
+                              <input
+                                type="text"
+                                placeholder="Atau tautan URL / path..."
+                                value={slide.src || ''}
+                                onChange={(e) => handleUpdateSlideField(sIdx, 'src', e.target.value)}
+                                className="sp-input-field"
+                                style={{ fontSize: '0.78rem' }}
+                              />
+                            </div>
+
+                            {/* Right: Title, Category, Caption */}
+                            <div className="sp-slide-fields-col">
+                              <div>
+                                <label className="sp-input-label">Judul Slide</label>
+                                <input
+                                  type="text"
+                                  placeholder="e.g. Project Brief, Scopes & Design System"
+                                  value={slide.title || ''}
+                                  onChange={(e) => handleUpdateSlideField(sIdx, 'title', e.target.value)}
+                                  className="sp-input-field"
+                                />
+                              </div>
+
+                              <div>
+                                <label className="sp-input-label">Kategori Slide</label>
+                                <input
+                                  type="text"
+                                  placeholder="e.g. Brand Specifications / Social Media"
+                                  value={slide.category || ''}
+                                  onChange={(e) => handleUpdateSlideField(sIdx, 'category', e.target.value)}
+                                  className="sp-input-field"
+                                />
+                              </div>
+
+                              <div>
+                                <label className="sp-input-label">Keterangan / Caption Slide</label>
+                                <textarea
+                                  rows={2}
+                                  placeholder="Deskripsi singkat tentang gambar atau desain pada slide ini..."
+                                  value={slide.caption || ''}
+                                  onChange={(e) => handleUpdateSlideField(sIdx, 'caption', e.target.value)}
+                                  className="sp-textarea-field"
+                                />
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+
+                    {(projForm.gallery || []).length === 0 && (
+                      <div
+                        style={{
+                          textAlign: 'center',
+                          padding: '2.5rem 1rem',
+                          border: '1px dashed var(--sp-border)',
+                          borderRadius: '12px',
+                          color: 'var(--sp-muted)',
+                        }}
+                      >
+                        <Layers size={32} style={{ opacity: 0.5, marginBottom: '0.5rem' }} />
+                        <p style={{ margin: 0, fontWeight: 500, color: 'var(--sp-text)' }}>
+                          Belum ada slide presentasi (Gambar 2 s.d. N)
+                        </p>
+                        <span style={{ fontSize: '0.8rem', display: 'block', marginTop: '0.25rem' }}>
+                          Klik tombol &quot;+ Tambah Slide Baru&quot; atau &quot;Upload Banyak Gambar (Batch)&quot; untuk memulai.
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
               </div>
 
               <div className="sp-modal-foot">
@@ -1939,7 +2588,7 @@ export function AdminDashboardPage() {
                   Batal
                 </button>
                 <button type="submit" className="sp-btn-save-submit" disabled={isSaving}>
-                  {isSaving ? 'Menyimpan...' : 'Simpan Proyek'}
+                  {isSaving ? 'Menyimpan ke Sanity...' : 'Simpan & Publikasikan Proyek'}
                 </button>
               </div>
             </form>

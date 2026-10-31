@@ -54,6 +54,14 @@ export const projectSchema = {
       placeholder: 'Ringkasan singkat tentang tujuan dan dampak proyek ini...',
     },
     {
+      name: 'instagramUrl',
+      title: 'Instagram Project Link',
+      type: 'url',
+      group: 'main',
+      placeholder: 'e.g. https://www.instagram.com/mipabasketball',
+      description: 'Tautan langsung ke akun atau publikasi Instagram proyek.',
+    },
+    {
       name: 'coverImage',
       title: 'Cover Image (Hero / Thumbnail)',
       type: 'image',

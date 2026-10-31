@@ -105,21 +105,72 @@
 }
 
 .resume-name-block {
-  font-family: var(--font-serif);
-  font-size: clamp(1.9rem, 3.2vw, 2.75rem);
-  line-height: 1.1;
-  letter-spacing: -0.02em;
+  font-family: var(--font-satoshi, "satoshi", "satoshi Fallback", sans-serif);
+  font-size: clamp(2rem, 3.6vw, 3rem);
+  line-height: 1.15;
+  letter-spacing: -0.03em;
   color: var(--text);
+  min-height: 1.2em;
+  display: flex;
+  align-items: baseline;
+}
+
+/* Staggered Text Reveal (Letter-by-letter Split Text Animation) */
+.stagger-split-container {
+  display: inline-flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+}
+
+.split-word {
+  display: inline-flex;
+  align-items: baseline;
+}
+
+.split-char-mask {
+  display: inline-block;
+  overflow: hidden;
+  vertical-align: bottom;
+  line-height: 1.12;
+  padding-bottom: 0.06em;
+}
+
+.split-char {
+  display: inline-block;
+  opacity: 0;
+  transform: translateY(115%);
+  will-change: transform, opacity;
+  animation: letterFadeUp 620ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes letterFadeUp {
+  0% {
+    opacity: 0;
+    transform: translateY(115%) rotateX(-12deg);
+  }
+  30% {
+    opacity: 0.6;
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0%) rotateX(0deg);
+  }
+}
+
+.split-space {
+  display: inline-block;
+  width: 0.3em;
 }
 
 .resume-name-saldan {
-  font-weight: 400;
+  font-weight: 600;
+  color: var(--text);
 }
 
 .resume-name-rama {
-  font-style: italic;
-  font-weight: 400;
-  color: var(--accent-strong);
+  font-style: normal;
+  font-weight: 600;
+  color: var(--text);
 }
 
 .resume-bio-paragraph {

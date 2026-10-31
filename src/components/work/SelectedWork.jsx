@@ -64,8 +64,7 @@ function PixelWireframe03({ className = '' }) {
 }
 
 export function SelectedWork() {
-  // Always initialize with 3 primary benchmark dummy projects
-  const [projects, setProjects] = useState(() => mockProjects.slice(0, 3));
+  const [projects, setProjects] = useState(() => mockProjects);
   const [modalImage, setModalImage] = useState(null);
   const [scrollProgress, setScrollProgress] = useState(0);
   const trackRef = useRef(null);
@@ -74,13 +73,9 @@ export function SelectedWork() {
     let isMounted = true;
     getProjects().then((data) => {
       if (isMounted && Array.isArray(data) && data.length > 0) {
-        // Ensure the 3 benchmark projects are always preserved
-        const hasSitangkas = data.some((p) => p.slug === 'sitangkas' || p.id === 'sitangkas');
-        if (hasSitangkas) {
-          setProjects(data.slice(0, 3));
-        } else {
-          setProjects(mockProjects.slice(0, 3));
-        }
+        const dummySlugs = new Set(['kelurahan-cantik', 'perdosfit', 'project-kelurahan-cantik', 'project-perdosfit', 'project-umkm-lakessi', 'umkm-lakessi']);
+        const clean = data.filter((p) => !dummySlugs.has((p.slug || p.id || '').toLowerCase()));
+        setProjects(clean.length > 0 ? clean : mockProjects);
       }
     });
     return () => {
@@ -295,7 +290,7 @@ export function SelectedWork() {
 
                     {/* Showcase Index Pill (Top Left) */}
                     <div className="selected-stage-index-badge">
-                      <span>Project 0{index + 1} of 03</span>
+                      <span>Project 0{index + 1} of 0{topProjects.length}</span>
                     </div>
 
                     {/* 2. FLOATING CARD OVER THE SHOWCASE (Matching Image 1) */}

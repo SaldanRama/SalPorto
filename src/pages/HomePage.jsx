@@ -5,6 +5,7 @@ import { BiographyBento } from '@/components/biography/BiographyBento';
 import { ExperienceTimeline } from '@/components/experience/ExperienceTimeline';
 import { MiniGalleryCoverflow } from '@/components/gallery/MiniGalleryCoverflow';
 import { SelectedWork } from '@/components/work/SelectedWork';
+import { SectionDivider } from '@/components/ui/SectionDivider';
 import './HomePage.css';
 
 export function HomePage() {
@@ -33,6 +34,9 @@ export function HomePage() {
         </div>
       </section>
 
+      {/* DIAGONAL HATCH PATTERN DIVIDER (Hero -> Biography) */}
+      <SectionDivider />
+
       {/* SECTION 2: BIOGRAPHY BENTO & CORE PILLARS */}
       <section id="about-manifesto" className="section-manifesto" aria-label="About & Biography">
         <div className="container">
@@ -50,11 +54,20 @@ export function HomePage() {
         </div>
       </section>
 
+      {/* DIAGONAL HATCH PATTERN DIVIDER (Biography -> Experience) */}
+      <SectionDivider />
+
       {/* SECTION 3: EXPERIENCE TIMELINE (Vertical Timeline with Point Dots & Stacked Photos) */}
       <ExperienceTimeline />
 
+      {/* DIAGONAL HATCH PATTERN DIVIDER (Experience -> Selected Work) */}
+      <SectionDivider />
+
       {/* SECTION 4: SELECTED WORK (High-impact full-page showcases with distinct theme & custom banner) */}
       <SelectedWork />
+
+      {/* DIAGONAL HATCH PATTERN DIVIDER (Selected Work -> Footer) */}
+      <SectionDivider />
     </div>
   );
 }

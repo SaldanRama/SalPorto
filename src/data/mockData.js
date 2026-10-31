@@ -22,55 +22,90 @@ export const mockProjects = [
     tags: ['UI/UX', 'Smart City', 'IoT', 'Mobile App', 'Figma'],
   },
   {
-    id: 'kelurahan-cantik',
-    slug: 'kelurahan-cantik',
-    title: 'Website Kelurahan Cantik',
-    headline: 'Administrative village statistics isolated and hard to access for citizens.',
-    category: 'web',
-    categoryLabel: 'Web / UI/UX',
-    year: 2024,
-    role: 'UI/UX Designer & Front-End Contributor',
-    projectType: 'Government / Diskominfo Makassar',
-    summary:
-      'Community statistical website initiative developed with Diskominfo Makassar to present municipal data, demographic distribution, and public services transparently.',
-    coverImage: '/images/projects/kelurahancantik-showcase.svg',
-    featured: true,
-    tools: ['Figma', 'React', 'JavaScript', 'CSS3 / Design System', 'Diskominfo API'],
-    tags: ['UI/UX', 'Front-End', 'Public Service', 'Design System'],
-  },
-  {
-    id: 'perdosfit',
-    slug: 'perdosfit',
-    title: 'PerdosFit Gym System',
-    headline: 'Complex member tracking & unstructured gym workout progress.',
-    category: 'ui-ux',
-    categoryLabel: 'UI/UX Design',
-    year: 2024,
-    role: 'Lead UI/UX Designer',
-    projectType: 'Academic / Conceptual Case Study',
-    summary:
-      'A multi-role Gym Management System web platform built with Double Diamond methodology, tailored for administrators, personal trainers, and gym members.',
-    coverImage: '/images/projects/perdosfit-showcase.svg',
-    featured: true,
-    tools: ['Figma', 'Double Diamond', 'System Design', 'Wireframing', 'User Testing'],
-    tags: ['UI/UX', 'Double Diamond', 'Figma', 'System Design'],
-  },
-  {
-    id: 'umkm-lakessi',
-    slug: 'umkm-lakessi',
-    title: 'UMKM Lakessi Visual Branding',
-    headline: 'Local micro-enterprises lacking cohesive visual identity and digital market reach.',
+    id: 'lakessi',
+    slug: 'lakessi',
+    title: 'KKN-T 114 Kel. Lakessi',
+    headline: 'Local micro-enterprises lacking cohesive visual branding, packaging, and digital reach.',
     category: 'graphic-design',
-    categoryLabel: 'Graphic Design',
-    year: 2023,
-    role: 'Visual Designer',
-    projectType: 'Community Project (KKN-T)',
+    categoryLabel: 'Graphic Design & Visual Identity',
+    year: 2025,
+    role: 'Visual Identity & Branding Specialist',
+    projectType: 'Community Service & UMKM Rebranding',
     summary:
-      'Visual identity design and packaging assets crafted for local micro-enterprises in Lakessi, Parepare, empowering local market presence.',
-    coverImage: '/images/umkm-lakessi-cover.webp',
-    featured: false,
-    tools: ['Affinity Designer', 'Canva', 'Photoshop', 'Packaging Design'],
-    tags: ['Branding', 'Packaging', 'Visual Identity', 'Typography'],
+      'Comprehensive visual identity, social media publication suite, and product packaging redesign executed for KKN-T 114 Universitas Hasanuddin and local micro-enterprises (UMKM) in Kelurahan Lakessi, Parepare.',
+    instagramUrl: 'https://www.instagram.com/kknt114_lakessi/',
+    coverImage: '/images/projects/Lakessi/1.png',
+    featured: true,
+    tools: ['Photoshop', 'Canva', 'CapCut', 'Packaging Design', 'Social Media Feeds'],
+    tags: ['Graphic Design', 'Visual Identity', 'Social Media', 'Packaging', 'Branding', 'UMKM'],
+    colorPalette: [
+      { name: 'Royal Blue', hex: '#135398' },
+      { name: 'Flame Red', hex: '#D93829' },
+      { name: 'Sunshine Yellow', hex: '#F4C444' },
+      { name: 'Tangerine Orange', hex: '#EA7724' },
+    ],
+    typography: ['Poppins', 'Stoops'],
+    scopes: ['Graphic Design', 'Visual Identity', 'Content Creation', 'Social Media Management'],
+    softwareUsage: ['Photoshop', 'Canva', 'CapCut'],
+    gallery: [
+      {
+        id: 'lakessi-1',
+        title: 'Project Overview & Identity Suite',
+        category: 'Hero Showcase Mockup',
+        caption:
+          'Showcase hero menampilkan visual branding program kerja, identitas KKN-T 114 Kel. Lakessi, serta feed dan produk UMKM.',
+        src: '/images/projects/Lakessi/1.png',
+      },
+      {
+        id: 'lakessi-2',
+        title: 'Project Brief, Scopes & Design System',
+        category: 'Brand Specifications',
+        caption:
+          'Spesifikasi visual mencakup software tools (Photoshop, Canva, CapCut), ruang lingkup, palet warna, dan tipografi Poppins & Stoops.',
+        src: '/images/projects/Lakessi/2.png',
+      },
+      {
+        id: 'lakessi-3',
+        title: 'Instagram Feeds Editorial System',
+        category: 'Social Media Management',
+        caption:
+          'Desain 8 feed Instagram terstruktur mencakup filosofi logo, meet the team, program kerja KKN-T 114, edukasi lingkungan, dan dokumentasi.',
+        src: '/images/projects/Lakessi/3.png',
+      },
+      {
+        id: 'lakessi-4',
+        title: 'Instagram Stories & Event Publications',
+        category: 'Content Creation & Story',
+        caption:
+          'Materi publikasi Instagram Stories untuk Seminar Program Kerja, Seminar Hasil & Ramah Tamah, dan promosi produk UMKM.',
+        src: '/images/projects/Lakessi/4.png',
+      },
+      {
+        id: 'lakessi-5',
+        title: 'Product Mockups & Packaging Rebranding',
+        category: 'Packaging & Merchandise',
+        caption:
+          'Desain kemasan standing pouch Keripik Pisang Wahyuni, stiker label produk, dan standing banner Banana Nov Food & Drink / Ice Boba & Tea.',
+        src: '/images/projects/Lakessi/5.png',
+      },
+    ],
+    sections: [
+      {
+        title: 'Background & Community Challenge',
+        content:
+          'Kelurahan Lakessi, Soreang, Parepare memiliki potensi ekonomi mikro yang beragam. Namun, produk-produk lokal seperti Keripik Pisang Wahyuni dan gerai kuliner Banana Nov belum memiliki identitas visual yang konsisten dan kemasan yang memiliki daya tarik ritel modern. Tim KKN-T 114 Universitas Hasanuddin berinisiatif merancang program kerja terpadu untuk merevitalisasi citra UMKM dan posko KKN melalui desain grafis profesional.',
+      },
+      {
+        title: 'Design Rationale & Methodology',
+        content:
+          'Pendekatan visual berakar pada energi komunitas lokal dengan memadukan warna primer berani (Royal Blue #135398 dan Flame Red #D93829) dengan aksen hangat (Sunshine Yellow #F4C444 dan Tangerine Orange #EA7724). Tipografi modern sans-serif Poppins dipadukan dengan aksen script Stoops untuk menghadirkan kesan ramah namun profesional di ranah digital maupun cetak.',
+      },
+      {
+        title: 'Deliverables & Community Impact',
+        content:
+          'Program ini berhasil memproduksi paket identitas visual lengkap: 8 feed Instagram informatif, template Instagram Stories untuk agenda resmi posko, stiker label die-cut siap cetak, serta desain kemasan standing pouch Keripik Pisang Wahyuni yang telah berstandar SPP-IRT dan bersertifikasi Halal, meningkatkan daya saing UMKM di pasar lokal.',
+      },
+    ],
   },
 ];
 

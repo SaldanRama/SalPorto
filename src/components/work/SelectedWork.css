@@ -303,6 +303,7 @@
   object-fit: cover;
   object-position: center top;
   display: block;
+  image-rendering: -webkit-optimize-contrast;
 }
 
 /* Placeholder for missing cover */

@@ -14,7 +14,9 @@ export function WorkPage() {
     let isMounted = true;
     getProjects().then((data) => {
       if (isMounted && data && data.length > 0) {
-        setProjects(data);
+        const dummySlugs = new Set(['kelurahan-cantik', 'perdosfit', 'project-kelurahan-cantik', 'project-perdosfit', 'project-umkm-lakessi', 'umkm-lakessi']);
+        const clean = data.filter((p) => !dummySlugs.has((p.slug || p.id || '').toLowerCase()));
+        setProjects(clean.length > 0 ? clean : mockProjects);
       }
     });
     return () => {
@@ -91,7 +93,7 @@ export function WorkPage() {
 
         {/* Projects Grid */}
         <div className="projects-grid">
-          {filteredProjects.map((project) => {
+          {filteredProjects.map((project, index) => {
             const cover = project.coverImage || project.cover_image;
             return (
               <Link
@@ -101,6 +103,14 @@ export function WorkPage() {
                 aria-label={`View case study for ${project.title}`}
               >
                 <div className="project-card-image-box">
+                  {/* Overlay Badges */}
+                  <div className="project-card-overlay-badges">
+                    <span className="project-card-num-badge">Project 0{index + 1}</span>
+                    <span className="project-card-cat-badge">
+                      {project.categoryLabel || project.category}
+                    </span>
+                  </div>
+
                   {cover ? (
                     <img
                       src={cover}
@@ -129,7 +139,7 @@ export function WorkPage() {
                   <p className="project-card-summary">{project.summary}</p>
 
                   <div className="project-card-footer">
-                    <span>Explore Details</span>
+                    <span>Explore Case Study</span>
                     <ArrowUpRight size={16} />
                   </div>
                 </div>

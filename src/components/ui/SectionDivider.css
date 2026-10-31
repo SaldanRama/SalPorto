@@ -1,0 +1,58 @@
+/* ==========================================================================
+   SECTION DIVIDER - DIAGONAL HATCH PATTERN (ARCHITECTURAL CAD)
+   - Height: exactly 32px
+   - Repeating linear gradient at 135deg with 4px cycle
+   - Thin 1px subtle top and bottom borders
+   - Light mode: #ffffff background, #e8e8e8 lines & borders
+   - Dark mode: adaptive to theme tokens (#111210 / subtle monochrome lines)
+   - Overflow hidden & pointer-events none
+   ========================================================================== */
+
+.section-divider {
+  --divider-hatch-bg: #ffffff;
+  --divider-hatch-line: #e8e8e8;
+  --divider-hatch-border: #e8e8e8;
+
+  position: relative;
+  display: block;
+  width: 100%;
+  height: 32px;
+  box-sizing: border-box;
+  overflow: hidden;
+  pointer-events: none;
+  background-color: var(--divider-hatch-bg);
+  background-image: repeating-linear-gradient(
+    135deg,
+    var(--divider-hatch-line) 0px,
+    var(--divider-hatch-line) 1px,
+    var(--divider-hatch-bg) 1px,
+    var(--divider-hatch-bg) 4px
+  );
+  border-top: 1px solid var(--divider-hatch-border);
+  border-bottom: 1px solid var(--divider-hatch-border);
+  border-left: none;
+  border-right: none;
+  margin-top: -1px;
+  margin-bottom: -1px;
+  z-index: 2;
+  transition: var(--transition-theme);
+}
+
+/* Dark theme styling */
+[data-theme='dark'] .section-divider {
+  --divider-hatch-bg: #111210;
+  --divider-hatch-line: rgba(255, 255, 255, 0.08);
+  --divider-hatch-border: rgba(255, 255, 255, 0.12);
+}
+
+/* Overlay / Absolute positioning variant (when used as container overlay) */
+.section-divider--overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  margin-top: 0;
+  margin-bottom: 0;
+  z-index: 10;
+}
+

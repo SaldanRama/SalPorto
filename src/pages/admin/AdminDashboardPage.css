@@ -1876,3 +1876,287 @@
     padding: 1rem 1.75rem;
   }
 }
+
+/* ==========================================================================
+   FLEXIBLE PROJECT EDITOR MODAL STYLES
+   ========================================================================== */
+.sp-project-section-card {
+  background: var(--sp-surface);
+  border: 1px solid var(--sp-border);
+  border-radius: 16px;
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.sp-project-section-head {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.sp-project-section-title {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--sp-text);
+  margin: 0;
+}
+
+.sp-project-section-desc {
+  font-size: 0.825rem;
+  color: var(--sp-muted);
+  margin: 0;
+  line-height: 1.45;
+}
+
+/* 16:9 Cover Image Box */
+.sp-project-cover-box {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  border-radius: 12px;
+  border: 1px dashed var(--sp-border);
+  background: rgba(0, 0, 0, 0.25);
+  overflow: hidden;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.sp-project-cover-box.has-image {
+  border-style: solid;
+}
+
+.sp-project-cover-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.sp-cover-overlay-actions {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  display: flex;
+  gap: 0.5rem;
+  z-index: 5;
+}
+
+.sp-cover-btn-action {
+  background: rgba(18, 18, 20, 0.85);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: #fff;
+  padding: 0.4rem 0.85rem;
+  border-radius: 8px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  transition: all 0.15s ease;
+}
+
+.sp-cover-btn-action:hover {
+  background: var(--sp-accent);
+  color: #fff;
+}
+
+.sp-cover-btn-action.danger:hover {
+  background: #ef4444;
+  color: #fff;
+}
+
+/* Slide Cards in Gallery Section */
+.sp-slide-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.sp-slide-card {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--sp-border);
+  border-radius: 14px;
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  transition: border-color 0.15s ease;
+}
+
+.sp-slide-card:hover {
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.sp-slide-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.sp-slide-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--sp-accent);
+  background: rgba(126, 149, 252, 0.12);
+  padding: 0.3rem 0.75rem;
+  border-radius: 9999px;
+  border: 1px solid rgba(126, 149, 252, 0.25);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.sp-slide-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.sp-slide-icon-btn {
+  background: transparent;
+  border: 1px solid var(--sp-border);
+  color: var(--sp-muted);
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.sp-slide-icon-btn:hover:not(:disabled) {
+  background: rgba(120, 120, 120, 0.15);
+  color: var(--sp-text);
+}
+
+.sp-slide-icon-btn.danger:hover {
+  background: rgba(239, 68, 68, 0.15);
+  color: #ef4444;
+  border-color: rgba(239, 68, 68, 0.3);
+}
+
+.sp-slide-icon-btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.sp-slide-card-body {
+  display: grid;
+  grid-template-columns: 240px 1fr;
+  gap: 1.25rem;
+}
+
+@media (max-width: 680px) {
+  .sp-slide-card-body {
+    grid-template-columns: 1fr;
+  }
+}
+
+.sp-slide-media-col {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+.sp-slide-thumb-box {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  border-radius: 10px;
+  overflow: hidden;
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid var(--sp-border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.sp-slide-thumb-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.sp-slide-fields-col {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+/* Tag & Scope Chips */
+.sp-chips-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  align-items: center;
+}
+
+.sp-chip-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--sp-border);
+  padding: 0.35rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.825rem;
+  color: var(--sp-text);
+  font-weight: 500;
+}
+
+.sp-chip-del-btn {
+  background: transparent;
+  border: none;
+  color: var(--sp-muted);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  transition: all 0.15s ease;
+}
+
+.sp-chip-del-btn:hover {
+  background: rgba(239, 68, 68, 0.2);
+  color: #ef4444;
+}
+
+.sp-preset-chips-wrap {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin-top: 0.25rem;
+}
+
+.sp-preset-btn {
+  background: transparent;
+  border: 1px dashed var(--sp-border);
+  padding: 0.25rem 0.65rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  color: var(--sp-muted);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.sp-preset-btn:hover {
+  border-color: var(--sp-accent);
+  color: var(--sp-accent);
+  background: rgba(126, 149, 252, 0.08);
+}

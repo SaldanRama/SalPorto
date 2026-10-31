@@ -35,7 +35,7 @@ const builder = imageUrlBuilder(sanityClient);
 
 /**
  * Convert Sanity image object or asset reference to an optimized CDN URL string
- * Automatically serves modern formats (WebP/AVIF), resizes appropriately, and compresses.
+ * Automatically serves native resolution without downscaling.
  * @param {any} source
  * @param {{ width?: number, quality?: number, height?: number }} [options]
  * @returns {string|null}
@@ -43,38 +43,55 @@ const builder = imageUrlBuilder(sanityClient);
 export function urlFor(source, options = {}) {
   if (!source) return null;
 
-  const width = options.width || 1200;
-  const quality = options.quality || 80;
+  const width = options.width;
+  const quality = options.quality;
 
   // If source is already a direct string URL or path
   if (typeof source === 'string') {
-    // If it's a Sanity CDN URL string, append edge optimization parameters
+    // If it's a local static path, return as is
+    if (source.startsWith('/')) {
+      return source;
+    }
+
+    // If it's a Sanity CDN URL string, preserve full native resolution
     if (source.includes('cdn.sanity.io/images/')) {
       try {
         const urlObj = new URL(source);
-        urlObj.searchParams.set('auto', 'format');
-        if (width && !urlObj.searchParams.has('w')) {
+        if (width) {
           urlObj.searchParams.set('w', String(width));
+        } else {
+          urlObj.searchParams.delete('w');
         }
-        if (!urlObj.searchParams.has('q')) {
+        if (quality) {
           urlObj.searchParams.set('q', String(quality));
+        } else {
+          urlObj.searchParams.delete('q');
+        }
+        // If no resize or quality constraint is specified, strip transforms to serve pure native original asset
+        if (!width && !quality) {
+          urlObj.searchParams.delete('auto');
+          urlObj.searchParams.delete('w');
+          urlObj.searchParams.delete('q');
+          urlObj.searchParams.delete('fit');
         }
         return urlObj.toString();
       } catch (_) {
         return source;
       }
     }
-    // If Unsplash, optimize dimensions & compression
+    // If Unsplash, optimize dimensions & compression if requested
     if (source.includes('images.unsplash.com')) {
       try {
         const urlObj = new URL(source);
         urlObj.searchParams.set('auto', 'format');
         urlObj.searchParams.set('fit', 'crop');
         const currentW = parseInt(urlObj.searchParams.get('w') || '0', 10);
-        if (!currentW || currentW > width) {
+        if (width && (!currentW || currentW > width)) {
           urlObj.searchParams.set('w', String(width));
         }
-        urlObj.searchParams.set('q', String(quality));
+        if (quality) {
+          urlObj.searchParams.set('q', String(quality));
+        }
         return urlObj.toString();
       } catch (_) {
         return source;
@@ -90,9 +107,12 @@ export function urlFor(source, options = {}) {
 
   // If it's a valid Sanity image object or asset ref
   try {
-    let imgBuilder = builder.image(source).auto('format').quality(quality).fit('max');
+    let imgBuilder = builder.image(source);
     if (width) {
       imgBuilder = imgBuilder.width(width);
+    }
+    if (quality) {
+      imgBuilder = imgBuilder.quality(quality);
     }
     if (options.height) {
       imgBuilder = imgBuilder.height(options.height);
@@ -174,6 +194,7 @@ export async function getProjects() {
       const query = `*[_type == "project" && published != false] | order(sortOrder asc, year desc) {
         _id,
         title,
+        headline,
         slug,
         category,
         categoryLabel,
@@ -181,42 +202,69 @@ export async function getProjects() {
         role,
         projectType,
         summary,
+        instagramUrl,
         coverImage,
         featured,
         tags,
-        sortOrder
+        sortOrder,
+        colorPalette,
+        typography,
+        softwareUsage,
+        scopes,
+        gallery,
+        sections
       }`;
 
       const data = await sanityClient.fetch(query);
 
       if (data && data.length > 0) {
-        const normalized = data.map((p) => {
-          const coverUrl = urlFor(p.coverImage, { width: 900, quality: 78 }) || p.coverImage || '';
-          return {
-            id: p._id,
-            slug: p.slug?.current || p.slug || p._id,
-            title: p.title,
-            headline: p.headline || '',
-            category: p.category || 'ui-ux',
-            categoryLabel: p.categoryLabel || 'UI/UX Design',
-            year: p.year || new Date().getFullYear(),
-            role: p.role || '',
-            projectType: p.projectType || 'Case Study',
-            summary: p.summary || '',
-            coverImage: coverUrl,
-            cover_image: coverUrl,
-            featured: p.featured ?? true,
-            tools: Array.isArray(p.tools) && p.tools.length > 0 ? p.tools : (Array.isArray(p.tags) ? p.tags : []),
-            tags: Array.isArray(p.tags) ? p.tags : [],
-            sortOrder: p.sortOrder ?? 0,
-          };
-        });
+        const dummySlugs = new Set(['kelurahan-cantik', 'perdosfit', 'project-kelurahan-cantik', 'project-perdosfit', 'project-umkm-lakessi', 'umkm-lakessi']);
+        const normalized = data
+          .filter((p) => {
+            const s = (p.slug?.current || p.slug || p._id || '').toLowerCase();
+            return !dummySlugs.has(s);
+          })
+          .map((p) => {
+            const coverUrl = urlFor(p.coverImage) || p.coverImage || '';
+            const localMatch = mockProjects.find(
+              (m) => m.slug === (p.slug?.current || p.slug) || m.id === p._id
+            );
+            return {
+              ...(localMatch || {}),
+              id: p._id,
+              slug: p.slug?.current || p.slug || p._id,
+              title: p.title || localMatch?.title,
+              headline: p.headline || localMatch?.headline || '',
+              category: p.category || localMatch?.category || 'ui-ux',
+              categoryLabel: p.categoryLabel || localMatch?.categoryLabel || 'UI/UX Design',
+              year: p.year || localMatch?.year || new Date().getFullYear(),
+              role: p.role || localMatch?.role || '',
+              projectType: p.projectType || localMatch?.projectType || 'Case Study',
+              summary: p.summary || localMatch?.summary || '',
+              instagramUrl: p.instagramUrl || localMatch?.instagramUrl || '',
+              coverImage: coverUrl || localMatch?.coverImage || '',
+              cover_image: coverUrl || localMatch?.coverImage || '',
+              featured: p.featured ?? localMatch?.featured ?? true,
+              tools: Array.isArray(p.tools) && p.tools.length > 0 ? p.tools : (localMatch?.tools || []),
+              tags: Array.isArray(p.tags) && p.tags.length > 0 ? p.tags : (localMatch?.tags || []),
+              colorPalette: Array.isArray(p.colorPalette) && p.colorPalette.length > 0 ? p.colorPalette : (localMatch?.colorPalette || []),
+              typography: Array.isArray(p.typography) && p.typography.length > 0 ? p.typography : (localMatch?.typography || []),
+              softwareUsage: Array.isArray(p.softwareUsage) && p.softwareUsage.length > 0 ? p.softwareUsage : (localMatch?.softwareUsage || []),
+              scopes: Array.isArray(p.scopes) && p.scopes.length > 0 ? p.scopes : (localMatch?.scopes || []),
+              gallery: Array.isArray(p.gallery) && p.gallery.length > 0 ? p.gallery : (localMatch?.gallery || []),
+              sections: Array.isArray(p.sections) && p.sections.length > 0 ? p.sections : (localMatch?.sections || []),
+              sortOrder: p.sortOrder ?? localMatch?.sortOrder ?? 0,
+            };
+          });
 
         try {
-          localStorage.setItem('salporto_projects_v2', JSON.stringify(normalized));
+          localStorage.removeItem('salporto_projects_v3');
+          localStorage.removeItem('salporto_projects_v4');
+          localStorage.removeItem('salporto_projects_v5');
+          localStorage.setItem('salporto_projects_v6', JSON.stringify(normalized));
         } catch (_) {}
 
-        return normalized;
+        return normalized.length > 0 ? normalized : mockProjects;
       }
     }
   } catch (err) {
@@ -225,11 +273,16 @@ export async function getProjects() {
 
   // Fallback to localStorage or mockProjects
   try {
-    const cached = localStorage.getItem('salporto_projects_v2');
+    localStorage.removeItem('salporto_projects_v3');
+    localStorage.removeItem('salporto_projects_v4');
+    localStorage.removeItem('salporto_projects_v5');
+    const cached = localStorage.getItem('salporto_projects_v6');
     if (cached) {
       const parsed = JSON.parse(cached);
-      if (Array.isArray(parsed) && parsed.length > 0 && parsed.some(p => p.slug === 'sitangkas')) {
-        return parsed;
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        const dummySlugs = new Set(['kelurahan-cantik', 'perdosfit', 'project-kelurahan-cantik', 'project-perdosfit', 'project-umkm-lakessi', 'umkm-lakessi']);
+        const clean = parsed.filter((p) => !dummySlugs.has((p.slug || p.id || '').toLowerCase()));
+        if (clean.length > 0) return clean;
       }
     }
   } catch (_) {}
@@ -241,11 +294,22 @@ export async function getProjects() {
  * Fetch single project by slug from Sanity
  */
 export async function getProjectBySlug(slug) {
+  const normalizedSlug = slug === 'umkm-lakessi' ? 'lakessi' : slug;
+  const localMatch = mockProjects.find(
+    (p) =>
+      p.slug === slug ||
+      p.slug === normalizedSlug ||
+      p.id === slug ||
+      p.id === normalizedSlug ||
+      (slug === 'lakessi' && (p.slug === 'lakessi' || p.id === 'lakessi'))
+  );
+
   try {
     if (isSanityConfigured()) {
-      const query = `*[_type == "project" && (slug.current == $slug || _id == $slug)][0] {
+      const query = `*[_type == "project" && (slug.current == $slug || slug.current == $altSlug || _id == $slug)][0] {
         _id,
         title,
+        headline,
         slug,
         category,
         categoryLabel,
@@ -253,30 +317,47 @@ export async function getProjectBySlug(slug) {
         role,
         projectType,
         summary,
+        instagramUrl,
         coverImage,
         featured,
         tags,
-        sortOrder
+        sortOrder,
+        colorPalette,
+        typography,
+        softwareUsage,
+        scopes,
+        gallery,
+        sections
       }`;
 
-      const doc = await sanityClient.fetch(query, { slug });
+      const doc = await sanityClient.fetch(query, { slug, altSlug: normalizedSlug });
       if (doc) {
-        const coverUrl = urlFor(doc.coverImage, { width: 1400, quality: 82 }) || doc.coverImage || '';
+        const coverUrl = urlFor(doc.coverImage) || doc.coverImage || localMatch?.coverImage || '';
         return {
+          ...(localMatch || {}),
+          ...doc,
           id: doc._id,
           slug: doc.slug?.current || doc.slug || doc._id,
-          title: doc.title,
-          category: doc.category || 'ui-ux',
-          categoryLabel: doc.categoryLabel || 'UI/UX Design',
-          year: doc.year || new Date().getFullYear(),
-          role: doc.role || '',
-          projectType: doc.projectType || 'Case Study',
-          summary: doc.summary || '',
+          title: doc.title || localMatch?.title,
+          headline: doc.headline || localMatch?.headline || '',
+          category: doc.category || localMatch?.category || 'ui-ux',
+          categoryLabel: doc.categoryLabel || localMatch?.categoryLabel || 'UI/UX Design',
+          year: doc.year || localMatch?.year || new Date().getFullYear(),
+          role: doc.role || localMatch?.role || '',
+          projectType: doc.projectType || localMatch?.projectType || 'Case Study',
+          summary: doc.summary || localMatch?.summary || '',
+          instagramUrl: doc.instagramUrl || localMatch?.instagramUrl || '',
           coverImage: coverUrl,
           cover_image: coverUrl,
-          featured: doc.featured ?? true,
-          tags: Array.isArray(doc.tags) ? doc.tags : [],
-          sortOrder: doc.sortOrder ?? 0,
+          featured: doc.featured ?? localMatch?.featured ?? true,
+          tags: Array.isArray(doc.tags) && doc.tags.length > 0 ? doc.tags : (localMatch?.tags || []),
+          colorPalette: Array.isArray(doc.colorPalette) && doc.colorPalette.length > 0 ? doc.colorPalette : (localMatch?.colorPalette || []),
+          typography: Array.isArray(doc.typography) && doc.typography.length > 0 ? doc.typography : (localMatch?.typography || []),
+          softwareUsage: Array.isArray(doc.softwareUsage) && doc.softwareUsage.length > 0 ? doc.softwareUsage : (localMatch?.softwareUsage || []),
+          scopes: Array.isArray(doc.scopes) && doc.scopes.length > 0 ? doc.scopes : (localMatch?.scopes || []),
+          gallery: Array.isArray(doc.gallery) && doc.gallery.length > 0 ? doc.gallery : (localMatch?.gallery || []),
+          sections: Array.isArray(doc.sections) && doc.sections.length > 0 ? doc.sections : (localMatch?.sections || []),
+          sortOrder: doc.sortOrder ?? localMatch?.sortOrder ?? 0,
         };
       }
     }
@@ -285,8 +366,18 @@ export async function getProjectBySlug(slug) {
   }
 
   // Fallback to local data
+  if (localMatch) return localMatch;
   const all = await getProjects();
-  return all.find((p) => p.slug === slug || p.id === slug) || null;
+  return (
+    all.find(
+      (p) =>
+        p.slug === slug ||
+        p.slug === normalizedSlug ||
+        p.id === slug ||
+        p.id === normalizedSlug ||
+        (slug === 'lakessi' && p.id === 'umkm-lakessi')
+    ) || null
+  );
 }
 
 /**
@@ -321,7 +412,7 @@ export async function getExperiences() {
           const resolvedImages = Array.isArray(e.images)
             ? e.images.map((imgItem) => {
                 const photoFile = imgItem.image || imgItem;
-                const photoUrl = urlFor(photoFile, { width: 800, quality: 78 }) || imgItem.url || '';
+                const photoUrl = urlFor(photoFile) || imgItem.url || '';
                 return {
                   url: photoUrl,
                   title: imgItem.title || '',
@@ -393,72 +484,25 @@ export const sanityWriteClient = createClient({
 });
 
 /**
- * Client-side image resize & compression before uploading to cloud
- * Resizes large camera photos (e.g. > 1920px) to max 1920px WebP
+ * Image pass-through: preserves 100% original, native file resolution & format
+ * without any client-side canvas resizing or lossy compression.
  */
-export async function compressImageBeforeUpload(file, maxWidth = 1920, maxHeight = 1080, quality = 0.85) {
-  if (typeof window === 'undefined' || !file || !(file instanceof Blob)) return file;
-  if (!file.type || !file.type.startsWith('image/')) return file;
-  if (file.type === 'image/svg+xml' || file.type === 'image/gif') return file;
-  if (file.size < 350 * 1024) return file; // Already lightweight
-
-  return new Promise((resolve) => {
-    try {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const img = new Image();
-        img.onload = () => {
-          let width = img.width;
-          let height = img.height;
-
-          if (width > maxWidth || height > maxHeight) {
-            const ratio = Math.min(maxWidth / width, maxHeight / height);
-            width = Math.round(width * ratio);
-            height = Math.round(height * ratio);
-          }
-
-          const canvas = document.createElement('canvas');
-          canvas.width = width;
-          canvas.height = height;
-          const ctx = canvas.getContext('2d');
-          ctx.drawImage(img, 0, 0, width, height);
-
-          canvas.toBlob(
-            (blob) => {
-              if (blob && blob.size < file.size) {
-                const newName = (file.name || 'image').replace(/\.[^.]+$/, '.webp');
-                const compressedFile = new File([blob], newName, {
-                  type: 'image/webp',
-                  lastModified: Date.now(),
-                });
-                resolve(compressedFile);
-              } else {
-                resolve(file);
-              }
-            },
-            'image/webp',
-            quality
-          );
-        };
-        img.onerror = () => resolve(file);
-        img.src = e.target.result;
-      };
-      reader.onerror = () => resolve(file);
-      reader.readAsDataURL(file);
-    } catch (_) {
-      resolve(file);
-    }
-  });
+export async function compressImageBeforeUpload(file) {
+  // Always return the pure native original file as-is
+  return file;
 }
 
 /**
- * Upload an image file (File or Blob) to Sanity Assets pipeline with pre-compression
+ * Upload an image file (File or Blob) directly to Sanity Assets pipeline
+ * Preserves 100% original native resolution, format, and pixel quality.
  */
 export async function uploadImageToSanity(file, filename) {
   try {
-    const fileToUpload = await compressImageBeforeUpload(file);
-    const asset = await sanityWriteClient.assets.upload('image', fileToUpload, {
-      filename: filename || fileToUpload.name || file.name,
+    if (!file) return { error: new Error('No file provided') };
+
+    // Upload raw original file directly to Sanity Assets Lake without any canvas downscaling
+    const asset = await sanityWriteClient.assets.upload('image', file, {
+      filename: filename || file.name || 'image',
     });
     return {
       asset,
@@ -555,22 +599,56 @@ export async function saveProject(project) {
       project.slug ||
       project.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
 
+    let categoryLabel = project.categoryLabel;
+    if (!categoryLabel) {
+      if (project.category === 'graphic-design') categoryLabel = 'Graphic Design & Visual Identity';
+      else if (project.category === 'web') categoryLabel = 'Web Projects';
+      else categoryLabel = 'UI/UX Design';
+    }
+
     const doc = {
       _id: docId,
       _type: 'project',
       title: project.title,
+      headline: project.headline || '',
       slug: { _type: 'slug', current: slugVal },
-      category: project.category || 'ui-ux',
-      categoryLabel: project.categoryLabel || 'UI/UX Design',
+      category: project.category || 'graphic-design',
+      categoryLabel,
       year: Number(project.year) || new Date().getFullYear(),
       role: project.role || '',
       projectType: project.projectType || 'Case Study',
       summary: project.summary || '',
+      instagramUrl: project.instagramUrl || '',
+      coverImage: project.coverImage || project.cover_image || '',
       featured: Boolean(project.featured ?? true),
       published: Boolean(project.published ?? true),
-      tags: Array.isArray(project.tags) ? project.tags : [],
+      tools: Array.isArray(project.tools) ? project.tools : (Array.isArray(project.tags) ? project.tags : []),
+      tags: Array.isArray(project.tags) ? project.tags : (Array.isArray(project.tools) ? project.tools : []),
+      scopes: Array.isArray(project.scopes) ? project.scopes : [],
       sortOrder: Number(project.sortOrder ?? 0),
     };
+
+    if (Array.isArray(project.gallery)) {
+      doc.gallery = project.gallery
+        .filter((g) => g && (g.src || g.title || g.url))
+        .map((item, idx) => ({
+          _key: item._key || item.id || `slide-${Date.now()}-${idx}`,
+          id: item.id || `slide-${idx + 1}`,
+          title: item.title || '',
+          category: item.category || '',
+          caption: item.caption || '',
+          src: item.src || item.url || '',
+        }));
+    } else {
+      doc.gallery = [];
+    }
+
+    if (Array.isArray(project.colorPalette)) {
+      doc.colorPalette = project.colorPalette;
+    }
+    if (Array.isArray(project.typography)) {
+      doc.typography = project.typography;
+    }
 
     const result = await sanityWriteClient.createOrReplace(doc);
     return { data: result, error: null };
@@ -612,7 +690,7 @@ export async function getMiniGallery() {
       const data = await sanityClient.fetch(query);
       if (Array.isArray(data) && data.length > 0) {
         const normalized = data.map((item, index) => {
-          const imgUrl = urlFor(item.image, { width: 960, quality: 78 }) || item.image?.url || '';
+          const imgUrl = urlFor(item.image) || item.image?.url || '';
           return {
             id: item._id,
             _id: item._id,
@@ -688,8 +766,8 @@ export async function getMiniGallery() {
       _id: 'default-cover-4',
       title: 'UMKM Lakessi Brand Identity',
       caption: 'Creative Packaging, Typography & Brand Guidelines',
-      url: 'https://images.unsplash.com/photo-1507238691740-187a5b1d37b8?auto=format&fit=crop&w=900&q=75',
-      linkUrl: '#',
+      url: '/images/projects/Lakessi/1.png',
+      linkUrl: '/work/lakessi',
       sortOrder: 3,
       published: true,
       isDefault: true,
